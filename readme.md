@@ -10,7 +10,7 @@
 * maven依赖添加SDK依赖
 ```
         <dependency>
-            <groupId>org.mzt.log</groupId>
+            <groupId>io.github.mouzt</groupId>
             <artifactId>bizlog-sdk</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
