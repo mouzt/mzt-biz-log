@@ -7,5 +7,7 @@ import com.mzt.logserver.beans.Order;
  * create on 2020/6/12 11:07 上午
  */
 public interface IOrderService {
-     boolean createOrder(Order order);
+    boolean createOrder(Order order);
+
+    boolean update(Long orderId, Order order);
 }

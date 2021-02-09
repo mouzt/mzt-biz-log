@@ -1,7 +1,8 @@
-package com.mzt.logapi.server.support;
+package com.mzt.logapi.starter.support.parse;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
+import com.mzt.logapi.service.IFunctionService;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -17,33 +18,36 @@ import java.util.regex.Pattern;
 /**
  * DATE 3:32 PM
  * 解析需要存储的日志里面的SpeEL表达式
+ *
  * @author mzt.
  */
-public class LogRecordValueParser implements BeanFactoryAware{
+public class LogRecordValueParser implements BeanFactoryAware {
 
     protected BeanFactory beanFactory;
 
     private LogRecordExpressionEvaluator expressionEvaluator = new LogRecordExpressionEvaluator();
-    private static Pattern pattern = Pattern.compile("\\{\\{(.*?)}}");
+    private IFunctionService functionService;
+    private static Pattern pattern = Pattern.compile("\\{\\s*(\\w*)\\s*\\{(.*?)}}");
 
 
-    public Map<String, String> processTemplate(Collection<String> templates, Object ret, Class<?> targetClass, Method method, Object[] args, String errorMsg){
+    public Map<String, String> processTemplate(Collection<String> templates, Object ret, Class<?> targetClass, Method method, Object[] args, String errorMsg) {
         Map<String, String> expressionValues = Maps.newHashMap();
         EvaluationContext evaluationContext = expressionEvaluator.createEvaluationContext(method, args, targetClass, ret, errorMsg, beanFactory);
 
         for (String expressionTemplate : templates) {
-            if(expressionTemplate.contains("{{")){
+            if (expressionTemplate.contains("{{") || expressionTemplate.contains("{")) {
                 Matcher matcher = pattern.matcher(expressionTemplate);
                 StringBuffer parsedStr = new StringBuffer();
-                while (matcher.find()){
-                    String expression = matcher.group(1);
+                while (matcher.find()) {
+                    String expression = matcher.group(2);
                     AnnotatedElementKey annotatedElementKey = new AnnotatedElementKey(method, targetClass);
                     String value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
-                    matcher.appendReplacement(parsedStr, Strings.nullToEmpty(value));
+                    String functionName = matcher.group(1);
+                    matcher.appendReplacement(parsedStr, Strings.nullToEmpty(functionService.apply(functionName, value)));
                 }
                 matcher.appendTail(parsedStr);
                 expressionValues.put(expressionTemplate, parsedStr.toString());
-            }else {
+            } else {
                 expressionValues.put(expressionTemplate, expressionTemplate);
             }
 
@@ -56,4 +60,7 @@ public class LogRecordValueParser implements BeanFactoryAware{
         this.beanFactory = beanFactory;
     }
 
+    public void setFunctionService(IFunctionService functionService) {
+        this.functionService = functionService;
+    }
 }

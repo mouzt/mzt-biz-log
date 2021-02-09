@@ -6,5 +6,5 @@ package com.mzt.logserver.constants;
  */
 public class LogRecordType {
 
-    public static final String ORDER = "ORDER#";
+    public static final String ORDER = "ORDER";
 }

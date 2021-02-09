@@ -11,15 +11,10 @@ import lombok.Data;
 @Builder
 public class LogRecordOps {
     private String successLogTemplate;
-
     private String failLogTemplate;
-
-    private String operator;
-
     private String operatorId;
-
     private String bizKey;
     private String bizNo;
-
     private String category;
+    private String detail;
 }

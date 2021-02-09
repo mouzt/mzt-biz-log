@@ -13,7 +13,6 @@
     </parent>
 
 
-
     <dependencies>
         <dependency>
             <groupId>io.github.mouzt</groupId>
@@ -59,7 +58,6 @@
             <artifactId>spring-beans</artifactId>
             <scope>compile</scope>
         </dependency>
-
 
 
         <!-- slf4j -->
