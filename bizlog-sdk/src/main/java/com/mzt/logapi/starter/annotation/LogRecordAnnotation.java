@@ -1,4 +1,4 @@
-package com.mzt.logapi.server.annotation;
+package com.mzt.logapi.starter.annotation;
 
 import java.lang.annotation.*;
 
@@ -12,10 +12,18 @@ import java.lang.annotation.*;
 @Documented
 public @interface LogRecordAnnotation {
     String success();
+
     String fail() default "";
-    String operator() default "";;
-    String operatorId() default "";;
-    String bizKey();
-    String bizNo() default "";
+
+    String operator() default "";
+
+    String operatorId() default "";
+
+    String prefix();
+
+    String bizNo();
+
     String category() default "";
+
+    String detail() default "";
 }

@@ -1,11 +1,12 @@
-package com.mzt.logapi.server.support;
+package com.mzt.logapi.starter.support.aop;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.mzt.logapi.beans.LogRecord;
 import com.mzt.logapi.beans.LogRecordOps;
-import com.mzt.logapi.server.domain.LogRecord;
 import com.mzt.logapi.service.ILogRecordService;
 import com.mzt.logapi.service.IOperatorGetService;
+import com.mzt.logapi.starter.support.parse.LogRecordValueParser;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -31,7 +32,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
 
     private LogRecordOperationSource logRecordOperationSource;
 
-    private String appKey;
+    private String tenantId;
 
     private ILogRecordService bizLogService;
 
@@ -83,37 +84,35 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
                     action = operation.getFailLogTemplate();
                     if (StringUtils.isEmpty(action)) {
                         //执行失败，并且没有配失败日志模版则忽略
-                        return;
+                        continue;
                     }
                 }
                 String bizKey = operation.getBizKey();
                 String bizNo = operation.getBizNo();
-                String operator = operation.getOperator();
                 String operatorId = operation.getOperatorId();
                 String category = operation.getCategory();
+                String detail = operation.getDetail();
                 //获取需要解析的表达式
                 List<String> spElTemplates;
                 String realOperator = "";
-                String realOperatorId = "";
-                if(StringUtils.isEmpty(operator)){
-                    spElTemplates = Lists.newArrayList(bizKey, bizNo , action);
-                    if(operatorGetService.getUser() == null){
+                if (StringUtils.isEmpty(operatorId)) {
+                    spElTemplates = Lists.newArrayList(bizKey, bizNo, action, detail);
+                    if (operatorGetService.getUser() == null || StringUtils.isEmpty(operatorGetService.getUser().getOperatorId())) {
                         throw new IllegalArgumentException("user is null");
                     }
-                    realOperator = operatorGetService.getUser().getOperatorName();
-                    realOperatorId = operatorGetService.getUser().getOperatorId();
-                }else {
-                    spElTemplates = Lists.newArrayList(bizKey, bizNo, action, operator, operatorId);
+                    realOperator = operatorGetService.getUser().getOperatorId();
+                } else {
+                    spElTemplates = Lists.newArrayList(bizKey, bizNo, action, operatorId, detail);
                 }
                 Map<String, String> expressionValues = processTemplate(spElTemplates, ret, targetClass, method, args, errorMsg);
 
                 LogRecord logRecord = LogRecord.builder()
-                        .appKey(appKey)
+                        .tenant(tenantId)
                         .bizKey(expressionValues.get(bizKey))
                         .bizNo(expressionValues.get(bizNo))
-                        .operator(!StringUtils.isEmpty(realOperator) ? realOperator: expressionValues.get(operator) )
-                        .operatorId(!StringUtils.isEmpty(realOperatorId) ? realOperatorId : expressionValues.get(operatorId))
+                        .operator(!StringUtils.isEmpty(realOperator) ? realOperator : expressionValues.get(operatorId))
                         .category(category)
+                        .detail(expressionValues.get(detail))
                         .action(expressionValues.get(action))
                         .createTime(new Date())
                         .build();
@@ -128,11 +127,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
     }
 
     private Class<?> getTargetClass(Object target) {
-        Class<?> targetClass = AopProxyUtils.ultimateTargetClass(target);
-        if (targetClass == null) {
-            targetClass = target.getClass();
-        }
-        return targetClass;
+        return AopProxyUtils.ultimateTargetClass(target);
     }
 
     public LogRecordOperationSource getLogRecordOperationSource() {
@@ -143,8 +138,8 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
         this.logRecordOperationSource = logRecordOperationSource;
     }
 
-    public void setAppKey(String appKey) {
-        this.appKey = appKey;
+    public void setTenant(String tenant) {
+        this.tenantId = tenant;
     }
 
     public void setLogRecordService(ILogRecordService bizLogService) {

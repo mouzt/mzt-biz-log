@@ -1,4 +1,4 @@
-package com.mzt.logapi.server.support;
+package com.mzt.logapi.starter.support.aop;
 
 import org.springframework.aop.support.StaticMethodMatcherPointcut;
 import org.springframework.util.CollectionUtils;

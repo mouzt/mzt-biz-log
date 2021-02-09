@@ -1,7 +1,7 @@
-package com.mzt.logapi.server.support;
+package com.mzt.logapi.starter.support.aop;
 
 import com.mzt.logapi.beans.LogRecordOps;
-import com.mzt.logapi.server.annotation.LogRecordAnnotation;
+import com.mzt.logapi.starter.annotation.LogRecordAnnotation;
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.ClassUtils;
@@ -34,11 +34,7 @@ public class LogRecordOperationSource {
         specificMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);
 
         // First try is the method in the target class.
-        Collection<LogRecordOps> opDef = parseLogRecordAnnotations(specificMethod);
-        if (opDef != null) {
-            return opDef;
-        }
-        return null;
+        return parseLogRecordAnnotations(specificMethod);
     }
 
     private Collection<LogRecordOps> parseLogRecordAnnotations(AnnotatedElement ae) {
@@ -57,11 +53,11 @@ public class LogRecordOperationSource {
         LogRecordOps recordOps = LogRecordOps.builder()
                 .successLogTemplate(recordAnnotation.success())
                 .failLogTemplate(recordAnnotation.fail())
-                .bizKey(recordAnnotation.bizKey())
+                .bizKey(recordAnnotation.prefix().concat("_").concat(recordAnnotation.bizNo()))
                 .bizNo(recordAnnotation.bizNo())
-                .operator(recordAnnotation.operator())
                 .operatorId(recordAnnotation.operatorId())
-                .category(recordAnnotation.category())
+                .category(StringUtils.isEmpty(recordAnnotation.category()) ? recordAnnotation.prefix() : recordAnnotation.category())
+                .detail(recordAnnotation.detail())
                 .build();
         validateLogRecordOperation(ae, recordOps);
         return recordOps;

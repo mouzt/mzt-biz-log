@@ -8,4 +8,6 @@ import com.mzt.logserver.beans.Order;
  */
 public interface IOrderService {
      boolean createOrder(Order order);
+
+     boolean update(Long orderId, Order order);
 }

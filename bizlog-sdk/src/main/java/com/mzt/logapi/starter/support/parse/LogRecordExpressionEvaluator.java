@@ -1,4 +1,4 @@
-package com.mzt.logapi.server.support;
+package com.mzt.logapi.starter.support.parse;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;

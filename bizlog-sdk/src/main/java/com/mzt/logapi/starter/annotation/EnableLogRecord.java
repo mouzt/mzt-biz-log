@@ -1,6 +1,6 @@
-package com.mzt.logapi.server.annotation;
+package com.mzt.logapi.starter.annotation;
 
-import com.mzt.logapi.server.support.LogRecordConfigureSelector;
+import com.mzt.logapi.starter.support.LogRecordConfigureSelector;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Import;
 
@@ -17,7 +17,7 @@ import java.lang.annotation.*;
 @Import(LogRecordConfigureSelector.class)
 public @interface EnableLogRecord {
 
-    String bizLine();
+    String tenant();
 
     /**
      * Indicate how caching advice should be applied. The default is

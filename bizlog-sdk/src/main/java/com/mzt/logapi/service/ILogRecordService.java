@@ -2,7 +2,7 @@ package com.mzt.logapi.service;
 
 
 
-import com.mzt.logapi.server.domain.LogRecord;
+import com.mzt.logapi.beans.LogRecord;
 
 import java.util.List;
 
