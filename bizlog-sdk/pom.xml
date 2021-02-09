@@ -26,8 +26,9 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>21.0</version>
+            <version>28.2-jre</version>
         </dependency>
+
 
         <dependency>
             <groupId>org.springframework</groupId>
