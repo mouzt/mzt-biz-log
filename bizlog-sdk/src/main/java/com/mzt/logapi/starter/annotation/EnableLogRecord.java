@@ -22,6 +22,7 @@ public @interface EnableLogRecord {
     /**
      * Indicate how caching advice should be applied. The default is
      * {@link AdviceMode#PROXY}.
+     *
      * @see AdviceMode
      */
     AdviceMode mode() default AdviceMode.PROXY;

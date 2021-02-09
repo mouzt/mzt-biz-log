@@ -87,7 +87,7 @@ public class LogRecordProxyAutoConfiguration implements ImportAware {
     @Bean
     @ConditionalOnMissingBean(ILogRecordService.class)
     @Role(BeanDefinition.ROLE_APPLICATION)
-    public ILogRecordService recordService(){
+    public ILogRecordService recordService() {
         return new DefaultLogRecordServiceImpl();
     }
 

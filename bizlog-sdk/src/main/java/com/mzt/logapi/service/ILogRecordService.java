@@ -1,7 +1,6 @@
 package com.mzt.logapi.service;
 
 
-
 import com.mzt.logapi.beans.LogRecord;
 
 import java.util.List;
@@ -9,12 +8,14 @@ import java.util.List;
 public interface ILogRecordService {
     /**
      * 保存log
+     *
      * @param logRecord
      */
     void record(LogRecord logRecord);
 
     /**
      * 返回最多100条记录
+     *
      * @param bizKey
      * @return
      */
@@ -22,6 +23,7 @@ public interface ILogRecordService {
 
     /**
      * 返回最多100条记录
+     *
      * @param bizNo
      * @return
      */
