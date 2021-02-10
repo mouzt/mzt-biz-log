@@ -17,7 +17,12 @@ public class OrderServiceImpl implements IOrderService {
 
     /*'张三下了一个订单,购买商品「超值优惠红烧肉套餐」,下单结果:true' */
     @Override
-    @LogRecordAnnotation(success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
+    @LogRecordAnnotation(
+            fail = "创建订单失败，失败原因：「{{#_errorMsg}}」",
+            category = "MANAGER_VIEW",
+            detail = "{{#order.toString()}}",
+            operator = "{{#currentUser}}",
+            success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
             prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
     public boolean createOrder(Order order) {
         log.info("【创建订单】orderNo={}", order.getOrderNo());
@@ -26,7 +31,7 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    @LogRecordAnnotation(success = "{ORDER{#orderId}}下了一个订单",
+    @LogRecordAnnotation(success = "更新了订单ORDER{#orderId}},更新内容为...",
             prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
             detail = "{{#order.toString()}}")
     public boolean update(Long orderId, Order order) {
