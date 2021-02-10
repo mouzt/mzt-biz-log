@@ -1,8 +1,8 @@
-# Springboot-注解型-通用操作日志组件
+# Springboot-注解-通用操作日志组件
 此组件解决的问题是：
 「谁」在「什么时间」对「什么」做了「什么事」
 
->本组件目前针对Spring-boot做了Autoconfig，如果是SpringMVC，也可自己在xml初始化bean
+>本组件目前针对 Spring-boot 做了 Autoconfig，如果是 SpringMVC，也可自己在 xml 初始化 bean
 
 ## 使用方式
 
@@ -29,13 +29,13 @@ public class Main {
 }
 ```
 #### 日志埋点
-###### 1. 普通的记录日志：
+###### 1. 普通的记录日志
 * pefix：是拼接在 bizNo 上作为 log 的一个标识。避免 bizNo 都为整数 ID 的时候和其他的业务中的 ID 重复。比如订单 ID、用户 ID 等
 * bizNo：就是业务的 ID，比如订单ID，我们查询的时候可以根据 bizNo 查询和它相关的操作日志
 * success：方法调用成功后把 success 记录在日志的内容中
 * SpEL 表达式：其中用双大括号包围起来的（例如：{{#order.purchaseName}}）#order.purchaseName 是 SpEL表达式。Spring中支持的它都支持的。比如调用静态方法，三目表达式。SpEL 可以使用方法中的任何参数
 ```
-   @LogRecordAnnotation(success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
+  @LogRecordAnnotation(success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
               prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
   public boolean createOrder(Order order) {
       log.info("【创建订单】orderNo={}", order.getOrderNo());
@@ -139,9 +139,9 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
 使用方法是在原来的变量的两个大括号之间加一个函数名称 例如 "{ORDER{#orderId}}" 其中 ORDER 是一个函数名称。只有一个函数名称是不够的,需要添加这个函数的定义和实现。可以看下面例子
 自定义的函数需要实现框架里面的IParseFunction的接口，需要实现两个方法：
 
- 1) functionName() 方法就返回注解上面的函数名；
+ * functionName() 方法就返回注解上面的函数名；
 
- 2) apply()函数参数是 "{ORDER{#orderId}}"中SpEL解析的#orderId的值，这里是一个数字1223110，接下来只需要在实现的类中把 ID 转换为可读懂的字符串就可以了，
+ * apply()函数参数是 "{ORDER{#orderId}}"中SpEL解析的#orderId的值，这里是一个数字1223110，接下来只需要在实现的类中把 ID 转换为可读懂的字符串就可以了，
  一般为了方便排查问题需要把名称和ID都展示出来，例如："订单名称（ID）"的形式。
 
 > 这里有个问题：加了自定义函数后，框架怎么能调用到呢？
@@ -199,7 +199,7 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
 ```
 
 #### 框架的扩展点
-1. 重写OperatorGetServiceImpl通过上下文获取用户的扩展，例子如下
+* 重写OperatorGetServiceImpl通过上下文获取用户的扩展，例子如下
 ```
 @Service
 public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
@@ -213,7 +213,7 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
     }
 }
 ```
-2. ILogRecordService 保存/查询日志的例子,使用者可以根据数据量保存到合适的存储介质上，比如保存在数据库/或者ES。自己实现保存和删除就可以了
+* ILogRecordService 保存/查询日志的例子,使用者可以根据数据量保存到合适的存储介质上，比如保存在数据库/或者ES。自己实现保存和删除就可以了
 > 也可以只实现保存的接口，毕竟已经保存在业务的存储上了，查询业务可以自己实现，不走 ILogRecordService 这个接口，毕竟产品经理会提一些千奇百怪的查询需求。
 ```
 @Service
@@ -241,7 +241,7 @@ public class DbLogRecordServiceImpl implements ILogRecordService {
     }
 }
 ```
-3. IParseFunction 自定义转换函数的接口，可以实现IParseFunction 实现对LogRecord注解中使用的函数扩展
+* IParseFunction 自定义转换函数的接口，可以实现IParseFunction 实现对LogRecord注解中使用的函数扩展
 例子：
 ```
 @Component
@@ -282,7 +282,7 @@ public class UserParseFunction implements IParseFunction {
 > LogRecordAnnotation 可以使用的变量出了参数也可以使用返回值#_ret变量，以及异常的错误信息#_errorMsg，也可以通过SpEL的 T 方式调用静态方法噢
 
 #### 带扩展
-实现一个Log的Context，可以解决方法参数中没有的变量但是想使用的问题，初步想法是可以通过在方法中 add 变量的形式实现，很快就可以实现了 😄
+实现一个 Log的 Context，可以解决方法参数中没有的变量但是想使用的问题，初步想法是可以通过在方法中 add 变量的形式实现，很快就可以实现了 😄
 
 #### 注意点：
 ⚠️ 整体日志拦截是在方法执行之后记录的，所以对于方法内部修改了方法参数之后，LogRecordAnnotation 的注解上的 SpEL 对变量的取值是修改后的值哦～
