@@ -1,7 +1,13 @@
 package com.mzt.logserver.function;
 
 import com.mzt.logapi.service.IParseFunction;
+import com.mzt.logserver.beans.Order;
+import com.mzt.logserver.service.OrderQueryService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import javax.annotation.Resource;
 
 /**
  * @author muzhantong
@@ -9,6 +15,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class OrderParseFunction implements IParseFunction {
+    @Resource
+    @Lazy
+    private OrderQueryService orderQueryService;
+
     @Override
     public String functionName() {
         return "ORDER";
@@ -16,6 +26,10 @@ public class OrderParseFunction implements IParseFunction {
 
     @Override
     public String apply(String value) {
-        return "小明".concat("(").concat(value).concat(")");
+        if (StringUtils.isEmpty(value)) {
+            return value;
+        }
+        Order order = orderQueryService.queryOrder(Long.parseLong(value));
+        return order.getProductName().concat("(").concat(value).concat(")");
     }
 }
