@@ -298,8 +298,9 @@ public class UserParseFunction implements IParseFunction {
 #### 变量相关
 > LogRecordAnnotation 可以使用的变量出了参数也可以使用返回值#_ret变量，以及异常的错误信息#_errorMsg，也可以通过SpEL的 T 方式调用静态方法噢
 
-#### 带扩展
-实现一个 Log的 Context，可以解决方法参数中没有的变量但是想使用的问题，初步想法是可以通过在方法中 add 变量的形式实现，很快就可以实现了 😄
+#### 扩展
+已经在版本 1.0.2 终实现
+实现一个 Log的 Context，可以解决方法参数中没有的变量但是想使用的问题，初步想法是可以通过在方法中 add 变量的形式实现
 
 #### 注意点：
 ⚠️ 整体日志拦截是在方法执行之后记录的，所以对于方法内部修改了方法参数之后，LogRecordAnnotation 的注解上的 SpEL 对变量的取值是修改后的值哦～
