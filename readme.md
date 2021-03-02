@@ -197,6 +197,23 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
     	return xxx;
     }
 ```
+###### 8. 日志文案调整 模版中使用方法参数之外的变量
+可以在方法中通过 LogRecordContext.putVariable(variableName, Object) 的方法添加变量，第一个对象为变量名称，后面为变量的对象，
+然后我们就可以使用 SpEL 使用这个变量了，例如：例子中的 {{#innerOrder.productName}} 是在方法中设置的变量
+```
+    @Override
+    @LogRecordAnnotation(
+            success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,测试变量「{{#innerOrder.productName}}」,下单结果:{{#_ret}}",
+            prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
+    public boolean createOrder(Order order) {
+        log.info("【创建订单】orderNo={}", order.getOrderNo());
+        // db insert order
+        Order order1 = new Order();
+        order1.setProductName("内部变量测试");
+        LogRecordContext.putVariable("innerOrder", order1);
+        return true;
+    }
+```
 
 #### 框架的扩展点
 * 重写OperatorGetServiceImpl通过上下文获取用户的扩展，例子如下

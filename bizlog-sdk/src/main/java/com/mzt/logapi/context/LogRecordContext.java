@@ -1,5 +1,6 @@
 package com.mzt.logapi.context;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -9,6 +10,10 @@ import java.util.Map;
 public class LogRecordContext {
 
     private static InheritableThreadLocal<Map<String, Object>> variableMap = new InheritableThreadLocal<>();
+
+    static {
+        variableMap.set(new HashMap<>());
+    }
 
     public static void putVariable(String name, Object value) {
         variableMap.get().put(name, value);
