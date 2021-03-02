@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.mzt.logapi.beans.LogRecord;
 import com.mzt.logapi.beans.LogRecordOps;
+import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.service.ILogRecordService;
 import com.mzt.logapi.service.IOperatorGetService;
 import com.mzt.logapi.starter.support.parse.LogRecordValueParser;
@@ -52,6 +53,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
         String errorMsg = "";
         Throwable throwable = null;
         try {
+            LogRecordContext.clear();
             ret = invoker.proceed();
         } catch (Exception e) {
             success = false;
@@ -66,6 +68,8 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
         } catch (Exception t) {
             //记录日志错误不要影响业务
             log.error("log record parse exception", t);
+        } finally {
+            LogRecordContext.clear();
         }
         if (throwable != null) {
             throw throwable;

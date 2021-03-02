@@ -1,5 +1,6 @@
 package com.mzt.logserver.service.impl;
 
+import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.annotation.LogRecordAnnotation;
 import com.mzt.logserver.beans.Order;
 import com.mzt.logserver.constants.LogRecordType;
@@ -22,11 +23,14 @@ public class OrderServiceImpl implements IOrderService {
             category = "MANAGER_VIEW",
             detail = "{{#order.toString()}}",
             operator = "{{#currentUser}}",
-            success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
+            success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,测试变量「{{#innerOrder.productName}}」,下单结果:{{#_ret}}",
             prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
     public boolean createOrder(Order order) {
         log.info("【创建订单】orderNo={}", order.getOrderNo());
         // db insert order
+        Order order1 = new Order();
+        order1.setProductName("内部变量测试");
+        LogRecordContext.putVariable("innerOrder", order1);
         return true;
     }
 
