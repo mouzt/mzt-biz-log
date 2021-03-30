@@ -1,5 +1,7 @@
 package com.mzt.logapi.context;
 
+import com.google.common.collect.Maps;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,21 +11,25 @@ import java.util.Map;
  */
 public class LogRecordContext {
 
-    private static InheritableThreadLocal<Map<String, Object>> variableMap = new InheritableThreadLocal<>();
+    private static final InheritableThreadLocal<Map<String, Object>> variableMap = new InheritableThreadLocal<>();
 
-    static {
-        variableMap.set(new HashMap<>());
-    }
 
     public static void putVariable(String name, Object value) {
+        if (variableMap.get() == null) {
+            HashMap<String, Object> map = Maps.newHashMap();
+            map.put(name, value);
+            variableMap.set(map);
+        }
         variableMap.get().put(name, value);
     }
 
     public static Map<String, Object> getVariables() {
-        return variableMap.get();
+        return variableMap.get() == null ? Maps.newHashMap() : variableMap.get();
     }
 
     public static void clear() {
-        variableMap.get().clear();
+        if (variableMap.get() != null) {
+            variableMap.get().clear();
+        }
     }
 }
