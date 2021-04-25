@@ -215,8 +215,69 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
     }
 ```
 
+###### 9. 函数中使用LogRecordContext的变量
+
+使用 LogRecordContext.putVariable(variableName, Object) 添加的变量除了可以在注解的 SpEL 表达式上使用，还可以在自定义函数中使用 这种方式比较复杂，下面例子中示意了列表的变化，比如
+从[A,B,C] 改到 [B,D] 那么日志显示：「删除了A，增加了D」
+
+```
+    @LogRecord(success = "{DIFF_LIST{'文档地址'}}", bizNo = "{{#id}}", prefix = REQUIREMENT)
+    public void updateRequirementDocLink(String currentMisId, Long id, List<String> docLinks) {
+        RequirementDO requirementDO = getRequirementDOById(id);
+        LogRecordContext.putVariable("oldList", requirementDO.getDocLinks());
+        LogRecordContext.putVariable("newList", docLinks);
+
+        requirementModule.updateById("docLinks", RequirementUpdateDO.builder()
+                .id(id)
+                .docLinks(docLinks)
+                .updater(currentMisId)
+                .updateTime(new Date())
+                .build());
+    }
+    
+    
+    @Component
+    public class DiffListParseFunction implements IParseFunction {
+    
+        @Override
+        public String functionName() {
+            return "DIFF_LIST";
+        }
+    
+        @SuppressWarnings("unchecked")
+        @Override
+        public String apply(String value) {
+            if (StringUtils.isBlank(value)) {
+                return value;
+            }
+            List<String> oldList = (List<String>) LogRecordContext.getVariable("oldList");
+            List<String> newList = (List<String>) LogRecordContext.getVariable("newList");
+            oldList = oldList == null ? Lists.newArrayList() : oldList;
+            newList = newList == null ? Lists.newArrayList() : newList;
+            Set<String> deletedSets = Sets.difference(Sets.newHashSet(oldList), Sets.newHashSet(newList));
+            Set<String> addSets = Sets.difference(Sets.newHashSet(newList), Sets.newHashSet(oldList));
+            StringBuilder stringBuilder = new StringBuilder();
+            if (CollectionUtils.isNotEmpty(addSets)) {
+                stringBuilder.append("新增了 <b>").append(value).append("</b>：");
+                for (String item : addSets) {
+                    stringBuilder.append(item).append("，");
+                }
+            }
+            if (CollectionUtils.isNotEmpty(deletedSets)) {
+                stringBuilder.append("删除了 <b>").append(value).append("</b>：");
+                for (String item : deletedSets) {
+                    stringBuilder.append(item).append("，");
+                }
+            }
+            return StringUtils.isBlank(stringBuilder) ? null : stringBuilder.substring(0, stringBuilder.length() - 1);
+        }
+    }
+```
+
 #### 框架的扩展点
+
 * 重写OperatorGetServiceImpl通过上下文获取用户的扩展，例子如下
+
 ```
 @Service
 public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
