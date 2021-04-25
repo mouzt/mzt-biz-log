@@ -1,13 +1,22 @@
 # Springboot-注解-通用操作日志组件
-此组件解决的问题是：
-「谁」在「什么时间」对「什么」做了「什么事」
 
->本组件目前针对 Spring-boot 做了 Autoconfig，如果是 SpringMVC，也可自己在 xml 初始化 bean
+此组件解决的问题是： 「谁」在「什么时间」对「什么」做了「什么事」
+
+> 本组件目前针对 Spring-boot 做了 Autoconfig，如果是 SpringMVC，也可自己在 xml 初始化 bean
+
+## Change Log
+
+|版本 |状态|
+|----|----|
+| 1.0.1  |发版 |
+| 1.0.4  |支持Context添加变量|
 
 ## 使用方式
 
 ### 基本使用
+
 #### maven依赖添加SDK依赖
+
 ```
         <dependency>
           <groupId>io.github.mouzt</groupId>
@@ -363,7 +372,11 @@ public class UserParseFunction implements IParseFunction {
 
 #### Change Log & TODO
 
-| 名称 |状态 | |--|--| | 支持Context添加变量|1.0.4 已经支持 | |支持对象的diff|TODO| | 支持List的日志记录| TODO |
+| 名称 |状态 |
+|----|----| 
+| 支持Context添加变量|1.0.4 已经支持 | 
+|支持对象的diff|TODO| 
+| 支持List的日志记录| TODO |
 
 #### 注意点：
 
