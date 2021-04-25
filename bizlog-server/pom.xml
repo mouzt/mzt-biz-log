@@ -8,16 +8,20 @@
     <parent>
         <groupId>io.github.mouzt</groupId>
         <artifactId>mzt-biz-log</artifactId>
-        <version>1.0.3</version>
+        <version>1.0.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
+
+    <!--    <properties>-->
+    <!--        <maven.deploy.skip>true</maven.deploy.skip>-->
+    <!--    </properties>-->
 
     <dependencies>
         <dependency>
             <groupId>io.github.mouzt</groupId>
             <artifactId>bizlog-sdk</artifactId>
-            <version>1.0.3</version>
+            <version>1.0.4</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
