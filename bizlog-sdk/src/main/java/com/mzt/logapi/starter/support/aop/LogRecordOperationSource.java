@@ -58,6 +58,7 @@ public class LogRecordOperationSource {
                 .operatorId(recordAnnotation.operatorId())
                 .category(StringUtils.isEmpty(recordAnnotation.category()) ? recordAnnotation.prefix() : recordAnnotation.category())
                 .detail(recordAnnotation.detail())
+                .condition(recordAnnotation.condition())
                 .build();
         validateLogRecordOperation(ae, recordOps);
         return recordOps;

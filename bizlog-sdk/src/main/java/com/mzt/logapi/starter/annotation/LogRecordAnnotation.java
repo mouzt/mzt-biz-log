@@ -26,4 +26,6 @@ public @interface LogRecordAnnotation {
     String category() default "";
 
     String detail() default "";
+
+    String condition() default "";
 }

@@ -8,6 +8,9 @@ import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.service.ILogRecordService;
 import com.mzt.logapi.service.IOperatorGetService;
 import com.mzt.logapi.starter.support.parse.LogRecordValueParser;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -39,7 +42,6 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
 
     private IOperatorGetService operatorGetService;
 
-
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         Method method = invocation.getMethod();
@@ -49,21 +51,17 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
     private Object execute(MethodInvocation invoker, Object target, Method method, Object[] args) throws Throwable {
         Class<?> targetClass = getTargetClass(target);
         Object ret = null;
-        boolean success = true;
-        String errorMsg = "";
-        Throwable throwable = null;
+        MethodExecuteResult methodExecuteResult = new MethodExecuteResult(true, null, "");
+        LogRecordContext.putEmptySpan();
         try {
-            LogRecordContext.clear();
             ret = invoker.proceed();
         } catch (Exception e) {
-            success = false;
-            errorMsg = e.getMessage();
-            throwable = e;
+            methodExecuteResult = new MethodExecuteResult(false, e, e.getMessage());
         }
         try {
             Collection<LogRecordOps> operations = getLogRecordOperationSource().computeLogRecordOperations(method, targetClass);
             if (!CollectionUtils.isEmpty(operations)) {
-                recordExecute(ret, method, args, operations, targetClass, success, errorMsg);
+                recordExecute(ret, method, args, operations, targetClass, methodExecuteResult.isSuccess(), methodExecuteResult.getErrorMsg());
             }
         } catch (Exception t) {
             //记录日志错误不要影响业务
@@ -71,8 +69,8 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
         } finally {
             LogRecordContext.clear();
         }
-        if (throwable != null) {
-            throw throwable;
+        if (methodExecuteResult.throwable != null) {
+            throw methodExecuteResult.throwable;
         }
         return ret;
     }
@@ -86,44 +84,53 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
                     action = operation.getSuccessLogTemplate();
                 } else {
                     action = operation.getFailLogTemplate();
-                    if (StringUtils.isEmpty(action)) {
-                        //执行失败，并且没有配失败日志模版则忽略
-                        continue;
-                    }
+                }
+                if (StringUtils.isEmpty(action)) {
+                    //执行失败，并且没有配失败日志模版则忽略
+                    continue;
                 }
                 String bizKey = operation.getBizKey();
                 String bizNo = operation.getBizNo();
                 String operatorId = operation.getOperatorId();
                 String category = operation.getCategory();
                 String detail = operation.getDetail();
+                String condition = operation.getCondition();
                 //获取需要解析的表达式
-                List<String> spElTemplates;
-                String realOperator = "";
+                List<String> spElTemplates = Lists.newArrayList(bizKey, bizNo, action, detail);
+                ;
+                String realOperatorId = "";
                 if (StringUtils.isEmpty(operatorId)) {
-                    spElTemplates = Lists.newArrayList(bizKey, bizNo, action, detail);
                     if (operatorGetService.getUser() == null || StringUtils.isEmpty(operatorGetService.getUser().getOperatorId())) {
                         throw new IllegalArgumentException("user is null");
                     }
-                    realOperator = operatorGetService.getUser().getOperatorId();
+                    realOperatorId = operatorGetService.getUser().getOperatorId();
                 } else {
                     spElTemplates = Lists.newArrayList(bizKey, bizNo, action, operatorId, detail);
                 }
+                if (!StringUtils.isEmpty(condition)) {
+                    spElTemplates.add(condition);
+                }
                 Map<String, String> expressionValues = processTemplate(spElTemplates, ret, targetClass, method, args, errorMsg);
+                if (StringUtils.isEmpty(condition) || StringUtils.endsWithIgnoreCase(expressionValues.get(condition), "true")) {
+                    LogRecord logRecord = LogRecord.builder()
+                            .tenant(tenantId)
+                            .bizKey(expressionValues.get(bizKey))
+                            .bizNo(expressionValues.get(bizNo))
+                            .operator(!StringUtils.isEmpty(realOperatorId) ? realOperatorId : expressionValues.get(operatorId))
+                            .category(category)
+                            .detail(expressionValues.get(detail))
+                            .action(expressionValues.get(action))
+                            .createTime(new Date())
+                            .build();
 
-                LogRecord logRecord = LogRecord.builder()
-                        .tenant(tenantId)
-                        .bizKey(expressionValues.get(bizKey))
-                        .bizNo(expressionValues.get(bizNo))
-                        .operator(!StringUtils.isEmpty(realOperator) ? realOperator : expressionValues.get(operatorId))
-                        .category(category)
-                        .detail(expressionValues.get(detail))
-                        .action(expressionValues.get(action))
-                        .createTime(new Date())
-                        .build();
-
-                //save log 需要新开事务，失败日志不能因为事务回滚而丢失
-                Preconditions.checkNotNull(bizLogService, "bizLogService not init!!");
-                bizLogService.record(logRecord);
+                    //如果 action 为空，不记录日志
+                    if (StringUtils.isEmpty(logRecord.getAction())) {
+                        continue;
+                    }
+                    //save log 需要新开事务，失败日志不能因为事务回滚而丢失
+                    Preconditions.checkNotNull(bizLogService, "bizLogService not init!!");
+                    bizLogService.record(logRecord);
+                }
             } catch (Exception t) {
                 log.error("log record execute exception", t);
             }
@@ -159,5 +166,14 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
 
     public void setOperatorGetService(IOperatorGetService operatorGetService) {
         this.operatorGetService = operatorGetService;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    static class MethodExecuteResult {
+        private boolean success;
+        private Throwable throwable;
+        private String errorMsg;
     }
 }

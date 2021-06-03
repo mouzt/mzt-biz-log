@@ -17,4 +17,5 @@ public class LogRecordOps {
     private String bizNo;
     private String category;
     private String detail;
+    private String condition;
 }
