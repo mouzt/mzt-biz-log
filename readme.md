@@ -9,7 +9,8 @@
 |版本 |状态|
 |----|----|
 | 1.0.1  |发版 |
-| 1.0.4  |支持Context添加变量|
+| 1.0.4  |支持 Context 添加变量|
+| 1.0.5  |支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18|
 
 ## 使用方式
 
@@ -21,7 +22,7 @@
         <dependency>
           <groupId>io.github.mouzt</groupId>
           <artifactId>bizlog-sdk</artifactId>
-          <version>1.0.4</version>
+          <version>1.0.5</version>
         </dependency>
 ```
 #### SpringBoot入口打开开关,添加 @EnableLogRecord 注解
@@ -284,6 +285,20 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
     }
 ```
 
+###### 10. 使用 condition，满足条件的时候才记录日志
+
+比如下面的例子：condition 变量为空的情况 才记录日志；condition 中的 SpEL 表达式必须是 bool 类型才生效。不配置 condition 默认日志都记录
+
+```
+ @Override
+    @LogRecordAnnotation(success = "更新了订单ORDER{#orderId}},更新内容为...",
+            prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
+            detail = "{{#order.toString()}}", condition = "{{#condition == null}}")
+    public boolean testCondition(Long orderId, Order order, String condition) {
+        return false;
+    }
+```
+
 #### 框架的扩展点
 
 * 重写OperatorGetServiceImpl通过上下文获取用户的扩展，例子如下
@@ -375,6 +390,7 @@ public class UserParseFunction implements IParseFunction {
 
 | 名称 |状态 |
 |----|----| 
+| 支持condition; 修复 https://github.com/mouzt/mzt-biz-log/issues/18 |1.0.5 | 
 | 支持Context添加变量|1.0.4 已经支持 | 
 |支持对象的diff|TODO| 
 | 支持List的日志记录| TODO |

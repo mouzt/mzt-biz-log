@@ -52,7 +52,7 @@ public class OrderServiceImpl implements IOrderService {
     @Override
     @LogRecordAnnotation(success = "更新了订单ORDER{#orderId}},更新内容为...",
             prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
-            detail = "{{#order.toString()}}", condition = "{{#condition == null}}")
+            condition = "{{#condition == null}}")
     public boolean testCondition(Long orderId, Order order, String condition) {
         return false;
     }
