@@ -30,4 +30,34 @@ public class IOrderServiceTest extends BaseTest {
         boolean ret = orderService.update(1L, order);
 
     }
+
+    @Test
+    public void testCondition_打印日志() {
+        Order order = new Order();
+        order.setOrderNo("MT0000011");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        boolean ret = orderService.testCondition(1L, order, null);
+        // 打印日志
+    }
+
+    @Test
+    public void testCondition_不打印日志() {
+        Order order = new Order();
+        order.setOrderNo("MT0000011");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        boolean ret = orderService.testCondition(1L, order, "sss");
+        // 打印日志
+    }
+
+    @Test
+    public void testContextCallContext() {
+        Order order = new Order();
+        order.setOrderNo("MT0000011");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        boolean ret = orderService.testContextCallContext(1L, order);
+        // 打印两条日志
+    }
 }

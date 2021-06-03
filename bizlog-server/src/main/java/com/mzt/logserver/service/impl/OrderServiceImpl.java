@@ -5,8 +5,12 @@ import com.mzt.logapi.starter.annotation.LogRecordAnnotation;
 import com.mzt.logserver.beans.Order;
 import com.mzt.logserver.constants.LogRecordType;
 import com.mzt.logserver.service.IOrderService;
+import com.mzt.logserver.service.UserQueryService;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.util.Lists;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
 
 /**
  * @author muzhantong
@@ -15,6 +19,9 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class OrderServiceImpl implements IOrderService {
+
+    @Resource
+    private UserQueryService userQueryService;
 
     /*'张三下了一个订单,购买商品「超值优惠红烧肉套餐」,下单结果:true' */
     @Override
@@ -39,6 +46,23 @@ public class OrderServiceImpl implements IOrderService {
             prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
             detail = "{{#order.toString()}}")
     public boolean update(Long orderId, Order order) {
+        return false;
+    }
+
+    @Override
+    @LogRecordAnnotation(success = "更新了订单ORDER{#orderId}},更新内容为...",
+            prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
+            condition = "{{#condition == null}}")
+    public boolean testCondition(Long orderId, Order order, String condition) {
+        return false;
+    }
+
+    @Override
+    @LogRecordAnnotation(success = "更新了订单ORDER{#orderId}},更新内容为..{{#title}}}",
+            prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
+    public boolean testContextCallContext(Long orderId, Order order) {
+        LogRecordContext.putVariable("title", "外层调用");
+        userQueryService.getUserList(Lists.newArrayList("mzt"));
         return false;
     }
 }
