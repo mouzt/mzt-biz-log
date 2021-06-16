@@ -1,0 +1,15 @@
+datasource:
+  test1:
+    jdbc-url: jdbc:mysql://192.168.86.107:3306/test1?useUnicode=true
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.jdbc.Driver
+  test2:
+    jdbc-url: jdbc:mysql://192.168.86.107:3306/test2?useUnicode=true
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.jdbc.Driver
+
+
+mybatis:
+  mapper-locations: /mapper/**.xml
