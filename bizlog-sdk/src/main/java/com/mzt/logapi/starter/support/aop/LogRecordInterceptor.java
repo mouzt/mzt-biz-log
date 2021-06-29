@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * DATE 5:39 PM
@@ -129,7 +130,10 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
                     }
                     //save log 需要新开事务，失败日志不能因为事务回滚而丢失
                     Preconditions.checkNotNull(bizLogService, "bizLogService not init!!");
-                    bizLogService.record(logRecord);
+                    //async
+                    CompletableFuture.runAsync(()->{
+                        bizLogService.record(logRecord);
+                    });
                 }
             } catch (Exception t) {
                 log.error("log record execute exception", t);
