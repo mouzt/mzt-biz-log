@@ -35,7 +35,7 @@ public class LogRecordValueParser implements BeanFactoryAware {
         EvaluationContext evaluationContext = expressionEvaluator.createEvaluationContext(method, args, targetClass, ret, errorMsg, beanFactory);
 
         for (String expressionTemplate : templates) {
-            if (expressionTemplate.contains("{{") || expressionTemplate.contains("{")) {
+            if (expressionTemplate.contains("{")) {
                 Matcher matcher = pattern.matcher(expressionTemplate);
                 StringBuffer parsedStr = new StringBuffer();
                 while (matcher.find()) {

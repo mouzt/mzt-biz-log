@@ -8,6 +8,8 @@ import com.mzt.logserver.service.IOrderService;
 import com.mzt.logserver.service.UserQueryService;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -64,5 +66,18 @@ public class OrderServiceImpl implements IOrderService {
         LogRecordContext.putVariable("title", "外层调用");
         userQueryService.getUserList(Lists.newArrayList("mzt"));
         return false;
+    }
+
+    @Override
+    public boolean updateAddress(String orderNo, String oldAddress, String newAddress) {
+        return false;
+    }
+
+    public static void main(String[] args) {
+        SpelExpressionParser parser = new SpelExpressionParser();
+        Expression expression = parser.parseExpression("#root.purchaseName");
+        Order order = new Order();
+        order.setPurchaseName("张三");
+        System.out.println(expression.getValue(order));
     }
 }

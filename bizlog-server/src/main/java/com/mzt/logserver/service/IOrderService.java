@@ -14,4 +14,6 @@ public interface IOrderService {
     boolean testCondition(Long orderId, Order order, String condition);
 
     boolean testContextCallContext(Long orderId, Order order);
+
+    boolean updateAddress(String orderNo, String oldAddress, String newAddress);
 }
