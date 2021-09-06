@@ -24,6 +24,7 @@ public class IOrderServiceTest extends BaseTest {
     @Test
     public void updateOrder() {
         Order order = new Order();
+        order.setOrderId(99L);
         order.setOrderNo("MT0000011");
         order.setProductName("超值优惠红烧肉套餐");
         order.setPurchaseName("张三");

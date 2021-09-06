@@ -24,4 +24,9 @@ public class DefaultFunctionServiceImpl implements IFunctionService {
         }
         return function.apply(value);
     }
+
+    @Override
+    public boolean beforeFunction(String functionName) {
+        return parseFunctionFactory.isBeforeFunction(functionName);
+    }
 }

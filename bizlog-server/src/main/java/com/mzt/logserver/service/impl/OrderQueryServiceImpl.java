@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 public class OrderQueryServiceImpl implements OrderQueryService {
     @Override
     public Order queryOrder(long parseLong) {
-        return null;
+        Order order = new Order();
+        order.setProductName("xxxx");
+        return order;
     }
 }
