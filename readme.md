@@ -11,6 +11,7 @@
 | 1.0.1  |发版 |
 | 1.0.4  |支持 Context 添加变量|
 | 1.0.5  |支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18|
+| 1.0.6  |自定义函数支持 在业务的方法运行前执行|
 
 ## 使用方式
 
@@ -22,7 +23,7 @@
         <dependency>
           <groupId>io.github.mouzt</groupId>
           <artifactId>bizlog-sdk</artifactId>
-          <version>1.0.5</version>
+          <version>1.0.6</version>
         </dependency>
 ```
 #### SpringBoot入口打开开关,添加 @EnableLogRecord 注解
@@ -57,7 +58,6 @@ public class Main {
 ###### 2. 期望记录失败的日志, 如果抛出异常则记录fail的日志，没有抛出记录 success 的日志
 ```
     @LogRecordAnnotation(
-            fail = "创建订单失败，失败原因：「{{#_errorMsg}}」",
             success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
             prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
     public boolean createOrder(Order order) {
@@ -72,7 +72,6 @@ public class Main {
 但是运营期望可以看到用户的日志以及运营自己操作的日志，这些操作日志的bizNo都是订单号，所以为了扩展添加了类型字段,主要是为了对日志做分类，查询方便，支持更多的业务。
 ```
     @LogRecordAnnotation(
-            fail = "创建订单失败，失败原因：「{{#_errorMsg}}」",
             category = "MANAGER",
             success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
             prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
@@ -88,8 +87,6 @@ public class Main {
 如果保存 JSON，自己重写一下 Order 的 toString() 方法就可以。
 ```
  @LogRecordAnnotation(
-            fail = "创建订单失败，失败原因：「{{#_errorMsg}}」",
-            category = "MANAGER_VIEW",
             detail = "{{#order.toString()}}",
             success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
             prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
@@ -103,9 +100,6 @@ public class Main {
  * 第一种：手工在LogRecord的注解上指定。这种需要方法参数上有operator
 ```
     @LogRecordAnnotation(
-            fail = "创建订单失败，失败原因：「{{#_errorMsg}}」",
-            category = "MANAGER_VIEW",
-            detail = "{{#order.toString()}}",
             operator = "{{#currentUser}}",
             success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
             prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
@@ -149,10 +143,13 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
 使用方法是在原来的变量的两个大括号之间加一个函数名称 例如 "{ORDER{#orderId}}" 其中 ORDER 是一个函数名称。只有一个函数名称是不够的,需要添加这个函数的定义和实现。可以看下面例子
 自定义的函数需要实现框架里面的IParseFunction的接口，需要实现两个方法：
 
- * functionName() 方法就返回注解上面的函数名；
+* functionName() 方法就返回注解上面的函数名；
 
- * apply()函数参数是 "{ORDER{#orderId}}"中SpEL解析的#orderId的值，这里是一个数字1223110，接下来只需要在实现的类中把 ID 转换为可读懂的字符串就可以了，
- 一般为了方便排查问题需要把名称和ID都展示出来，例如："订单名称（ID）"的形式。
+* executeBefore() true：这个函数解析在注解方法执行之前运行，false：方法执行之后。有些更新方法，需要在更新之前查询出数据，这时候可以吧executeBefore返回true，
+  executeBefore为true的时候函数内不能使用_ret和errorMsg的内置变量
+
+* apply()函数参数是 "{ORDER{#orderId}}"中SpEL解析的#orderId的值，这里是一个数字1223110，接下来只需要在实现的类中把 ID 转换为可读懂的字符串就可以了，
+  一般为了方便排查问题需要把名称和ID都展示出来，例如："订单名称（ID）"的形式。
 
 > 这里有个问题：加了自定义函数后，框架怎么能调用到呢？
 答：对于Spring boot应用很简单，只需要把它暴露在Spring的上下文中就可以了，可以加上Spring的 @Component 或者 @Service 很方便😄。Spring mvc 应用需要自己装配 Bean。
@@ -390,6 +387,7 @@ public class UserParseFunction implements IParseFunction {
 
 | 名称 |状态 |
 |----|----| 
+| 支持自定义函数在业务方法运行之前解析 https://github.com/mouzt/mzt-biz-log/issues/17 |1.0.6 | 
 | 支持condition; 修复 https://github.com/mouzt/mzt-biz-log/issues/18 |1.0.5 | 
 | 支持Context添加变量|1.0.4 已经支持 | 
 |支持对象的diff|TODO| 
