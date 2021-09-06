@@ -42,10 +42,11 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    @LogRecordAnnotation(success = "更新了订单ORDER{#orderId}},更新内容为...",
+    @LogRecordAnnotation(success = "更新了订单{ORDER{#order.orderId}},更新内容为...",
             prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
             detail = "{{#order.toString()}}")
     public boolean update(Long orderId, Order order) {
+        order.setOrderId(10000L);
         return false;
     }
 

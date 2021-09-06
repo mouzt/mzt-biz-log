@@ -42,10 +42,16 @@ public class ParseFunctionFactory {
     public IParseFunction getAfterFunction(String functionName) {
         return afterExecuteFunctionMap.get(functionName);
     }
+
     public IParseFunction getBeforeFunction(String functionName) {
         return beforeExecuteFunctionMap.get(functionName);
     }
-    public IParseFunction getFunction(String functionName){
+
+    public IParseFunction getFunction(String functionName) {
         return allFunctionMap.get(functionName);
+    }
+
+    public boolean isBeforeFunction(String functionName) {
+        return beforeExecuteFunctionMap.containsKey(functionName);
     }
 }
