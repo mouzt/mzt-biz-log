@@ -11,7 +11,7 @@
 | 1.0.1  |发版 |
 | 1.0.4  |支持 Context 添加变量|
 | 1.0.5  |支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18|
-| 1.0.6  |自定义函数支持 在业务的方法运行前执行|
+| 1.0.7  |自定义函数支持 在业务的方法运行前执行|
 
 ## 使用方式
 
@@ -23,7 +23,7 @@
         <dependency>
           <groupId>io.github.mouzt</groupId>
           <artifactId>bizlog-sdk</artifactId>
-          <version>1.0.6</version>
+          <version>1.0.7</version>
         </dependency>
 ```
 #### SpringBoot入口打开开关,添加 @EnableLogRecord 注解
@@ -387,7 +387,7 @@ public class UserParseFunction implements IParseFunction {
 
 | 名称 |状态 |
 |----|----| 
-| 支持自定义函数在业务方法运行之前解析 https://github.com/mouzt/mzt-biz-log/issues/17 |1.0.6 | 
+| 支持自定义函数在业务方法运行之前解析 https://github.com/mouzt/mzt-biz-log/issues/17 |1.0.7 | 
 | 支持condition; 修复 https://github.com/mouzt/mzt-biz-log/issues/18 |1.0.5 | 
 | 支持Context添加变量|1.0.4 已经支持 | 
 |支持对象的diff|TODO| 
