@@ -11,7 +11,7 @@
 | 1.0.1  |发版 |
 | 1.0.4  |支持 Context 添加变量|
 | 1.0.5  |支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18|
-| 1.0.7  |自定义函数支持 在业务的方法运行前执行|
+| 1.0.8  |自定义函数支持 在业务的方法运行前执行|
 
 ## 使用方式
 
@@ -23,7 +23,7 @@
         <dependency>
           <groupId>io.github.mouzt</groupId>
           <artifactId>bizlog-sdk</artifactId>
-          <version>1.0.7</version>
+          <version>1.0.8</version>
         </dependency>
 ```
 #### SpringBoot入口打开开关,添加 @EnableLogRecord 注解
