@@ -67,10 +67,13 @@ public class LogRecordValueParser implements BeanFactoryAware {
                 Matcher matcher = pattern.matcher(expressionTemplate);
                 while (matcher.find()) {
                     String expression = matcher.group(2);
+                    if (expression.contains("#_ret") || expression.contains("#_errorMsg")) {
+                        continue;
+                    }
                     AnnotatedElementKey annotatedElementKey = new AnnotatedElementKey(method, targetClass);
-                    String value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
                     String functionName = matcher.group(1);
                     if (functionService.beforeFunction(functionName)) {
+                        String value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
                         String functionReturnValue = getFunctionReturnValue(null, value, functionName);
                         functionNameAndReturnValueMap.put(functionName, functionReturnValue);
                     }

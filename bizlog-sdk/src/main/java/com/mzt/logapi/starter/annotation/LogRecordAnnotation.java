@@ -17,8 +17,6 @@ public @interface LogRecordAnnotation {
 
     String operator() default "";
 
-    String operatorId() default "";
-
     String prefix();
 
     String bizNo();

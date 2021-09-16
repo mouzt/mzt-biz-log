@@ -24,7 +24,8 @@ public class LogRecordExpressionEvaluator extends CachedExpressionEvaluator {
     private final Map<AnnotatedElementKey, Method> targetMethodCache = new ConcurrentHashMap<>(64);
 
     public String parseExpression(String conditionExpression, AnnotatedElementKey methodKey, EvaluationContext evalContext) {
-        return getExpression(this.expressionCache, methodKey, conditionExpression).getValue(evalContext, String.class);
+        Object value = getExpression(this.expressionCache, methodKey, conditionExpression).getValue(evalContext, Object.class);
+        return value == null ? "" : value.toString();
     }
 
     /**
