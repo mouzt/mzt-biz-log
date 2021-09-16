@@ -381,7 +381,7 @@ public class UserParseFunction implements IParseFunction {
 
 #### 变量相关
 
-> LogRecordAnnotation 可以使用的变量出了参数也可以使用返回值#_ret变量，以及异常的错误信息#_errorMsg，也可以通过SpEL的 T 方式调用静态方法噢
+> LogRecordAnnotation 可以使用的变量出了参数也可以使用返回值 #_ret 变量，以及异常的错误信息 #_errorMsg，也可以通过 SpEL 的 T 方式调用静态方法噢
 
 #### Change Log & TODO
 
