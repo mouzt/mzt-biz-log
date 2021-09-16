@@ -387,7 +387,7 @@ public class UserParseFunction implements IParseFunction {
 
 | 名称 |状态 |
 |----|----| 
-| 支持自定义函数在业务方法运行之前解析 https://github.com/mouzt/mzt-biz-log/issues/17 |1.0.7 | 
+| 支持自定义函数在业务方法运行之前解析 https://github.com/mouzt/mzt-biz-log/issues/17 |1.0.8 | 
 | 支持condition; 修复 https://github.com/mouzt/mzt-biz-log/issues/18 |1.0.5 | 
 | 支持Context添加变量|1.0.4 已经支持 | 
 |支持对象的diff|TODO| 
