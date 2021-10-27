@@ -12,8 +12,8 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class LogRecord {
-    private Integer id;
+public class LogRecord<T> {
+    private T id;
     private String tenant;
     @NotBlank(message = "bizKey required")
     @Length(max = 200, message = "appKey max length is 200")

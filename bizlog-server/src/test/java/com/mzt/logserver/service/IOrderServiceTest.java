@@ -17,6 +17,13 @@ public class IOrderServiceTest extends BaseTest {
         order.setProductName("超值优惠红烧肉套餐");
         order.setPurchaseName("张三");
         boolean ret = orderService.createOrder(order);
+
+
+        Order order2 = new Order();
+        order2.setOrderNo("MT0000011");
+        order2.setProductName("超值优惠红烧肉套餐");
+        order2.setPurchaseName("张三");
+        boolean ret2 = orderService.createOrder(order);
         Assert.assertTrue(ret);
 
     }
