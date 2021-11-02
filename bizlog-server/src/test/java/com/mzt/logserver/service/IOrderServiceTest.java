@@ -39,7 +39,7 @@ public class IOrderServiceTest extends BaseTest {
         order.setProductName("超值优惠红烧肉套餐");
         order.setPurchaseName("张三");
         boolean ret = orderService.testCondition(1L, order, null);
-        // 打印日志
+        // 打印 日志
     }
 
     @Test
