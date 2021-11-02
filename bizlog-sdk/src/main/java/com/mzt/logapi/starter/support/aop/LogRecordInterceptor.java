@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Table;
+import com.google.common.collect.Tables;
 import com.mzt.logapi.beans.LogRecord;
 import com.mzt.logapi.beans.LogRecordOps;
 import com.mzt.logapi.context.LogRecordContext;
@@ -42,7 +43,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
 
     private IOperatorGetService operatorGetService;
 
-    private static final Table<Object, Class<?>, Class<?>> GENERIC_CACHE = HashBasedTable.create();
+    private static final Table<Object, Class<?>, Class<?>> GENERIC_CACHE = Tables.synchronizedTable(HashBasedTable.create());
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
