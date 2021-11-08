@@ -1,13 +1,17 @@
 package com.mzt.logapi.starter.support.aop;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Table;
+import com.google.common.collect.Tables;
 import com.mzt.logapi.beans.LogRecord;
 import com.mzt.logapi.beans.LogRecordOps;
 import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.service.ILogRecordService;
 import com.mzt.logapi.service.IOperatorGetService;
 import com.mzt.logapi.starter.support.parse.LogRecordValueParser;
+import com.mzt.logapi.util.GenericUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,6 +42,8 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
     private ILogRecordService bizLogService;
 
     private IOperatorGetService operatorGetService;
+
+    private static final Table<Object, Class<?>, Class<?>> GENERIC_CACHE = Tables.synchronizedTable(HashBasedTable.create());
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
@@ -86,7 +92,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
         for (LogRecordOps operation : operations) {
             //执行之前的函数，失败模版不解析
             List<String> templates = getSpElTemplates(operation, operation.getSuccessLogTemplate());
-            if(!CollectionUtils.isEmpty(templates)){
+            if (!CollectionUtils.isEmpty(templates)) {
                 spElTemplates.addAll(templates);
             }
         }
@@ -108,17 +114,20 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
 
                 Map<String, String> expressionValues = processTemplate(spElTemplates, ret, targetClass, method, args, errorMsg, functionNameAndReturnMap);
                 if (logConditionPassed(operation.getCondition(), expressionValues)) {
-                    LogRecord logRecord = LogRecord.builder()
-                            .tenant(tenantId)
-                            .bizKey(expressionValues.get(operation.getBizKey()))
-                            .bizNo(expressionValues.get(operation.getBizNo()))
-                            .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
-                            .category(operation.getCategory())
-                            .detail(expressionValues.get(operation.getDetail()))
-                            .action(expressionValues.get(action))
-                            .createTime(new Date())
-                            .build();
-
+                    Class<?> interfaceT = GENERIC_CACHE.get(bizLogService, ILogRecordService.class);
+                    if (interfaceT == null) {
+                        interfaceT = GenericUtils.getClassT(bizLogService, ILogRecordService.class);
+                        GENERIC_CACHE.put(bizLogService, ILogRecordService.class, interfaceT);
+                    }
+                    LogRecord<?> logRecord = (LogRecord<?>) interfaceT.newInstance();
+                    logRecord.setTenant(tenantId);
+                    logRecord.setBizKey(expressionValues.get(operation.getBizKey()));
+                    logRecord.setBizNo(expressionValues.get(operation.getBizNo()));
+                    logRecord.setOperator(getRealOperatorId(operation, operatorIdFromService, expressionValues));
+                    logRecord.setCategory(operation.getCategory());
+                    logRecord.setDetail(expressionValues.get(operation.getDetail()));
+                    logRecord.setAction(expressionValues.get(action));
+                    logRecord.setCreateTime(new Date());
                     //如果 action 为空，不记录日志
                     if (StringUtils.isEmpty(logRecord.getAction())) {
                         continue;
@@ -134,7 +143,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
     }
 
     private List<String> getSpElTemplates(LogRecordOps operation, String action) {
-         List<String> spElTemplates = Lists.newArrayList(operation.getBizKey(), operation.getBizNo(), action, operation.getDetail());
+        List<String> spElTemplates = Lists.newArrayList(operation.getBizKey(), operation.getBizNo(), action, operation.getDetail());
         if (!StringUtils.isEmpty(operation.getCondition())) {
             spElTemplates.add(operation.getCondition());
         }
