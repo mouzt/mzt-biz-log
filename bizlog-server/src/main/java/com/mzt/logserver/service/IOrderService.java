@@ -11,6 +11,8 @@ public interface IOrderService {
 
     boolean update(Long orderId, Order order);
 
+    boolean identity(Long orderId, Order order);
+
     boolean testCondition(Long orderId, Order order, String condition);
 
     boolean testContextCallContext(Long orderId, Order order);

@@ -73,9 +73,11 @@ public class LogRecordValueParser implements BeanFactoryAware {
                     AnnotatedElementKey annotatedElementKey = new AnnotatedElementKey(method, targetClass);
                     String functionName = matcher.group(1);
                     if (functionService.beforeFunction(functionName)) {
+                        //函数的参数
                         String value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
                         String functionReturnValue = getFunctionReturnValue(null, value, functionName);
-                        functionNameAndReturnValueMap.put(functionName, functionReturnValue);
+                        String functionCallInstanceKey = getFunctionCallInstanceKey(functionName, value);
+                        functionNameAndReturnValueMap.put(functionCallInstanceKey, functionReturnValue);
                     }
                 }
             }
@@ -83,12 +85,19 @@ public class LogRecordValueParser implements BeanFactoryAware {
         return functionNameAndReturnValueMap;
     }
 
+    /**
+     * 方法执行之前换成函数的结果，此时函数调用的唯一标志：函数名+参数
+     */
+    private String getFunctionCallInstanceKey(String functionName, String value) {
+        return functionName + value;
+    }
+
     private String getFunctionReturnValue(Map<String, String> beforeFunctionNameAndReturnMap, String value, String functionName) {
         String functionReturnValue = "";
-        if(beforeFunctionNameAndReturnMap != null){
-            functionReturnValue = beforeFunctionNameAndReturnMap.get(functionName);
+        if (beforeFunctionNameAndReturnMap != null) {
+            functionReturnValue = beforeFunctionNameAndReturnMap.get(getFunctionCallInstanceKey(functionName, value));
         }
-        if(StringUtils.isEmpty(functionReturnValue)){
+        if (StringUtils.isEmpty(functionReturnValue)) {
             functionReturnValue = functionService.apply(functionName, value);
         }
         return functionReturnValue;

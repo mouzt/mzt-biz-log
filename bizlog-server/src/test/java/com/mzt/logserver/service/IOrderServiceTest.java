@@ -33,6 +33,17 @@ public class IOrderServiceTest extends BaseTest {
     }
 
     @Test
+    public void updateIdentity() {
+        Order order = new Order();
+        order.setOrderId(99L);
+        order.setOrderNo("MT0000011");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        boolean ret = orderService.identity(1L, order);
+
+    }
+
+    @Test
     public void testCondition_打印日志() {
         Order order = new Order();
         order.setOrderNo("MT0000011");

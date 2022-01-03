@@ -19,6 +19,21 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.github.colincatsu</groupId>
+            <artifactId>fast-object-diff</artifactId>
+            <version>1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>de.danielbechler</groupId>
+            <artifactId>java-object-diff</artifactId>
+            <version>0.95</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.5.9</version>
+        </dependency>
+        <dependency>
             <groupId>io.github.mouzt</groupId>
             <artifactId>bizlog-sdk</artifactId>
             <version>1.0.8</version>

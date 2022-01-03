@@ -20,11 +20,10 @@
             <artifactId>spring-boot-starter</artifactId>
             <version>2.3.4.RELEASE</version>
         </dependency>
-
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context-support</artifactId>
-            <version>5.2.6.RELEASE</version>
+            <groupId>de.danielbechler</groupId>
+            <artifactId>java-object-diff</artifactId>
+            <version>0.95</version>
         </dependency>
 
         <dependency>

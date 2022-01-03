@@ -4,6 +4,7 @@ import lombok.*;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
+import java.io.Serializable;
 import java.util.Date;
 
 @Setter
@@ -13,7 +14,7 @@ import java.util.Date;
 @NoArgsConstructor
 @ToString
 public class LogRecord {
-    private Integer id;
+    private Serializable id;
     private String tenant;
     @NotBlank(message = "bizKey required")
     @Length(max = 200, message = "appKey max length is 200")

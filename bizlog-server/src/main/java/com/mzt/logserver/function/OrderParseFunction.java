@@ -33,8 +33,9 @@ public class OrderParseFunction implements IParseFunction {
 
     @Override
     public String apply(String value) {
+        log.info("@@@@@@@@");
         if (StringUtils.isEmpty(value)) {
-            return value;
+            return "";
         }
         log.info("###########,{}", value);
         Order order = orderQueryService.queryOrder(Long.parseLong(value));

@@ -9,6 +9,8 @@ import com.mzt.logapi.starter.annotation.EnableLogRecord;
 import com.mzt.logapi.starter.support.aop.BeanFactoryLogRecordAdvisor;
 import com.mzt.logapi.starter.support.aop.LogRecordInterceptor;
 import com.mzt.logapi.starter.support.aop.LogRecordOperationSource;
+import com.mzt.logapi.starter.support.diff.DefaultDiffItemsToLogContentService;
+import com.mzt.logapi.starter.support.diff.IDiffItemsToLogContentService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -89,6 +91,13 @@ public class LogRecordProxyAutoConfiguration implements ImportAware {
     @Role(BeanDefinition.ROLE_APPLICATION)
     public ILogRecordService recordService() {
         return new DefaultLogRecordServiceImpl();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(IDiffItemsToLogContentService.class)
+    @Role(BeanDefinition.ROLE_APPLICATION)
+    public IDiffItemsToLogContentService diffItemsToLogContentService() {
+        return new DefaultDiffItemsToLogContentService();
     }
 
     @Override

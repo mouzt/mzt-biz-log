@@ -51,7 +51,23 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    @LogRecordAnnotation(success = "更新了订单ORDER{#orderId}},更新内容为...",
+    @LogRecordAnnotation(success = "更新了订单{IDENTITY{#order.orderId}},更新内容为...{IDENTITY{#order.orderNo}}",
+            prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
+            detail = "{{#order.toString()}}")
+    public boolean identity(Long orderId, Order order) {
+        return false;
+    }
+
+    @LogRecordAnnotation(success = "更新了订单{DIFF{#order,#}},更新内容为...",
+            prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
+            detail = "{{#order.toString()}}")
+    public boolean diff(Order orderOld, Order newOrder) {
+
+        return false;
+    }
+
+    @Override
+    @LogRecordAnnotation(success = "更新了订单{ORDER{#orderId}},更新内容为...",
             prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
             condition = "{{#condition == null}}")
     public boolean testCondition(Long orderId, Order order, String condition) {
@@ -59,7 +75,7 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    @LogRecordAnnotation(success = "更新了订单ORDER{#orderId}},更新内容为..{{#title}}}",
+    @LogRecordAnnotation(success = "更新了订单{ORDER{#orderId}},更新内容为..{{#title}}}",
             prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
     public boolean testContextCallContext(Long orderId, Order order) {
         LogRecordContext.putVariable("title", "外层调用");
