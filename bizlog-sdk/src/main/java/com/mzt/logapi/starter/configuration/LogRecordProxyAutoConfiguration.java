@@ -12,6 +12,7 @@ import com.mzt.logapi.starter.support.aop.LogRecordOperationSource;
 import com.mzt.logapi.starter.support.diff.DefaultDiffItemsToLogContentService;
 import com.mzt.logapi.starter.support.diff.IDiffItemsToLogContentService;
 import com.mzt.logapi.starter.support.diff.ObjectDiffUtil;
+import com.mzt.logapi.starter.support.parse.LogFunctionParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -63,22 +64,29 @@ public class LogRecordProxyAutoConfiguration implements ImportAware, BeanPostPro
 
     @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-    public BeanFactoryLogRecordAdvisor logRecordAdvisor(IFunctionService functionService) {
+    public BeanFactoryLogRecordAdvisor logRecordAdvisor(LogFunctionParser logFunctionParser) {
         BeanFactoryLogRecordAdvisor advisor =
                 new BeanFactoryLogRecordAdvisor();
         advisor.setLogRecordOperationSource(logRecordOperationSource());
-        advisor.setAdvice(logRecordInterceptor(functionService));
+        advisor.setAdvice(logRecordInterceptor(logFunctionParser));
         return advisor;
     }
 
     @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-    public LogRecordInterceptor logRecordInterceptor(IFunctionService functionService) {
+    public LogRecordInterceptor logRecordInterceptor(LogFunctionParser logFunctionParser) {
         LogRecordInterceptor interceptor = new LogRecordInterceptor();
         interceptor.setLogRecordOperationSource(logRecordOperationSource());
         interceptor.setTenant(enableLogRecord.getString("tenant"));
-        interceptor.setFunctionService(functionService);
+        interceptor.setLogFunctionParser(logFunctionParser);
         return interceptor;
+    }
+
+    @Bean
+    public LogFunctionParser logFunctionParser(IFunctionService functionService) {
+        LogFunctionParser logFunctionParser = new LogFunctionParser();
+        logFunctionParser.setFunctionService(functionService);
+        return logFunctionParser;
     }
 
     @Bean

@@ -1,13 +1,11 @@
 package com.mzt.logapi.starter.support.parse;
 
 import com.google.common.base.Strings;
-import com.mzt.logapi.service.IFunctionService;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.expression.AnnotatedElementKey;
 import org.springframework.expression.EvaluationContext;
-import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -27,7 +25,10 @@ public class LogRecordValueParser implements BeanFactoryAware {
     protected BeanFactory beanFactory;
 
     private final LogRecordExpressionEvaluator expressionEvaluator = new LogRecordExpressionEvaluator();
-    private IFunctionService functionService;
+
+    private LogFunctionParser logFunctionParser;
+
+    //    private IFunctionService functionService;
     private static final Pattern pattern = Pattern.compile("\\{\\s*(\\w*)\\s*\\{(.*?)}}");
 
 
@@ -45,7 +46,7 @@ public class LogRecordValueParser implements BeanFactoryAware {
                     String expression = matcher.group(2);
                     AnnotatedElementKey annotatedElementKey = new AnnotatedElementKey(method, targetClass);
                     String value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
-                    String functionReturnValue = getFunctionReturnValue(beforeFunctionNameAndReturnMap, value, matcher.group(1));
+                    String functionReturnValue = logFunctionParser.getFunctionReturnValue(beforeFunctionNameAndReturnMap, value, matcher.group(1));
                     matcher.appendReplacement(parsedStr, Strings.nullToEmpty(functionReturnValue));
                 }
                 matcher.appendTail(parsedStr);
@@ -72,11 +73,11 @@ public class LogRecordValueParser implements BeanFactoryAware {
                     }
                     AnnotatedElementKey annotatedElementKey = new AnnotatedElementKey(method, targetClass);
                     String functionName = matcher.group(1);
-                    if (functionService.beforeFunction(functionName)) {
+                    if (logFunctionParser.beforeFunction(functionName)) {
                         //函数的参数
                         String value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
-                        String functionReturnValue = getFunctionReturnValue(null, value, functionName);
-                        String functionCallInstanceKey = getFunctionCallInstanceKey(functionName, value);
+                        String functionReturnValue = logFunctionParser.getFunctionReturnValue(null, value, functionName);
+                        String functionCallInstanceKey = logFunctionParser.getFunctionCallInstanceKey(functionName, value);
                         functionNameAndReturnValueMap.put(functionCallInstanceKey, functionReturnValue);
                     }
                 }
@@ -85,30 +86,13 @@ public class LogRecordValueParser implements BeanFactoryAware {
         return functionNameAndReturnValueMap;
     }
 
-    /**
-     * 方法执行之前换成函数的结果，此时函数调用的唯一标志：函数名+参数
-     */
-    private String getFunctionCallInstanceKey(String functionName, String value) {
-        return functionName + value;
-    }
-
-    private String getFunctionReturnValue(Map<String, String> beforeFunctionNameAndReturnMap, String value, String functionName) {
-        String functionReturnValue = "";
-        if (beforeFunctionNameAndReturnMap != null) {
-            functionReturnValue = beforeFunctionNameAndReturnMap.get(getFunctionCallInstanceKey(functionName, value));
-        }
-        if (StringUtils.isEmpty(functionReturnValue)) {
-            functionReturnValue = functionService.apply(functionName, value);
-        }
-        return functionReturnValue;
-    }
 
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
         this.beanFactory = beanFactory;
     }
 
-    public void setFunctionService(IFunctionService functionService) {
-        this.functionService = functionService;
+    public void setLogFunctionParser(LogFunctionParser logFunctionParser) {
+        this.logFunctionParser = logFunctionParser;
     }
 }
