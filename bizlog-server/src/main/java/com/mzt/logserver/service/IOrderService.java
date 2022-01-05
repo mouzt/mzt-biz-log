@@ -13,6 +13,8 @@ public interface IOrderService {
 
     boolean identity(Long orderId, Order order);
 
+    boolean diff(Order oldOrder, Order newOrder);
+
     boolean testCondition(Long orderId, Order order, String condition);
 
     boolean testContextCallContext(Long orderId, Order order);

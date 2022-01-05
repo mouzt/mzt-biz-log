@@ -1,10 +1,8 @@
 package com.mzt.logapi.starter.support.diff;
 
 import de.danielbechler.diff.node.DiffNode;
-import de.danielbechler.diff.node.Visit;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Objects;
+import org.springframework.util.StringUtils;
 
 /**
  * @author muzhantong
@@ -14,52 +12,41 @@ import java.util.Objects;
 public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogContentService {
 
     @Override
-    public String toLogContent(DiffNode diffNode, Object o1, Object o2) {
-        if (o1 == null && o2 == null) {
-            return "";
-        }
-        if (o1 == null || o2 == null) {
-            try {
-                Class<?> clazz = o1 == null ? o2.getClass() : o1.getClass();
-                o1 = o1 == null ? clazz.newInstance() : o1;
-                o2 = o2 == null ? clazz.newInstance() : o2;
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        if (!Objects.equals(o1.getClass(), o2.getClass())) {
-            log.error("diff的两个对象类型不同, o1.class={}, o2.class={}", o1.getClass().toString(), o2.getClass().toString());
-            return "";
-        }
+    public String toLogContent(DiffNode diffNode, final Object o1, final Object o2) {
         if (!diffNode.hasChanges()) {
             return "";
         }
         StringBuilder stringBuilder = new StringBuilder();
-        diffNode.visit(new DiffNode.Visitor() {
-            @Override
-            public void node(DiffNode node, Visit visit) {
-                DiffLogField diffLogFieldAnnotation = diffNode.getFieldAnnotation(DiffLogField.class);
-                String filedLogName = diffLogFieldAnnotation.name();
-                DiffNode.State state = node.getState();
-                String template = "";
-                switch (state) {
-                    //todo 文案 properties 配置
-                    case ADDED:
-                        template = "增加了";
-                        break;
-                    case CHANGED:
-                        template = "增加了";
-                        break;
-                    case REMOVED:
-                        template = "增加了";
-                        break;
-                    default:
-                        break;
-                }
-
+        diffNode.visit((node, visit) -> {
+            DiffLogField diffLogFieldAnnotation = node.getFieldAnnotation(DiffLogField.class);
+            if (diffLogFieldAnnotation == null) {
+                return;
+            }
+            String filedLogName = diffLogFieldAnnotation.name();
+            String functionName = diffLogFieldAnnotation.function();
+            DiffNode.State state = node.getState();
+            String logContent = getDiffLogContent(filedLogName, node, state, o1, o2, functionName);
+            if (!StringUtils.isEmpty(logContent)) {
+                //todo /n 可以配置
+                stringBuilder.append(logContent).append("/n");
             }
         });
+        return stringBuilder.toString();
+    }
 
-        return null;
+    public String getDiffLogContent(String filedLogName, DiffNode node, DiffNode.State state, Object o1, Object o2, String functionName) {
+        //todo 根据functionName 获取真正的值
+        switch (state) {
+            case ADDED:
+                return String.format("【%s】添加了【%s】", filedLogName, node.canonicalGet(o2));
+            case CHANGED:
+                return String.format("【%s】从【%s】修改为【%s】", filedLogName, node.canonicalGet(o1), node.canonicalGet(o2));
+            case REMOVED:
+                return String.format("删除了【%s】：【%s】", filedLogName, node.canonicalGet(o1));
+            default:
+                log.warn("diff log not support");
+                return "";
+
+        }
     }
 }

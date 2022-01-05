@@ -11,9 +11,11 @@ import com.mzt.logapi.starter.support.aop.LogRecordInterceptor;
 import com.mzt.logapi.starter.support.aop.LogRecordOperationSource;
 import com.mzt.logapi.starter.support.diff.DefaultDiffItemsToLogContentService;
 import com.mzt.logapi.starter.support.diff.IDiffItemsToLogContentService;
+import com.mzt.logapi.starter.support.diff.ObjectDiffUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,7 +32,7 @@ import java.util.List;
  */
 @Configuration
 @Slf4j
-public class LogRecordProxyAutoConfiguration implements ImportAware {
+public class LogRecordProxyAutoConfiguration implements ImportAware, BeanPostProcessor {
 
     private AnnotationAttributes enableLogRecord;
 
@@ -98,6 +100,13 @@ public class LogRecordProxyAutoConfiguration implements ImportAware {
     @Role(BeanDefinition.ROLE_APPLICATION)
     public IDiffItemsToLogContentService diffItemsToLogContentService() {
         return new DefaultDiffItemsToLogContentService();
+    }
+
+    @Bean
+    public ObjectDiffUtil objectDiffUtil() {
+        ObjectDiffUtil objectDiffUtil = new ObjectDiffUtil();
+        objectDiffUtil.setDiffItemsToLogContentService(diffItemsToLogContentService());
+        return objectDiffUtil;
     }
 
     @Override

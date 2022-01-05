@@ -7,4 +7,6 @@ import java.lang.annotation.RetentionPolicy;
 public @interface DiffLogField {
 
     String name();
+
+    String function() default "";
 }

@@ -44,6 +44,34 @@ public class IOrderServiceTest extends BaseTest {
     }
 
     @Test
+    public void testDiff1() {
+        Order order = new Order();
+        order.setOrderId(99L);
+        order.setOrderNo("MT0000011");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+
+        Order order1 = new Order();
+        order1.setOrderId(88L);
+        order1.setOrderNo("MT0000099");
+        order1.setProductName("麻辣烫套餐");
+        order1.setPurchaseName("赵四");
+        boolean ret = orderService.diff(order, order1);
+
+    }
+
+    @Test
+    public void testDiff2() {
+        Order order1 = new Order();
+        order1.setOrderId(88L);
+        order1.setOrderNo("MT0000099");
+        order1.setProductName("麻辣烫套餐");
+        order1.setPurchaseName("赵四");
+        boolean ret = orderService.diff(null, order1);
+
+    }
+
+    @Test
     public void testCondition_打印日志() {
         Order order = new Order();
         order.setOrderNo("MT0000011");

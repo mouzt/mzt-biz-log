@@ -1,6 +1,6 @@
 package com.mzt.logserver.beans;
 
-import com.fastobject.diff.DiffLog;
+import com.mzt.logapi.starter.support.diff.DiffLogField;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,25 +16,25 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Order {
-    @DiffLog(name = "订单ID")
+    @DiffLogField(name = "订单ID")
     private Long orderId;
-    @DiffLog(name = "订单号")
+    @DiffLogField(name = "订单号")
     private String orderNo;
     private String purchaseName;
     private String productName;
-    @DiffLog(name = "创建时间", dateFormat = "yyyy-dd-MM hh:mm:ss")
+    @DiffLogField(name = "创建时间")
     private Date createTime;
 
-    @DiffLog(name = "创建人")
+    @DiffLogField(name = "创建人")
     private UserDO creator;
 
     List<String> items;
 
     @Data
     public static class UserDO {
-        @DiffLog(name = "用户ID")
+        @DiffLogField(name = "用户ID")
         private Long userId;
-        @DiffLog(name = "用户姓名")
+        @DiffLogField(name = "用户姓名")
         private String userName;
     }
 }
