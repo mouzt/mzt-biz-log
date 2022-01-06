@@ -78,7 +78,7 @@ public class IOrderServiceTest extends BaseTest {
         userDO.setUserId(9001L);
         userDO.setUserName("用户1");
         order.setCreator(userDO);
-        order.setItems(Lists.newArrayList("123"));
+        order.setItems(Lists.newArrayList("123", "bbb"));
 
 
         Order order1 = new Order();
@@ -93,14 +93,42 @@ public class IOrderServiceTest extends BaseTest {
         order1.setItems(Lists.newArrayList("123", "aaa"));
         boolean ret = orderService.diff(order, order1);
 
+        List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【创建人的用户ID】从【9001】修改为【9002】；【创建人的用户姓名】从【用户1】修改为【用户2】；【列表项】添加了【aaa】；【列表项】删除了【bbb】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
+        Assert.assertNotNull(logRecord.getDetail());
+        Assert.assertEquals(logRecord.getOperator(), "111");
+        Assert.assertEquals(logRecord.getBizNo(), order.getOrderNo());
+    }
+
+    @Test
+    public void testDiff3() {
+        Order order = new Order();
+        order.setOrderId(99L);
+        order.setOrderNo("MT0000011");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        order.setItems(null);
+
+
+        Order order1 = new Order();
+        order1.setOrderId(88L);
+        order1.setOrderNo("MT0000099");
+        order1.setProductName("麻辣烫套餐");
+        order1.setPurchaseName("赵四");
+        order1.setItems(Lists.newArrayList("123", "aaa"));
+        boolean ret = orderService.diff(order, order1);
+
 //        List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
 //        Assert.assertEquals(1, logRecordList.size());
 //        LogRecord logRecord = logRecordList.get(0);
-//        Assert.assertEquals(logRecord.getAction(), "更新了订单【用户ID】从【9001】修改为【9002】；【用户姓名】从【用户1】修改为【用户2】；【列表项】从【[123]】修改为【[123, aaa]】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
+//        Assert.assertEquals(logRecord.getAction(), "更新了订单【创建人的用户ID】从【9001】修改为【9002】；【创建人的用户姓名】从【用户1】修改为【用户2】；【列表项】添加了【aaa】；【列表项】删除了【bbb】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
 //        Assert.assertNotNull(logRecord.getDetail());
 //        Assert.assertEquals(logRecord.getOperator(), "111");
 //        Assert.assertEquals(logRecord.getBizNo(), order.getOrderNo());
     }
+
 
     @Test
     public void testDiff2() {
