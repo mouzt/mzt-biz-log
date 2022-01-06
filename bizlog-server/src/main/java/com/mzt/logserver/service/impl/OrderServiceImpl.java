@@ -58,7 +58,7 @@ public class OrderServiceImpl implements IOrderService {
         return false;
     }
 
-    @LogRecordAnnotation(success = "更新了订单{{#_diff(#oldOrder,#newOrder)}},更新内容为...",
+    @LogRecordAnnotation(success = "更新了订单{{#_diff(#oldOrder,#newOrder)}}",
             prefix = LogRecordType.ORDER, bizNo = "{{#newOrder.orderNo}}",
             detail = "{{#newOrder.toString()}}")
     public boolean diff(Order oldOrder, Order newOrder) {

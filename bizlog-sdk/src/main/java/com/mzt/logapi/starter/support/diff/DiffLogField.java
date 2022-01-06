@@ -9,4 +9,6 @@ public @interface DiffLogField {
     String name();
 
     String function() default "";
+
+    //   String dateFormat() default "";
 }

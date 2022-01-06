@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportAware;
@@ -32,6 +33,7 @@ import java.util.List;
  * create on 2020/6/12 10:41 上午
  */
 @Configuration
+@EnableConfigurationProperties({LogRecordProperties.class})
 @Slf4j
 public class LogRecordProxyAutoConfiguration implements ImportAware, BeanPostProcessor {
 
@@ -106,14 +108,14 @@ public class LogRecordProxyAutoConfiguration implements ImportAware, BeanPostPro
     @Bean
     @ConditionalOnMissingBean(IDiffItemsToLogContentService.class)
     @Role(BeanDefinition.ROLE_APPLICATION)
-    public IDiffItemsToLogContentService diffItemsToLogContentService() {
-        return new DefaultDiffItemsToLogContentService();
+    public IDiffItemsToLogContentService diffItemsToLogContentService(IFunctionService functionService, LogRecordProperties logRecordProperties) {
+        return new DefaultDiffItemsToLogContentService(functionService, logRecordProperties);
     }
 
     @Bean
-    public ObjectDiffUtil objectDiffUtil() {
+    public ObjectDiffUtil objectDiffUtil(IDiffItemsToLogContentService diffItemsToLogContentService) {
         ObjectDiffUtil objectDiffUtil = new ObjectDiffUtil();
-        objectDiffUtil.setDiffItemsToLogContentService(diffItemsToLogContentService());
+        objectDiffUtil.setDiffItemsToLogContentService(diffItemsToLogContentService);
         return objectDiffUtil;
     }
 

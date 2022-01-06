@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Order {
-    @DiffLogField(name = "订单ID")
+    @DiffLogField(name = "订单ID", function = "ORDER")
     private Long orderId;
     @DiffLogField(name = "订单号")
     private String orderNo;
@@ -27,8 +27,10 @@ public class Order {
 
     @DiffLogField(name = "创建人")
     private UserDO creator;
-
-    List<String> items;
+    @DiffLogField(name = "更新人")
+    private UserDO updater;
+    @DiffLogField(name = "列表项")
+    private List<String> items;
 
     @Data
     public static class UserDO {
