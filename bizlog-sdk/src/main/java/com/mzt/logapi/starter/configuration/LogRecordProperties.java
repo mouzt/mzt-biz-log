@@ -12,20 +12,62 @@ import org.springframework.util.StringUtils;
 @Data
 public class LogRecordProperties {
 
-    private final String FIELD_PLACEHOLDER = "{{#fieldName}}";
-    private final String SOURCE_VALUE_PLACEHOLDER = "{{#sourceValue}}";
-    private final String TARGET_VALUE_PLACEHOLDER = "{{#targetValue}}";
-    private final String LIST_ADD_VALUE_PLACEHOLDER = "{{#addValues}}";
-    private final String LIST_DEL_VALUE_PLACEHOLDER = "{{#delValues}}";
+    /**
+     * 字段名称的替换变量
+     */
+    private final String FIELD_PLACEHOLDER = "__fieldName";
+    /**
+     * 更新前的值的替换变量
+     */
+    private final String SOURCE_VALUE_PLACEHOLDER = "__sourceValue";
+    /**
+     * 更新后的值的替换变量
+     */
+    private final String TARGET_VALUE_PLACEHOLDER = "__targetValue";
+    /**
+     * 列表添加项的值的替换变量
+     */
+    private final String LIST_ADD_VALUE_PLACEHOLDER = "__#addValues__";
+    /**
+     * 列表删除项的替换变量
+     */
+    private final String LIST_DEL_VALUE_PLACEHOLDER = "__#delValues__";
 
+    /**
+     * 字段从空改为有值的时候的日志内容模板
+     */
     private String addTemplate = "【" + FIELD_PLACEHOLDER + "】从【空】修改为【" + TARGET_VALUE_PLACEHOLDER + "】";
+    /**
+     * 列表修改后只有添加项的时候的日志内容模板
+     */
     private String addTemplateForList = "【" + FIELD_PLACEHOLDER + "】添加了【" + LIST_ADD_VALUE_PLACEHOLDER + "】";
+    /**
+     * 列表修改后只有删除项的时候的日志内容模板
+     */
     private String deleteTemplateForList = "【" + FIELD_PLACEHOLDER + "】删除了【" + LIST_DEL_VALUE_PLACEHOLDER + "】";
+    /**
+     * 列表修改后既有有删除项又有添加项的时候的日志内容模板
+     */
     private String updateTemplateForList = "【" + FIELD_PLACEHOLDER + "】添加了【" + LIST_ADD_VALUE_PLACEHOLDER + "】删除了【" + LIST_DEL_VALUE_PLACEHOLDER + "】";
+    /**
+     * 字段更新后的日志内容模板
+     */
     private String updateTemplate = "【" + FIELD_PLACEHOLDER + "】从【" + SOURCE_VALUE_PLACEHOLDER + "】修改为【" + TARGET_VALUE_PLACEHOLDER + "】";
+    /**
+     * 字段值被设置为null后的日志内容模板
+     */
     private String deleteTemplate = "删除了【" + FIELD_PLACEHOLDER + "】：【" + SOURCE_VALUE_PLACEHOLDER + "】";
+    /**
+     * 多个字段的日志内容拼接一起的时候的分隔符
+     */
     private String fieldSeparator = "；";
+    /**
+     * 添加或者删除多个列表项的时候，list中多个项直接的分隔符
+     */
     private String listItemSeparator = ",";
+    /**
+     * 当对象存在嵌套对象的时候，比如order里面有个user，user分为创建人和更新人，那么：创建人『的』用户ID，其中『的』就是 ofWord
+     */
     private String ofWord = "的";
 
 

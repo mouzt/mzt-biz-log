@@ -1,0 +1,4 @@
+#mzt:
+#  log:
+#    record:
+#      updateTemplate: __fieldName 从 __sourceValue 修改为 __targetValue

@@ -12,6 +12,7 @@
 | 1.0.4  |支持 Context 添加变量|
 | 1.0.5  |支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18|
 | 1.0.8  |自定义函数支持 在业务的方法运行前执行|
+| 1.0.9-SNAPSHOT  |支持了对象DIFF，release 稳定下再发版|
 
 ## 使用方式
 
@@ -23,7 +24,7 @@
         <dependency>
           <groupId>io.github.mouzt</groupId>
           <artifactId>bizlog-sdk</artifactId>
-          <version>1.0.8</version>
+          <version>1.0.9-SNAPSHOT</version>
         </dependency>
 ```
 #### SpringBoot入口打开开关,添加 @EnableLogRecord 注解
@@ -296,6 +297,65 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
     }
 ```
 
+###### 11. 使用对象 diff 功能
+
+我们经常会遇到下面这样的情况，一个对象，一下更新了好几个字段，然后传入到方法中，这时候操作日志要记录的是：对象中所有字段的值 具体例子如下： Order对象里面包含了 List 类型的 Field，以及自定义对象 UserDO。这里使用了
+@DiffLogField注解，可以指定中文的名字，还可以指定 field 值的function函数，这个函数就是第9点提到的函数， 也就是函数不仅仅在方法注解上可以使用，还可以在@DiffLogField上使用。 这里使用了 _diff
+的 SpEl 的内置函数（和我们继承IParseFunction的函数不是一样的噢，不能混用噢）。
+_diff 函数传入了 更新前的对象和更新后的对象。（更新后对象不传的方式还没有找到好的办法。后面会支持的）
+
+```
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Order {
+    @DiffLogField(name = "订单ID", function = "ORDER")
+    private Long orderId;
+    @DiffLogField(name = "订单号")
+    private String orderNo;
+    @DiffLogField(name = "创建时间")
+    private Date createTime;
+
+    @DiffLogField(name = "创建人")
+    private UserDO creator;
+    @DiffLogField(name = "更新人")
+    private UserDO updater;
+    @DiffLogField(name = "列表项", function = "ORDER")
+    private List<String> items;
+
+    @Data
+    public static class UserDO {
+        @DiffLogField(name = "用户ID")
+        private Long userId;
+        @DiffLogField(name = "用户姓名")
+        private String userName;
+    }
+}
+
+@LogRecordAnnotation(success = "更新了订单{{#_diff(#oldOrder,#newOrder)}}",
+        prefix = LogRecordType.ORDER, bizNo = "{{#newOrder.orderNo}}",
+        detail = "{{#newOrder.toString()}}")
+public boolean diff(Order oldOrder, Order newOrder) {
+
+    return false;
+}
+```
+
+最后打印的日志内容：
+
+```
+更新了订单【创建人的用户ID】从【9001】修改为【9002】；【创建人的用户姓名】从【用户1】修改为【用户2】；【列表项】添加了【xxxx(aaa)；】删除了【xxxx(bbb)；】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；
+```
+
+如果用户不想使用这样的文案怎么办呢？ 可以在配置文件中配置：其中__fieldName是：字段名称的替换变量，其他内置替换变量可以看 LogRecordProperties 的源码注释
+
+```
+mzt:
+  log:
+    record:
+      updateTemplate: __fieldName 从 __sourceValue 修改为 __targetValue
+```
+
 #### 框架的扩展点
 
 * 重写OperatorGetServiceImpl通过上下文获取用户的扩展，例子如下
@@ -390,7 +450,7 @@ public class UserParseFunction implements IParseFunction {
 | 支持自定义函数在业务方法运行之前解析 https://github.com/mouzt/mzt-biz-log/issues/17 |1.0.8 | 
 | 支持condition; 修复 https://github.com/mouzt/mzt-biz-log/issues/18 |1.0.5 | 
 | 支持Context添加变量|1.0.4 已经支持 | 
-|支持对象的diff|TODO| 
+|支持对象的diff|1.0.9-SNAPSHOT| 
 | 支持List的日志记录| TODO |
 
 #### 注意点：
