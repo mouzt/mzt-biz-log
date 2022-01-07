@@ -1,6 +1,6 @@
 package com.mzt.logserver.beans;
 
-import com.mzt.logapi.starter.support.diff.DiffLogField;
+import com.mzt.logapi.starter.annotation.DiffLogField;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

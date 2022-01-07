@@ -2,6 +2,7 @@ package com.mzt.logapi.starter.support.diff;
 
 import com.google.common.collect.Lists;
 import com.mzt.logapi.service.IFunctionService;
+import com.mzt.logapi.starter.annotation.DiffLogField;
 import com.mzt.logapi.starter.configuration.LogRecordProperties;
 import de.danielbechler.diff.node.DiffNode;
 import lombok.AllArgsConstructor;
@@ -11,7 +12,6 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author muzhantong
@@ -25,43 +25,47 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
     private final LogRecordProperties logRecordProperties;
 
     @Override
-    public String toLogContent(DiffNode diffNode, final Object o1, final Object o2) {
+    public String toLogContent(DiffNode diffNode, final Object sourceObject, final Object targetObject) {
         if (!diffNode.hasChanges()) {
             return "";
         }
         StringBuilder stringBuilder = new StringBuilder();
         diffNode.visit((node, visit) -> {
-            if (node.isRootNode()) {
-                return;
-            }
-            DiffLogField diffLogFieldAnnotation = node.getFieldAnnotation(DiffLogField.class);
-            if (diffLogFieldAnnotation == null) {
-                return;
-            }
-            if (node.getValueTypeInfo() != null) {
-                //自定义对象类型直接进入对象里面
-                return;
-            }
-            String filedLogName = diffLogFieldAnnotation.name();
-            if (node.getParentNode() != null) {
-                //获取对象的定语：比如：创建人的ID
-                filedLogName = getParentFieldName(node) + filedLogName;
-            }
-            if (StringUtils.isEmpty(filedLogName)) {
-                return;
-            }
-
-            boolean valueIsCollection = valueIsCollection(node, o1, o2);
-            //是否是List类型的字段
-            //获取值的转换函数
-            String functionName = diffLogFieldAnnotation.function();
-            DiffNode.State state = node.getState();
-            String logContent = getDiffLogContent(filedLogName, node, state, o1, o2, functionName, valueIsCollection);
-            if (!StringUtils.isEmpty(logContent)) {
-                stringBuilder.append(logContent).append(logRecordProperties.getFieldSeparator());
-            }
+            generateAllFieldLog(sourceObject, targetObject, stringBuilder, node);
         });
         return stringBuilder.toString();
+    }
+
+    private void generateAllFieldLog(Object sourceObject, Object targetObject, StringBuilder stringBuilder, DiffNode node) {
+        if (node.isRootNode()) {
+            return;
+        }
+        DiffLogField diffLogFieldAnnotation = node.getFieldAnnotation(DiffLogField.class);
+        if (diffLogFieldAnnotation == null || node.getValueTypeInfo() != null) {
+            //自定义对象类型直接进入对象里面, diff
+            return;
+        }
+        String filedLogName = getFieldLogName(node, diffLogFieldAnnotation);
+        if (StringUtils.isEmpty(filedLogName)) {
+            return;
+        }
+        //是否是List类型的字段
+        boolean valueIsCollection = valueIsCollection(node, sourceObject, targetObject);
+        //获取值的转换函数
+        DiffNode.State state = node.getState();
+        String logContent = getDiffLogContent(filedLogName, node, state, sourceObject, targetObject, diffLogFieldAnnotation.function(), valueIsCollection);
+        if (!StringUtils.isEmpty(logContent)) {
+            stringBuilder.append(logContent).append(logRecordProperties.getFieldSeparator());
+        }
+    }
+
+    private String getFieldLogName(DiffNode node, DiffLogField diffLogFieldAnnotation) {
+        String filedLogName = diffLogFieldAnnotation.name();
+        if (node.getParentNode() != null) {
+            //获取对象的定语：比如：创建人的ID
+            filedLogName = getParentFieldName(node) + filedLogName;
+        }
+        return filedLogName;
     }
 
     private boolean valueIsCollection(DiffNode node, Object sourceObject, Object targetObject) {
@@ -94,12 +98,12 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
     }
 
     public String getDiffLogContent(String filedLogName, DiffNode node, DiffNode.State state, Object sourceObject, Object targetObject, String functionName, boolean valueIsCollection) {
-
+        //集合走单独的diff模板
         if (valueIsCollection) {
-            List<Object> sourceList = getListValue(node, sourceObject);
-            List<Object> targetList = getListValue(node, targetObject);
-            List<Object> addItemList = listSubtract(targetList, sourceList);
-            List<Object> delItemList = listSubtract(sourceList, targetList);
+            Collection<Object> sourceList = getListValue(node, sourceObject);
+            Collection<Object> targetList = getListValue(node, targetObject);
+            Collection<Object> addItemList = listSubtract(targetList, sourceList);
+            Collection<Object> delItemList = listSubtract(sourceList, targetList);
             String listAddContent = listToContent(functionName, addItemList);
             String listDelContent = listToContent(functionName, delItemList);
             return logRecordProperties.formatList(filedLogName, listAddContent, listDelContent);
@@ -118,19 +122,19 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
         }
     }
 
-    private List<Object> getListValue(DiffNode node, Object object) {
+    private Collection<Object> getListValue(DiffNode node, Object object) {
         Object fieldSourceValue = getFieldValue(node, object);
         //noinspection unchecked
-        return fieldSourceValue == null ? Lists.newArrayList() : (List<Object>) fieldSourceValue;
+        return fieldSourceValue == null ? Lists.newArrayList() : (Collection<Object>) fieldSourceValue;
     }
 
-    private List<Object> listSubtract(List<Object> minuend, List<Object> subTractor) {
-        List<Object> addItemList = new ArrayList<>(minuend);
+    private Collection<Object> listSubtract(Collection<Object> minuend, Collection<Object> subTractor) {
+        Collection<Object> addItemList = new ArrayList<>(minuend);
         addItemList.removeAll(subTractor);
         return addItemList;
     }
 
-    private String listToContent(String functionName, List<Object> addItemList) {
+    private String listToContent(String functionName, Collection<Object> addItemList) {
         StringBuilder listAddContent = new StringBuilder();
         if (!CollectionUtils.isEmpty(addItemList)) {
             for (Object item : addItemList) {
