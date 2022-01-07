@@ -438,6 +438,7 @@ public class UserParseFunction implements IParseFunction {
     }
 }
 ```
+* IDiffItemsToLogContentService 用户可以自己实现这个接口实现 对象的diff功能，只需要继承这个接口加上 @Service 然后放在 Spring 容器中就可以覆盖默认的实现了
 
 #### 变量相关
 
