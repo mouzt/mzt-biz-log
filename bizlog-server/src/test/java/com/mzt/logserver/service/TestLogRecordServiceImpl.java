@@ -16,21 +16,30 @@ import java.util.List;
 @Slf4j
 public class TestLogRecordServiceImpl implements ILogRecordService {
 
-    private LogRecord logRecord;
+    private List<LogRecord> logRecordList = Lists.newArrayList();
 
     @Override
     public void record(LogRecord logRecord) {
         log.info("【logRecord test】log={}", logRecord);
-        this.logRecord = logRecord;
+        synchronized (this) {
+            if (logRecord != null) {
+                this.logRecordList.add(logRecord);
+            }
+        }
+
     }
 
     @Override
     public List<LogRecord> queryLog(String bizKey) {
-        return Lists.newArrayList(logRecord);
+        return logRecordList;
     }
 
     @Override
     public List<LogRecord> queryLogByBizNo(String bizNo) {
-        return Lists.newArrayList(logRecord);
+        return logRecordList;
+    }
+
+    public void clean() {
+        logRecordList.clear();
     }
 }

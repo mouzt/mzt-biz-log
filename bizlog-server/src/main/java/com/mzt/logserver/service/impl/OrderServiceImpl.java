@@ -75,7 +75,7 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    @LogRecordAnnotation(success = "更新了订单{ORDER{#orderId}},更新内容为..{{#title}}}",
+    @LogRecordAnnotation(success = "更新了订单{ORDER{#orderId}},更新内容为..{{#title}}",
             prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
     public boolean testContextCallContext(Long orderId, Order order) {
         LogRecordContext.putVariable("title", "外层调用");

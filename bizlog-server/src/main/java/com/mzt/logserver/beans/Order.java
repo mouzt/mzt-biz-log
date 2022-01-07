@@ -29,7 +29,7 @@ public class Order {
     private UserDO creator;
     @DiffLogField(name = "更新人")
     private UserDO updater;
-    @DiffLogField(name = "列表项")
+    @DiffLogField(name = "列表项", function = "ORDER")
     private List<String> items;
 
     @Data

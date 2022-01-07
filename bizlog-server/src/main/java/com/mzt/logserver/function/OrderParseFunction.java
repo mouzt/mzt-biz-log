@@ -38,7 +38,7 @@ public class OrderParseFunction implements IParseFunction {
             return "";
         }
         log.info("###########,{}", value);
-        Order order = orderQueryService.queryOrder(Long.parseLong(value));
+        Order order = orderQueryService.queryOrder(value);
         return order.getProductName().concat("(").concat(value).concat(")");
     }
 }
