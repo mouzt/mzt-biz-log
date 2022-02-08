@@ -538,3 +538,11 @@ public class UserParseFunction implements IParseFunction {
 ## Author
 
 mail : mztsmile@163.com
+
+## 加微信我们一起讨论技术吧~~，一起进步(*❦ω❦)！！！
+
+我的微信：
+![联系我](https://github.com/mouzt/mzt-biz-log/blob/feature/diff/wechat-me.jpeg?raw=true)
+
+群微信：
+![联系我](https://github.com/mouzt/mzt-biz-log/blob/feature/diff/wechat-group.jpeg?raw=true)
