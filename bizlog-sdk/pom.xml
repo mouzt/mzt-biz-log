@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>bizlog-sdk</artifactId>
-    <version>1.0.8</version>
+    <version>1.1.0-SNAPSHOT</version>
     <parent>
         <groupId>io.github.mouzt</groupId>
         <artifactId>mzt-biz-log</artifactId>
@@ -20,11 +20,10 @@
             <artifactId>spring-boot-starter</artifactId>
             <version>2.3.4.RELEASE</version>
         </dependency>
-
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context-support</artifactId>
-            <version>5.2.6.RELEASE</version>
+            <groupId>de.danielbechler</groupId>
+            <artifactId>java-object-diff</artifactId>
+            <version>0.95</version>
         </dependency>
 
         <dependency>

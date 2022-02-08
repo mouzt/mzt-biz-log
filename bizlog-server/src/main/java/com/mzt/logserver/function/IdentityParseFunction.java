@@ -1,13 +1,13 @@
-package com.mzt.logapi.service.impl;
+package com.mzt.logserver.function;
 
 
 import com.mzt.logapi.service.IParseFunction;
 
 /**
  * @author muzhantong
- * create on 2021/2/6 9:58 上午
+ * create on 2022/1/3 2:43 下午
  */
-public class DefaultParseFunction implements IParseFunction {
+public class IdentityParseFunction implements IParseFunction {
 
     @Override
     public boolean executeBefore() {
@@ -16,11 +16,11 @@ public class DefaultParseFunction implements IParseFunction {
 
     @Override
     public String functionName() {
-        return null;
+        return "IDENTITY";
     }
 
     @Override
     public String apply(Object value) {
-        return null;
+        return value.toString();
     }
 }

@@ -21,6 +21,7 @@ public class DefaultLogRecordServiceImpl implements ILogRecordService {
 //    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void record(LogRecord logRecord) {
         log.info("【logRecord】log={}", logRecord);
+        //throw new RuntimeException("sss");
 //        logRecordMapper.insertSelective(logRecord);
     }
 
