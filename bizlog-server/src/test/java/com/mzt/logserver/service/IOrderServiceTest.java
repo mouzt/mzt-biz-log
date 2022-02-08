@@ -30,6 +30,25 @@ public class IOrderServiceTest extends BaseTest {
         Assert.assertEquals(logRecord.getCategory(), "MANAGER_VIEW");
         Assert.assertNotNull(logRecord.getDetail());
         Assert.assertEquals(logRecord.getBizNo(), order.getOrderNo());
+        Assert.assertFalse(logRecord.isFail());
+        logRecordService.clean();
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void createOrder_fail() {
+        Order order = new Order();
+        order.setOrderNo("MT0000011");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        orderService.createOrder_fail(order);
+        List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        Assert.assertEquals(logRecord.getAction(), "创建订单失败，失败原因：「测试fail」");
+        Assert.assertEquals(logRecord.getCategory(), "MANAGER_VIEW");
+        Assert.assertNotNull(logRecord.getDetail());
+        Assert.assertEquals(logRecord.getBizNo(), order.getOrderNo());
+        Assert.assertTrue(logRecord.isFail());
         logRecordService.clean();
     }
 

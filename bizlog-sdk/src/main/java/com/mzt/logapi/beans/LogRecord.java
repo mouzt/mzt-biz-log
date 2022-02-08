@@ -32,6 +32,7 @@ public class LogRecord {
     @Length(max = 511, message = "operator max length 511")
     private String action;
 
+    private boolean fail;
     private String category;
     private Date createTime;
     private String detail;

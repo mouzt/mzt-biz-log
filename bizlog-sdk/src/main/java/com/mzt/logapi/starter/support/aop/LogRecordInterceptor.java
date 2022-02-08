@@ -116,6 +116,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
                             .category(operation.getCategory())
                             .detail(expressionValues.get(operation.getDetail()))
                             .action(expressionValues.get(action))
+                            .fail(!success)
                             .createTime(new Date())
                             .build();
 

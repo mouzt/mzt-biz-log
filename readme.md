@@ -6,15 +6,23 @@
 
 ## Change Log
 
+### 最近主要修改
+
+* 支持了对象DIFF
+* Function 的参数从 String修改为 Object了，老版本需要稍微修改下
+* 在 LogRecord 实体中添加了 fail 的标志位，可以区分方法是否执行成功（是否抛异常）
+* fix了没有加EnableTransactionManagement切面不生效的逻辑
+* 补充了一些测试用例，不会使用的大大们可以参考测试用例的使用方式
+
 |版本 |状态|
 |----|----|
 | 1.0.1  |发版 |
 | 1.0.4  |支持 Context 添加变量|
 | 1.0.5  |支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18|
 | 1.0.8  |自定义函数支持 在业务的方法运行前执行|
-| 1.0.9-SNAPSHOT  |支持了对象DIFF，release 稳定下再发版|
+| 1.1.0-SNAPSHOT  |1. 支持了对象DIFF，release 稳定下再发版 2.Function 的参数从 String修改为 Object了，可以给自定函数传递对象啦~~ 3. fix了没有加EnableTransactionManagement 切面不生效的逻辑 4. 添加了fail标志，代表是否成功|
 
-## 使用方式
+## 使用方式(对象DIFF功能终于支持了)
 
 ### 基本使用
 
@@ -46,6 +54,7 @@ public class Main {
 * bizNo：就是业务的 ID，比如订单ID，我们查询的时候可以根据 bizNo 查询和它相关的操作日志
 * success：方法调用成功后把 success 记录在日志的内容中
 * SpEL 表达式：其中用双大括号包围起来的（例如：{{#order.purchaseName}}）#order.purchaseName 是 SpEL表达式。Spring中支持的它都支持的。比如调用静态方法，三目表达式。SpEL 可以使用方法中的任何参数
+
 ```
   @LogRecordAnnotation(success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
               prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
@@ -55,8 +64,11 @@ public class Main {
       return true;
   }
 ```
+
 此时会打印操作日志 "张三下了一个订单,购买商品「超值优惠红烧肉套餐」,下单结果:true"
-###### 2. 期望记录失败的日志, 如果抛出异常则记录fail的日志，没有抛出记录 success 的日志
+
+###### 2. 期望记录失败的日志, 如果抛出异常则记录fail的日志，没有抛出记录 success 的日志。从 1.1.0-SNAPSHOT 版本开始，在LogRecord实体中添加了 fail 标志，可以通过这个标志区分方法是否执行成功了
+
 ```
     @LogRecordAnnotation(
             success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
@@ -152,9 +164,9 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
 * apply()函数参数是 "{ORDER{#orderId}}"中SpEL解析的#orderId的值，这里是一个数字1223110，接下来只需要在实现的类中把 ID 转换为可读懂的字符串就可以了，
   一般为了方便排查问题需要把名称和ID都展示出来，例如："订单名称（ID）"的形式。
 
-> 这里有个问题：加了自定义函数后，框架怎么能调用到呢？
-答：对于Spring boot应用很简单，只需要把它暴露在Spring的上下文中就可以了，可以加上Spring的 @Component 或者 @Service 很方便😄。Spring mvc 应用需要自己装配 Bean。
+> 这里有个问题：加了自定义函数后，框架怎么能调用到呢？ 答：对于Spring boot应用很简单，只需要把它暴露在Spring的上下文中就可以了，可以加上Spring的 @Component 或者 @Service 很方便😄。Spring mvc 应用需要自己装配 Bean。
 
+> ！！！自定义函数 的参数 从 1.1.0-SNAPSHOT 开始，从String 更改为了Object，老版本需要修改一下定义
 ```
     // 没有使用自定义函数
     @LogRecordAnnotation(success = "更新了订单{{#orderId}},更新内容为....",
@@ -173,27 +185,30 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
     }
 
     // 还需要加上函数的实现
+    @Slf4j
     @Component
     public class OrderParseFunction implements IParseFunction {
-        @Resource
-        @Lazy //为了避免类加载顺序的问题 最好为Lazy，没有问题也可以不加
-        private OrderQueryService orderQueryService;
-        
-        @Override 
+    
+        @Override
+        public boolean executeBefore() {
+            return true;
+        }
+    
+        @Override
         public String functionName() {
-            //  函数名称为 ORDER
             return "ORDER";
         }
     
         @Override
-        //这里的 value 可以吧 Order 的JSON对象的传递过来，然后反解析拼接一个定制的操作日志内容
-        public String apply(String value) {
-            if(StringUtils.isEmpty(value)){
-                return value;
+        public String apply(Object value) {
+            log.info("@@@@@@@@");
+            if (StringUtils.isEmpty(value)) {
+                return "";
             }
-            Order order = orderQueryService.queryOrder(Long.parseLong(value));
-            //把订单产品名称加上便于理解，加上 ID 便于查问题
-            return order.getProductName().concat("(").concat(value).concat(")");
+            log.info("###########,{}", value);
+            Order order = new Order();
+            order.setProductName("xxxx");
+            return order.getProductName().concat("(").concat(value.toString()).concat(")");
         }
     }
 ```

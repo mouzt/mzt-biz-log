@@ -9,6 +9,8 @@ import com.mzt.logserver.beans.Order;
 public interface IOrderService {
     boolean createOrder(Order order);
 
+    boolean createOrder_fail(Order order);
+
     boolean update(Long orderId, Order order);
 
     boolean identity(Long orderId, Order order);

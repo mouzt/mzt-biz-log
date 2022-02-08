@@ -41,6 +41,27 @@ public class OrderServiceImpl implements IOrderService {
         return true;
     }
 
+
+    /*'张三下了一个订单,购买商品「超值优惠红烧肉套餐」,下单结果:true' */
+    @Override
+    @LogRecordAnnotation(
+            fail = "创建订单失败，失败原因：「{{#_errorMsg}}」",
+            category = "MANAGER_VIEW",
+            detail = "{{#order.toString()}}",
+            success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,测试变量「{{#innerOrder.productName}}」,下单结果:{{#_ret}}",
+            prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
+    public boolean createOrder_fail(Order order) {
+        log.info("【创建订单】orderNo={}", order.getOrderNo());
+        // db insert order
+        Order order1 = new Order();
+        order1.setProductName("内部变量测试");
+        LogRecordContext.putVariable("innerOrder", order1);
+        if (order.getProductName().length() > 1) {
+            throw new RuntimeException("测试fail");
+        }
+        return true;
+    }
+
     @Override
     @LogRecordAnnotation(success = "更新了订单{ORDER{#order.orderId}},更新内容为...",
             prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
