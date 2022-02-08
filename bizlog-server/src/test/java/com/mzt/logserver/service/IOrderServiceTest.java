@@ -3,6 +3,7 @@ package com.mzt.logserver.service;
 import com.google.common.collect.Lists;
 import com.mzt.logapi.beans.LogRecord;
 import com.mzt.logserver.beans.Order;
+import com.mzt.logserver.logrecord.TestLogRecordServiceImpl;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -98,7 +99,7 @@ public class IOrderServiceTest extends BaseTest {
         List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
-        Assert.assertEquals(logRecord.getAction(), "更新了订单【创建人的用户ID】从【9001】修改为【9002】；【创建人的用户姓名】从【用户1】修改为【用户2】；【列表项】添加了【xxxx(aaa)；】删除了【xxxx(bbb)；】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【创建人的用户ID】从【9001】修改为【9002】；【创建人的用户姓名】从【用户1】修改为【用户2】；【列表项】添加了【xxxx(aaa)】删除了【xxxx(bbb)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
         Assert.assertNotNull(logRecord.getDetail());
         Assert.assertEquals(logRecord.getOperator(), "111");
         Assert.assertEquals(logRecord.getBizNo(), order1.getOrderNo());
@@ -126,7 +127,7 @@ public class IOrderServiceTest extends BaseTest {
         List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
-        Assert.assertEquals(logRecord.getAction(), "更新了订单【列表项】添加了【xxxx(123)；xxxx(aaa)；】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【列表项】添加了【xxxx(123)，xxxx(aaa)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
         Assert.assertNotNull(logRecord.getDetail());
         Assert.assertEquals(logRecord.getOperator(), "111");
         Assert.assertEquals(logRecord.getBizNo(), order1.getOrderNo());
@@ -154,7 +155,7 @@ public class IOrderServiceTest extends BaseTest {
         List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
-        Assert.assertEquals(logRecord.getAction(), "更新了订单【列表项】删除了【xxxx(123)；xxxx(aaa)；】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【列表项】删除了【xxxx(123)，xxxx(aaa)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
         logRecordService.clean();
     }
 
@@ -198,6 +199,39 @@ public class IOrderServiceTest extends BaseTest {
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
         Assert.assertEquals(logRecord.getAction(), "更新了订单【订单ID】从【空】修改为【xxxx(88)】；【订单号】从【空】修改为【MT0000099】；");
+        logRecordService.clean();
+    }
+
+    @Test
+    public void testDiff_一个diff参数() {
+        Order order1 = new Order();
+        order1.setOrderId(88L);
+        order1.setOrderNo("MT0000099");
+        order1.setProductName("麻辣烫套餐");
+        order1.setPurchaseName("赵四");
+        orderService.diff1(order1);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【订单ID】从【空】修改为【xxxx(88)】；【订单号】从【空】修改为【MT0000099】；");
+        logRecordService.clean();
+    }
+
+    @Test
+    public void testDiff_一个diff参数2() {
+
+        Order order1 = new Order();
+        order1.setOrderId(88L);
+        order1.setOrderNo("MT0000099");
+        order1.setProductName("麻辣烫套餐");
+        order1.setPurchaseName("赵四");
+        orderService.diff2(order1);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        Assert.assertEquals(logRecord.getAction(), "更新了订单删除了【创建人的用户ID】：【9001】；删除了【创建人的用户姓名】：【用户1】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
         logRecordService.clean();
     }
 

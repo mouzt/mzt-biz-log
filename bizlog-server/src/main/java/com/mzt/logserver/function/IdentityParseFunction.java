@@ -1,5 +1,6 @@
 package com.mzt.logserver.function;
 
+
 import com.mzt.logapi.service.IParseFunction;
 
 /**
@@ -19,7 +20,7 @@ public class IdentityParseFunction implements IParseFunction {
     }
 
     @Override
-    public String apply(String value) {
-        return value;
+    public String apply(Object value) {
+        return value.toString();
     }
 }

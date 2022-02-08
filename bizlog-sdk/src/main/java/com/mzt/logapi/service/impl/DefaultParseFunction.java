@@ -20,7 +20,7 @@ public class DefaultParseFunction implements IParseFunction {
     }
 
     @Override
-    public String apply(String value) {
+    public String apply(Object value) {
         return null;
     }
 }

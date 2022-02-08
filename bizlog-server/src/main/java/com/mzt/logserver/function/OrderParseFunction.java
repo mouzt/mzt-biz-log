@@ -2,13 +2,9 @@ package com.mzt.logserver.function;
 
 import com.mzt.logapi.service.IParseFunction;
 import com.mzt.logserver.beans.Order;
-import com.mzt.logserver.service.OrderQueryService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-
-import javax.annotation.Resource;
 
 /**
  * @author muzhantong
@@ -17,9 +13,6 @@ import javax.annotation.Resource;
 @Slf4j
 @Component
 public class OrderParseFunction implements IParseFunction {
-    @Resource
-    @Lazy
-    private OrderQueryService orderQueryService;
 
     @Override
     public boolean executeBefore() {
@@ -32,13 +25,14 @@ public class OrderParseFunction implements IParseFunction {
     }
 
     @Override
-    public String apply(String value) {
+    public String apply(Object value) {
         log.info("@@@@@@@@");
         if (StringUtils.isEmpty(value)) {
             return "";
         }
         log.info("###########,{}", value);
-        Order order = orderQueryService.queryOrder(value);
-        return order.getProductName().concat("(").concat(value).concat(")");
+        Order order = new Order();
+        order.setProductName("xxxx");
+        return order.getProductName().concat("(").concat(value.toString()).concat(")");
     }
 }

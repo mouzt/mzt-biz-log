@@ -6,17 +6,15 @@ import com.mzt.logapi.service.IOperatorGetService;
 import com.mzt.logapi.service.IParseFunction;
 import com.mzt.logapi.service.impl.*;
 import com.mzt.logapi.starter.annotation.EnableLogRecord;
+import com.mzt.logapi.starter.diff.DefaultDiffItemsToLogContentService;
+import com.mzt.logapi.starter.diff.IDiffItemsToLogContentService;
 import com.mzt.logapi.starter.support.aop.BeanFactoryLogRecordAdvisor;
 import com.mzt.logapi.starter.support.aop.LogRecordInterceptor;
 import com.mzt.logapi.starter.support.aop.LogRecordOperationSource;
-import com.mzt.logapi.starter.support.diff.DefaultDiffItemsToLogContentService;
-import com.mzt.logapi.starter.support.diff.IDiffItemsToLogContentService;
-import com.mzt.logapi.starter.support.diff.ObjectDiffUtil;
 import com.mzt.logapi.starter.support.parse.LogFunctionParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -35,7 +33,7 @@ import java.util.List;
 @Configuration
 @EnableConfigurationProperties({LogRecordProperties.class})
 @Slf4j
-public class LogRecordProxyAutoConfiguration implements ImportAware, BeanPostProcessor {
+public class LogRecordProxyAutoConfiguration implements ImportAware {
 
     private AnnotationAttributes enableLogRecord;
 
@@ -66,29 +64,42 @@ public class LogRecordProxyAutoConfiguration implements ImportAware, BeanPostPro
 
     @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-    public BeanFactoryLogRecordAdvisor logRecordAdvisor(LogFunctionParser logFunctionParser) {
+    public BeanFactoryLogRecordAdvisor logRecordAdvisor(IFunctionService functionService, DiffParseFunction diffParseFunction) {
         BeanFactoryLogRecordAdvisor advisor =
                 new BeanFactoryLogRecordAdvisor();
         advisor.setLogRecordOperationSource(logRecordOperationSource());
-        advisor.setAdvice(logRecordInterceptor(logFunctionParser));
+        advisor.setAdvice(logRecordInterceptor(functionService, diffParseFunction));
         return advisor;
     }
 
     @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-    public LogRecordInterceptor logRecordInterceptor(LogFunctionParser logFunctionParser) {
+    public LogRecordInterceptor logRecordInterceptor(IFunctionService functionService, DiffParseFunction diffParseFunction) {
         LogRecordInterceptor interceptor = new LogRecordInterceptor();
         interceptor.setLogRecordOperationSource(logRecordOperationSource());
         interceptor.setTenant(enableLogRecord.getString("tenant"));
-        interceptor.setLogFunctionParser(logFunctionParser);
+        interceptor.setLogFunctionParser(logFunctionParser(functionService));
+        interceptor.setDiffParseFunction(diffParseFunction);
         return interceptor;
     }
 
     @Bean
     public LogFunctionParser logFunctionParser(IFunctionService functionService) {
-        LogFunctionParser logFunctionParser = new LogFunctionParser();
-        logFunctionParser.setFunctionService(functionService);
-        return logFunctionParser;
+        return new LogFunctionParser(functionService);
+    }
+
+    @Bean
+    public DiffParseFunction diffParseFunction(IDiffItemsToLogContentService diffItemsToLogContentService) {
+        DiffParseFunction diffParseFunction = new DiffParseFunction();
+        diffParseFunction.setDiffItemsToLogContentService(diffItemsToLogContentService);
+        return diffParseFunction;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(IDiffItemsToLogContentService.class)
+    @Role(BeanDefinition.ROLE_APPLICATION)
+    public IDiffItemsToLogContentService diffItemsToLogContentService(IFunctionService functionService, LogRecordProperties logRecordProperties) {
+        return new DefaultDiffItemsToLogContentService(functionService, logRecordProperties);
     }
 
     @Bean
@@ -103,20 +114,6 @@ public class LogRecordProxyAutoConfiguration implements ImportAware, BeanPostPro
     @Role(BeanDefinition.ROLE_APPLICATION)
     public ILogRecordService recordService() {
         return new DefaultLogRecordServiceImpl();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean(IDiffItemsToLogContentService.class)
-    @Role(BeanDefinition.ROLE_APPLICATION)
-    public IDiffItemsToLogContentService diffItemsToLogContentService(IFunctionService functionService, LogRecordProperties logRecordProperties) {
-        return new DefaultDiffItemsToLogContentService(functionService, logRecordProperties);
-    }
-
-    @Bean
-    public ObjectDiffUtil objectDiffUtil(IDiffItemsToLogContentService diffItemsToLogContentService) {
-        ObjectDiffUtil objectDiffUtil = new ObjectDiffUtil();
-        objectDiffUtil.setDiffItemsToLogContentService(diffItemsToLogContentService);
-        return objectDiffUtil;
     }
 
     @Override

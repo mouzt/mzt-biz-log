@@ -1,5 +1,7 @@
-package com.mzt.logapi.starter.support.diff;
+package com.mzt.logapi.service.impl;
 
+import com.mzt.logapi.context.LogRecordContext;
+import com.mzt.logapi.starter.diff.IDiffItemsToLogContentService;
 import de.danielbechler.diff.ObjectDifferBuilder;
 import de.danielbechler.diff.node.DiffNode;
 import lombok.extern.slf4j.Slf4j;
@@ -8,19 +10,22 @@ import java.util.Objects;
 
 /**
  * @author muzhantong
- * create on 2022/1/3 8:20 下午
+ * create on 2022/2/8 3:44 下午
  */
 @Slf4j
-public class ObjectDiffUtil {
+public class DiffParseFunction {
+    public static final String diffFunctionName = "_DIFF";
+    public static final String OLD_OBJECT = "_oldObj";
 
     private static IDiffItemsToLogContentService diffItemsToLogContentService;
 
-
-    public void setDiffItemsToLogContentService(IDiffItemsToLogContentService IDiffItemsToLogContentService) {
-        ObjectDiffUtil.diffItemsToLogContentService = IDiffItemsToLogContentService;
+    //@Override
+    public String functionName() {
+        return diffFunctionName;
     }
 
-    public static String diff(Object source, Object target) {
+    //@Override
+    public String diff(Object source, Object target) {
         if (source == null && target == null) {
             return "";
         }
@@ -39,5 +44,14 @@ public class ObjectDiffUtil {
         }
         DiffNode diffNode = ObjectDifferBuilder.buildDefault().compare(target, source);
         return diffItemsToLogContentService.toLogContent(diffNode, source, target);
+    }
+
+    public String diff(Object newObj) {
+        Object oldObj = LogRecordContext.getVariable(OLD_OBJECT);
+        return diff(oldObj, newObj);
+    }
+
+    public void setDiffItemsToLogContentService(IDiffItemsToLogContentService diffItemsToLogContentService) {
+        DiffParseFunction.diffItemsToLogContentService = diffItemsToLogContentService;
     }
 }

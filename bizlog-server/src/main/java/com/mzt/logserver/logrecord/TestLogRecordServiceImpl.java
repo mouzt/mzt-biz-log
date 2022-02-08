@@ -1,4 +1,4 @@
-package com.mzt.logserver.service;
+package com.mzt.logserver.logrecord;
 
 import com.google.common.collect.Lists;
 import com.mzt.logapi.beans.LogRecord;
@@ -29,7 +29,6 @@ public class TestLogRecordServiceImpl implements ILogRecordService {
 
     }
 
-    @Override
     public List<LogRecord> queryLog(String bizKey) {
         return logRecordList;
     }
@@ -38,6 +37,7 @@ public class TestLogRecordServiceImpl implements ILogRecordService {
     public List<LogRecord> queryLogByBizNo(String bizNo) {
         return logRecordList;
     }
+
 
     public void clean() {
         logRecordList.clear();

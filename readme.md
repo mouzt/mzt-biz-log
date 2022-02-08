@@ -300,9 +300,37 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
 ###### 11. 使用对象 diff 功能
 
 我们经常会遇到下面这样的情况，一个对象，一下更新了好几个字段，然后传入到方法中，这时候操作日志要记录的是：对象中所有字段的值 具体例子如下： Order对象里面包含了 List 类型的 Field，以及自定义对象 UserDO。这里使用了
-@DiffLogField注解，可以指定中文的名字，还可以指定 field 值的function函数，这个函数就是第9点提到的函数， 也就是函数不仅仅在方法注解上可以使用，还可以在@DiffLogField上使用。 这里使用了 _diff
-的 SpEl 的内置函数（和我们继承IParseFunction的函数不是一样的噢，不能混用噢）。
-_diff 函数传入了 更新前的对象和更新后的对象。（更新后对象不传的方式还没有找到好的办法。后面会支持的）
+@DiffLogField注解，可以指定中文的名字，还可以指定 field 值的function函数，这个函数就是第9点提到的函数， 也就是函数不仅仅在方法注解上可以使用，还可以在@DiffLogField上使用。
+使用方式是：在注解上使用 __DIFF 函数，这个函数可以生成一行文本，
+__DIFF有重载的两种使用方式:
+下面的例子。__DIFF 函数传递了两个参数，一个是修改之前的对象，一个是修改之后的对象
+
+```
+@LogRecordAnnotation(success = "更新了订单{_DIFF{#oldOrder, #newOrder}}",
+            prefix = LogRecordType.ORDER, bizNo = "{{#newOrder.orderNo}}",
+            detail = "{{#newOrder.toString()}}")
+    public boolean diff(Order oldOrder, Order newOrder) {
+
+        return false;
+    }
+```
+
+下面的例子。__DIFF 函数传递了一个参数，传递的参数是修改之后的对象，这种方式需要在方法内部向 LogRecordContext 中 put 一个变量，代表是之前的对象，这个对象可以是null
+
+```
+@LogRecordAnnotation(success = "更新了订单{_DIFF{#newOrder}}",
+            prefix = LogRecordType.ORDER, bizNo = "{{#newOrder.orderNo}}",
+            detail = "{{#newOrder.toString()}}")
+    @Override
+    public boolean diff1(Order newOrder) {
+
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, null);
+        return false;
+    }
+```
+
+下面给出了需要DIFF的对象的例子，需要在参与DIFF的对象上添加上 @DiffLogField 注解，name：是生成的 DIFF 文案中 Field 的中文， function： 跟前面提到的
+function一样，例如可以把用户ID映射成用户姓名。
 
 ```
 @Data
@@ -331,20 +359,53 @@ public class Order {
         private String userName;
     }
 }
+```
 
-@LogRecordAnnotation(success = "更新了订单{{#_diff(#oldOrder,#newOrder)}}",
-        prefix = LogRecordType.ORDER, bizNo = "{{#newOrder.orderNo}}",
-        detail = "{{#newOrder.toString()}}")
-public boolean diff(Order oldOrder, Order newOrder) {
+看下源码中的 test 示例：
 
-    return false;
-}
+```
+    @Test
+    public void testDiff1() {
+        Order order = new Order();
+        order.setOrderId(99L);
+        order.setOrderNo("MT0000011");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        Order.UserDO userDO = new Order.UserDO();
+        userDO.setUserId(9001L);
+        userDO.setUserName("用户1");
+        order.setCreator(userDO);
+        order.setItems(Lists.newArrayList("123", "bbb"));
+
+
+        Order order1 = new Order();
+        order1.setOrderId(88L);
+        order1.setOrderNo("MT0000099");
+        order1.setProductName("麻辣烫套餐");
+        order1.setPurchaseName("赵四");
+        Order.UserDO userDO1 = new Order.UserDO();
+        userDO1.setUserId(9002L);
+        userDO1.setUserName("用户2");
+        order1.setCreator(userDO1);
+        order1.setItems(Lists.newArrayList("123", "aaa"));
+        orderService.diff(order, order1);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【创建人的用户ID】从【9001】修改为【9002】；【创建人的用户姓名】从【用户1】修改为【用户2】；【列表项】添加了【xxxx(aaa)】删除了【xxxx(bbb)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
+        Assert.assertNotNull(logRecord.getDetail());
+        Assert.assertEquals(logRecord.getOperator(), "111");
+        Assert.assertEquals(logRecord.getBizNo(), order1.getOrderNo());
+        logRecordService.clean();
+    }
+    
 ```
 
 最后打印的日志内容：
 
 ```
-更新了订单【创建人的用户ID】从【9001】修改为【9002】；【创建人的用户姓名】从【用户1】修改为【用户2】；【列表项】添加了【xxxx(aaa)；】删除了【xxxx(bbb)；】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；
+更新了订单【创建人的用户ID】从【9001】修改为【9002】；【创建人的用户姓名】从【用户1】修改为【用户2】；【列表项】添加了【xxxx(aaa)】删除了【xxxx(bbb)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；
 ```
 
 如果用户不想使用这样的文案怎么办呢？ 可以在配置文件中配置：其中__fieldName是：字段名称的替换变量，其他内置替换变量可以看 LogRecordProperties 的源码注释
@@ -354,6 +415,7 @@ mzt:
   log:
     record:
       updateTemplate: __fieldName 从 __sourceValue 修改为 __targetValue
+      ### 加了配置，name更新的模板就是 "用户姓名 从 张三 变为 李四" 其中的 __fieldName 、 __sourceValue以及__targetValue 都是替换的变量
 ```
 
 #### 框架的扩展点

@@ -1,4 +1,4 @@
-package com.mzt.logapi.starter.support.diff;
+package com.mzt.logapi.starter.diff;
 
 import com.google.common.collect.Lists;
 import com.mzt.logapi.service.IFunctionService;
@@ -138,10 +138,10 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
         StringBuilder listAddContent = new StringBuilder();
         if (!CollectionUtils.isEmpty(addItemList)) {
             for (Object item : addItemList) {
-                listAddContent.append(getFunctionValue(item, functionName)).append(logRecordProperties.getFieldSeparator());
+                listAddContent.append(getFunctionValue(item, functionName)).append(logRecordProperties.getListItemSeparator());
             }
         }
-        return listAddContent.toString();
+        return listAddContent.toString().replaceAll(logRecordProperties.getListItemSeparator() + "$", "");
     }
 
     private String getFunctionValue(Object canonicalGet, String functionName) {

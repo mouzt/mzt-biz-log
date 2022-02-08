@@ -1,7 +1,6 @@
 package com.mzt.logapi.starter.support.parse;
 
 import com.mzt.logapi.context.LogRecordContext;
-import com.mzt.logapi.starter.support.diff.ObjectDiffUtil;
 import org.springframework.context.expression.MethodBasedEvaluationContext;
 import org.springframework.core.ParameterNameDiscoverer;
 
@@ -23,11 +22,6 @@ public class LogRecordEvaluationContext extends MethodBasedEvaluationContext {
             for (Map.Entry<String, Object> entry : variables.entrySet()) {
                 setVariable(entry.getKey(), entry.getValue());
             }
-        }
-        try {
-            registerFunction("_diff", ObjectDiffUtil.class.getMethod("diff", Object.class, Object.class));
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
         }
         setVariable("_ret", ret);
         setVariable("_errorMsg", errorMsg);

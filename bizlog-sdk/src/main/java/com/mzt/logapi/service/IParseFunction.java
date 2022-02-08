@@ -8,5 +8,5 @@ public interface IParseFunction {
 
     String functionName();
 
-    String apply(String value);
+    String apply(Object value);
 }

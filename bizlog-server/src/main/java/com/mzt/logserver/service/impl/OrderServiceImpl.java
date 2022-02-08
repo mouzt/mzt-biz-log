@@ -1,6 +1,7 @@
 package com.mzt.logserver.service.impl;
 
 import com.mzt.logapi.context.LogRecordContext;
+import com.mzt.logapi.service.impl.DiffParseFunction;
 import com.mzt.logapi.starter.annotation.LogRecordAnnotation;
 import com.mzt.logserver.beans.Order;
 import com.mzt.logserver.constants.LogRecordType;
@@ -29,7 +30,6 @@ public class OrderServiceImpl implements IOrderService {
             fail = "创建订单失败，失败原因：「{{#_errorMsg}}」",
             category = "MANAGER_VIEW",
             detail = "{{#order.toString()}}",
-            operator = "{{#currentUser}}",
             success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,测试变量「{{#innerOrder.productName}}」,下单结果:{{#_ret}}",
             prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
     public boolean createOrder(Order order) {
@@ -58,10 +58,39 @@ public class OrderServiceImpl implements IOrderService {
         return false;
     }
 
-    @LogRecordAnnotation(success = "更新了订单{{#_diff(#oldOrder,#newOrder)}}",
+    @LogRecordAnnotation(success = "更新了订单{_DIFF{#oldOrder, #newOrder}}",
             prefix = LogRecordType.ORDER, bizNo = "{{#newOrder.orderNo}}",
             detail = "{{#newOrder.toString()}}")
     public boolean diff(Order oldOrder, Order newOrder) {
+
+        return false;
+    }
+
+    @LogRecordAnnotation(success = "更新了订单{_DIFF{#newOrder}}",
+            prefix = LogRecordType.ORDER, bizNo = "{{#newOrder.orderNo}}",
+            detail = "{{#newOrder.toString()}}")
+    @Override
+    public boolean diff1(Order newOrder) {
+
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, null);
+        return false;
+    }
+
+    @Override
+    @LogRecordAnnotation(success = "更新了订单{_DIFF{#newOrder}}",
+            prefix = LogRecordType.ORDER, bizNo = "{{#newOrder.orderNo}}",
+            detail = "{{#newOrder.toString()}}")
+    public boolean diff2(Order newOrder) {
+        Order order = new Order();
+        order.setOrderId(99L);
+        order.setOrderNo("MT0000011");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        Order.UserDO userDO = new Order.UserDO();
+        userDO.setUserId(9001L);
+        userDO.setUserName("用户1");
+        order.setCreator(userDO);
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, order);
 
         return false;
     }

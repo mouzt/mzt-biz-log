@@ -86,7 +86,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
         for (LogRecordOps operation : operations) {
             //执行之前的函数，失败模版不解析
             List<String> templates = getSpElTemplates(operation, operation.getSuccessLogTemplate());
-            if(!CollectionUtils.isEmpty(templates)){
+            if (!CollectionUtils.isEmpty(templates)) {
                 spElTemplates.addAll(templates);
             }
         }
@@ -134,7 +134,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
     }
 
     private List<String> getSpElTemplates(LogRecordOps operation, String action) {
-         List<String> spElTemplates = Lists.newArrayList(operation.getBizKey(), operation.getBizNo(), action, operation.getDetail());
+        List<String> spElTemplates = Lists.newArrayList(operation.getBizKey(), operation.getBizNo(), action, operation.getDetail());
         if (!StringUtils.isEmpty(operation.getCondition())) {
             spElTemplates.add(operation.getCondition());
         }

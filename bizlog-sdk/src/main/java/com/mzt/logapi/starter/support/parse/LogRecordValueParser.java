@@ -1,6 +1,7 @@
 package com.mzt.logapi.starter.support.parse;
 
 import com.google.common.base.Strings;
+import com.mzt.logapi.service.impl.DiffParseFunction;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -22,15 +23,24 @@ import java.util.regex.Pattern;
  */
 public class LogRecordValueParser implements BeanFactoryAware {
 
-    protected BeanFactory beanFactory;
-
+    private static final Pattern pattern = Pattern.compile("\\{\\s*(\\w*)\\s*\\{(.*?)}}");
+    public static final String COMMA = ",";
     private final LogRecordExpressionEvaluator expressionEvaluator = new LogRecordExpressionEvaluator();
+    protected BeanFactory beanFactory;
 
     private LogFunctionParser logFunctionParser;
 
-    //    private IFunctionService functionService;
-    private static final Pattern pattern = Pattern.compile("\\{\\s*(\\w*)\\s*\\{(.*?)}}");
+    private DiffParseFunction diffParseFunction;
 
+    public static int strCount(String srcText, String findText) {
+        int count = 0;
+        int index = 0;
+        while ((index = srcText.indexOf(findText, index)) != -1) {
+            index = index + findText.length();
+            count++;
+        }
+        return count;
+    }
 
     public Map<String, String> processTemplate(Collection<String> templates, Object ret,
                                                Class<?> targetClass, Method method, Object[] args, String errorMsg,
@@ -42,12 +52,18 @@ public class LogRecordValueParser implements BeanFactoryAware {
             if (expressionTemplate.contains("{")) {
                 Matcher matcher = pattern.matcher(expressionTemplate);
                 StringBuffer parsedStr = new StringBuffer();
+                AnnotatedElementKey annotatedElementKey = new AnnotatedElementKey(method, targetClass);
                 while (matcher.find()) {
+
                     String expression = matcher.group(2);
-                    AnnotatedElementKey annotatedElementKey = new AnnotatedElementKey(method, targetClass);
-                    String value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
-                    String functionReturnValue = logFunctionParser.getFunctionReturnValue(beforeFunctionNameAndReturnMap, value, matcher.group(1));
-                    matcher.appendReplacement(parsedStr, Strings.nullToEmpty(functionReturnValue));
+                    String functionName = matcher.group(1);
+                    if (DiffParseFunction.diffFunctionName.equals(functionName)) {
+                        expression = getDiffFunctionValue(evaluationContext, annotatedElementKey, expression);
+                    } else {
+                        Object value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
+                        expression = logFunctionParser.getFunctionReturnValue(beforeFunctionNameAndReturnMap, value, functionName);
+                    }
+                    matcher.appendReplacement(parsedStr, Strings.nullToEmpty(expression));
                 }
                 matcher.appendTail(parsedStr);
                 expressionValues.put(expressionTemplate, parsedStr.toString());
@@ -57,6 +73,26 @@ public class LogRecordValueParser implements BeanFactoryAware {
 
         }
         return expressionValues;
+    }
+
+    private String getDiffFunctionValue(EvaluationContext evaluationContext, AnnotatedElementKey annotatedElementKey, String expression) {
+        String[] params = parseDiffFunction(expression);
+        if (params.length == 1) {
+            Object targetObj = expressionEvaluator.parseExpression(params[0], annotatedElementKey, evaluationContext);
+            expression = diffParseFunction.diff(targetObj);
+        } else if (params.length == 2) {
+            Object sourceObj = expressionEvaluator.parseExpression(params[0], annotatedElementKey, evaluationContext);
+            Object targetObj = expressionEvaluator.parseExpression(params[1], annotatedElementKey, evaluationContext);
+            expression = diffParseFunction.diff(sourceObj, targetObj);
+        }
+        return expression;
+    }
+
+    private String[] parseDiffFunction(String expression) {
+        if (expression.contains(COMMA) && strCount(expression, COMMA) == 1) {
+            return expression.split(COMMA);
+        }
+        return new String[]{expression};
     }
 
     public Map<String, String> processBeforeExecuteFunctionTemplate(Collection<String> templates, Class<?> targetClass, Method method, Object[] args) {
@@ -74,8 +110,7 @@ public class LogRecordValueParser implements BeanFactoryAware {
                     AnnotatedElementKey annotatedElementKey = new AnnotatedElementKey(method, targetClass);
                     String functionName = matcher.group(1);
                     if (logFunctionParser.beforeFunction(functionName)) {
-                        //函数的参数
-                        String value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
+                        Object value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
                         String functionReturnValue = logFunctionParser.getFunctionReturnValue(null, value, functionName);
                         String functionCallInstanceKey = logFunctionParser.getFunctionCallInstanceKey(functionName, value);
                         functionNameAndReturnValueMap.put(functionCallInstanceKey, functionReturnValue);
@@ -94,5 +129,9 @@ public class LogRecordValueParser implements BeanFactoryAware {
 
     public void setLogFunctionParser(LogFunctionParser logFunctionParser) {
         this.logFunctionParser = logFunctionParser;
+    }
+
+    public void setDiffParseFunction(DiffParseFunction diffParseFunction) {
+        this.diffParseFunction = diffParseFunction;
     }
 }

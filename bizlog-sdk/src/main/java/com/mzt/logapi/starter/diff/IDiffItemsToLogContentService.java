@@ -1,4 +1,4 @@
-package com.mzt.logapi.starter.support.diff;
+package com.mzt.logapi.starter.diff;
 
 import de.danielbechler.diff.node.DiffNode;
 

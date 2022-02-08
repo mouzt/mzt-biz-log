@@ -27,11 +27,11 @@ public class LogRecordProperties {
     /**
      * 列表添加项的值的替换变量
      */
-    private final String LIST_ADD_VALUE_PLACEHOLDER = "__#addValues__";
+    private final String LIST_ADD_VALUE_PLACEHOLDER = "__addValues";
     /**
      * 列表删除项的替换变量
      */
-    private final String LIST_DEL_VALUE_PLACEHOLDER = "__#delValues__";
+    private final String LIST_DEL_VALUE_PLACEHOLDER = "__delValues";
 
     /**
      * 字段从空改为有值的时候的日志内容模板
@@ -64,7 +64,7 @@ public class LogRecordProperties {
     /**
      * 添加或者删除多个列表项的时候，list中多个项直接的分隔符
      */
-    private String listItemSeparator = ",";
+    private String listItemSeparator = "，";
     /**
      * 当对象存在嵌套对象的时候，比如order里面有个user，user分为创建人和更新人，那么：创建人『的』用户ID，其中『的』就是 ofWord
      */
