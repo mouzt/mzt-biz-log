@@ -1,7 +1,7 @@
 package com.mzt.logapi.starter.support.aop;
 
 import com.mzt.logapi.beans.LogRecordOps;
-import com.mzt.logapi.starter.annotation.LogRecordAnnotation;
+import com.mzt.logapi.starter.annotation.LogRecord;
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.ClassUtils;
@@ -38,26 +38,26 @@ public class LogRecordOperationSource {
     }
 
     private Collection<LogRecordOps> parseLogRecordAnnotations(AnnotatedElement ae) {
-        Collection<LogRecordAnnotation> logRecordAnnotationAnnotations = AnnotatedElementUtils.getAllMergedAnnotations(ae, LogRecordAnnotation.class);
+        Collection<LogRecord> logRecordAnnotationAnnotations = AnnotatedElementUtils.getAllMergedAnnotations(ae, LogRecord.class);
         Collection<LogRecordOps> ret = null;
         if (!logRecordAnnotationAnnotations.isEmpty()) {
             ret = lazyInit(ret);
-            for (LogRecordAnnotation recordAnnotation : logRecordAnnotationAnnotations) {
+            for (LogRecord recordAnnotation : logRecordAnnotationAnnotations) {
                 ret.add(parseLogRecordAnnotation(ae, recordAnnotation));
             }
         }
         return ret;
     }
 
-    private LogRecordOps parseLogRecordAnnotation(AnnotatedElement ae, LogRecordAnnotation recordAnnotation) {
+    private LogRecordOps parseLogRecordAnnotation(AnnotatedElement ae, LogRecord recordAnnotation) {
         LogRecordOps recordOps = LogRecordOps.builder()
                 .successLogTemplate(recordAnnotation.success())
                 .failLogTemplate(recordAnnotation.fail())
-                .bizKey(recordAnnotation.prefix().concat("_").concat(recordAnnotation.bizNo()))
+                .type(recordAnnotation.type())
                 .bizNo(recordAnnotation.bizNo())
                 .operatorId(recordAnnotation.operator())
-                .category(StringUtils.isEmpty(recordAnnotation.category()) ? recordAnnotation.prefix() : recordAnnotation.category())
-                .detail(recordAnnotation.detail())
+                .subType(recordAnnotation.subType())
+                .extra(recordAnnotation.extra())
                 .condition(recordAnnotation.condition())
                 .build();
         validateLogRecordOperation(ae, recordOps);

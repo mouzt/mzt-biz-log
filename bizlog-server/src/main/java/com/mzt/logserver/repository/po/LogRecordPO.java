@@ -1,23 +1,26 @@
-package com.mzt.logapi.beans;
+package com.mzt.logserver.repository.po;
 
-import lombok.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.google.common.collect.Lists;
+import com.mzt.logapi.beans.LogRecord;
+import lombok.Data;
 import org.hibernate.validator.constraints.Length;
+import org.springframework.beans.BeanUtils;
 
 import javax.validation.constraints.NotBlank;
-import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
-@Setter
-@Getter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-@ToString
-public class LogRecord {
+@TableName("t_logrecord")
+@Data
+public class LogRecordPO {
     /**
      * id
      */
-    private Serializable id;
+    @TableId(value = "id", type = IdType.AUTO)
+    private Long id;
     /**
      * 租户
      */
@@ -65,4 +68,24 @@ public class LogRecord {
      * 日志的额外信息
      */
     private String extra;
+
+    public static LogRecordPO from(LogRecord logRecord) {
+        LogRecordPO logRecordPO = new LogRecordPO();
+        BeanUtils.copyProperties(logRecord, logRecordPO);
+        return logRecordPO;
+    }
+
+    public static List<LogRecord> from(List<LogRecordPO> logRecordPOS) {
+        List<LogRecord> ret = Lists.newArrayListWithCapacity(logRecordPOS.size());
+        for (LogRecordPO logRecordPO : logRecordPOS) {
+            ret.add(toLogRecord(logRecordPO));
+        }
+        return ret;
+    }
+
+    private static LogRecord toLogRecord(LogRecordPO logRecordPO) {
+        LogRecord logRecord = new LogRecord();
+        BeanUtils.copyProperties(logRecordPO, logRecord);
+        return logRecord;
+    }
 }
