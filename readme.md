@@ -20,7 +20,7 @@
 | 1.0.4  |支持 Context 添加变量|
 | 1.0.5  |支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18|
 | 1.0.8  |自定义函数支持 在业务的方法运行前执行|
-| 1.1.0-SNAPSHOT  |1. 支持了对象DIFF，release 稳定下再发版 2.Function 的参数从 String修改为 Object了，可以给自定函数传递对象啦~~ 3. fix了没有加EnableTransactionManagement 切面不生效的逻辑 4. 添加了fail标志，代表是否成功|
+| 1.1.0  |1. 支持了对象DIFF，release 稳定下再发版 2.Function 的参数从 String修改为 Object了，可以给自定函数传递对象啦~~ 3. fix了没有加EnableTransactionManagement 切面不生效的逻辑 4. 添加了fail标志，代表是否成功|
 
 ## 使用方式(对象DIFF功能终于支持了)
 
@@ -166,7 +166,7 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
 
 > 这里有个问题：加了自定义函数后，框架怎么能调用到呢？ 答：对于Spring boot应用很简单，只需要把它暴露在Spring的上下文中就可以了，可以加上Spring的 @Component 或者 @Service 很方便😄。Spring mvc 应用需要自己装配 Bean。
 
-> ！！！自定义函数 的参数 从 1.1.0-SNAPSHOT 开始，从String 更改为了Object，老版本需要修改一下定义
+> ！！！自定义函数 的参数 从 1.1.0 开始，从String 更改为了Object，老版本需要修改一下定义
 ```
     // 没有使用自定义函数
     @LogRecordAnnotation(success = "更新了订单{{#orderId}},更新内容为....",
