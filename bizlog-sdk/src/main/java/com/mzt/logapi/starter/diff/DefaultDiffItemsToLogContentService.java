@@ -33,7 +33,7 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
         diffNode.visit((node, visit) -> {
             generateAllFieldLog(sourceObject, targetObject, stringBuilder, node);
         });
-        return stringBuilder.toString();
+        return stringBuilder.toString().replaceAll(logRecordProperties.getFieldSeparator().concat("$"), "");
     }
 
     private void generateAllFieldLog(Object sourceObject, Object targetObject, StringBuilder stringBuilder, DiffNode node) {

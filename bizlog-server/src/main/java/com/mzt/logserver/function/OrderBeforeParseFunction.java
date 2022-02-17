@@ -12,16 +12,16 @@ import org.springframework.util.StringUtils;
  */
 @Slf4j
 @Component
-public class OrderParseFunction implements IParseFunction {
+public class OrderBeforeParseFunction implements IParseFunction {
 
     @Override
     public boolean executeBefore() {
-        return false;
+        return true;
     }
 
     @Override
     public String functionName() {
-        return "ORDER";
+        return "ORDER_BEFORE";
     }
 
     @Override
