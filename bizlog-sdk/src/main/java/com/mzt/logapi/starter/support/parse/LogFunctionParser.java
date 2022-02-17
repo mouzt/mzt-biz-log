@@ -16,25 +16,25 @@ public class LogFunctionParser {
     private IFunctionService functionService;
 
 
-    public String getFunctionReturnValue(Map<String, String> beforeFunctionNameAndReturnMap, Object value, String functionName) {
+    public String getFunctionReturnValue(Map<String, String> beforeFunctionNameAndReturnMap, Object value, String expression, String functionName) {
         if (StringUtils.isEmpty(functionName)) {
             return value.toString();
         }
         String functionReturnValue = "";
-        if (beforeFunctionNameAndReturnMap != null) {
-            functionReturnValue = beforeFunctionNameAndReturnMap.get(getFunctionCallInstanceKey(functionName, value));
-        }
-        if (StringUtils.isEmpty(functionReturnValue)) {
+        String functionCallInstanceKey = getFunctionCallInstanceKey(functionName, expression);
+        if (beforeFunctionNameAndReturnMap != null && beforeFunctionNameAndReturnMap.containsKey(functionCallInstanceKey)) {
+            functionReturnValue = beforeFunctionNameAndReturnMap.get(functionCallInstanceKey);
+        } else {
             functionReturnValue = functionService.apply(functionName, value);
         }
         return functionReturnValue;
     }
 
     /**
-     * 方法执行之前换成函数的结果，此时函数调用的唯一标志：函数名+参数
+     * 方法执行之前换成函数的结果，此时函数调用的唯一标志：函数名+参数表达式
      */
-    public String getFunctionCallInstanceKey(String functionName, Object value) {
-        return functionName + value.toString();
+    public String getFunctionCallInstanceKey(String functionName, String paramExpression) {
+        return functionName + paramExpression;
     }
 
 

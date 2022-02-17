@@ -63,10 +63,19 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
+    @LogRecordAnnotation(success = "更新了订单{ORDER_BEFORE{#order.orderId}},更新内容为...",
+            prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
+            detail = "{{#order.toString()}}")
+    public boolean updateBefore(Long orderId, Order order) {
+        order.setOrderId(10000L);
+        return false;
+    }
+
+    @Override
     @LogRecordAnnotation(success = "更新了订单{ORDER{#order.orderId}},更新内容为...",
             prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
             detail = "{{#order.toString()}}")
-    public boolean update(Long orderId, Order order) {
+    public boolean updateAfter(Long orderId, Order order) {
         order.setOrderId(10000L);
         return false;
     }
@@ -78,6 +87,15 @@ public class OrderServiceImpl implements IOrderService {
     public boolean identity(Long orderId, Order order) {
         return false;
     }
+
+    @Override
+    @LogRecordAnnotation(success = "测试刀了符号{DOLLAR{#order.orderId}}哈哈哈",
+            prefix = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
+            detail = "{{#order.toString()}}")
+    public boolean dollar(Long orderId, Order order) {
+        return false;
+    }
+
 
     @LogRecordAnnotation(success = "更新了订单{_DIFF{#oldOrder, #newOrder}}",
             prefix = LogRecordType.ORDER, bizNo = "{{#newOrder.orderNo}}",

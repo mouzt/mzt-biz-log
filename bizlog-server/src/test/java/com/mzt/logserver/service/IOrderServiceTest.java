@@ -40,26 +40,49 @@ public class IOrderServiceTest extends BaseTest {
         order.setOrderNo("MT0000011");
         order.setProductName("超值优惠红烧肉套餐");
         order.setPurchaseName("张三");
-        orderService.createOrder_fail(order);
-        List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
-        Assert.assertEquals(1, logRecordList.size());
-        LogRecord logRecord = logRecordList.get(0);
-        Assert.assertEquals(logRecord.getAction(), "创建订单失败，失败原因：「测试fail」");
-        Assert.assertEquals(logRecord.getCategory(), "MANAGER_VIEW");
-        Assert.assertNotNull(logRecord.getDetail());
-        Assert.assertEquals(logRecord.getBizNo(), order.getOrderNo());
-        Assert.assertTrue(logRecord.isFail());
-        logRecordService.clean();
+        try {
+            orderService.createOrder_fail(order);
+        } finally {
+            List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
+            Assert.assertEquals(1, logRecordList.size());
+            LogRecord logRecord = logRecordList.get(0);
+            Assert.assertEquals(logRecord.getAction(), "创建订单失败，失败原因：「测试fail」");
+            Assert.assertEquals(logRecord.getCategory(), "MANAGER_VIEW");
+            Assert.assertNotNull(logRecord.getDetail());
+            Assert.assertEquals(logRecord.getBizNo(), order.getOrderNo());
+            Assert.assertTrue(logRecord.isFail());
+            logRecordService.clean();
+        }
+
     }
 
     @Test
-    public void updateOrder() {
+    public void updateOrderBefore() {
         Order order = new Order();
         order.setOrderId(99L);
         order.setOrderNo("MT0000011");
         order.setProductName("超值优惠红烧肉套餐");
         order.setPurchaseName("张三");
-        orderService.update(1L, order);
+        orderService.updateBefore(1L, order);
+        List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        Assert.assertEquals(logRecord.getAction(), "更新了订单xxxx(99),更新内容为...");
+        Assert.assertNotNull(logRecord.getDetail());
+        Assert.assertEquals(logRecord.getOperator(), "111");
+        Assert.assertEquals(logRecord.getBizNo(), order.getOrderNo());
+        logRecordService.clean();
+
+    }
+
+    @Test
+    public void updateOrderAfter() {
+        Order order = new Order();
+        order.setOrderId(99L);
+        order.setOrderNo("MT0000011");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        orderService.updateAfter(1L, order);
         List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
@@ -67,6 +90,22 @@ public class IOrderServiceTest extends BaseTest {
         Assert.assertNotNull(logRecord.getDetail());
         Assert.assertEquals(logRecord.getOperator(), "111");
         Assert.assertEquals(logRecord.getBizNo(), order.getOrderNo());
+        logRecordService.clean();
+
+    }
+
+    @Test
+    public void updateDollar() {
+        Order order = new Order();
+        order.setOrderId(99L);
+        order.setOrderNo("MT0000011");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        orderService.dollar(1L, order);
+        List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        Assert.assertEquals(logRecord.getAction(), "测试刀了符号10$,/666哈哈哈");
         logRecordService.clean();
 
     }
@@ -118,7 +157,7 @@ public class IOrderServiceTest extends BaseTest {
         List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
-        Assert.assertEquals(logRecord.getAction(), "更新了订单【创建人的用户ID】从【9001】修改为【9002】；【创建人的用户姓名】从【用户1】修改为【用户2】；【列表项】添加了【xxxx(aaa)】删除了【xxxx(bbb)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【创建人的用户ID】从【9001】修改为【9002】；【创建人的用户姓名】从【用户1】修改为【用户2】；【列表项】添加了【xxxx(aaa)】删除了【xxxx(bbb)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】");
         Assert.assertNotNull(logRecord.getDetail());
         Assert.assertEquals(logRecord.getOperator(), "111");
         Assert.assertEquals(logRecord.getBizNo(), order1.getOrderNo());
@@ -146,7 +185,7 @@ public class IOrderServiceTest extends BaseTest {
         List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
-        Assert.assertEquals(logRecord.getAction(), "更新了订单【列表项】添加了【xxxx(123)，xxxx(aaa)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【列表项】添加了【xxxx(123)，xxxx(aaa)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】");
         Assert.assertNotNull(logRecord.getDetail());
         Assert.assertEquals(logRecord.getOperator(), "111");
         Assert.assertEquals(logRecord.getBizNo(), order1.getOrderNo());
@@ -174,7 +213,7 @@ public class IOrderServiceTest extends BaseTest {
         List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
-        Assert.assertEquals(logRecord.getAction(), "更新了订单【列表项】删除了【xxxx(123)，xxxx(aaa)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【列表项】删除了【xxxx(123)，xxxx(aaa)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】");
         logRecordService.clean();
     }
 
@@ -200,7 +239,7 @@ public class IOrderServiceTest extends BaseTest {
         List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
-        Assert.assertEquals(logRecord.getAction(), "更新了订单删除了【创建人的用户ID】：【9001】；删除了【创建人的用户姓名】：【用户1】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
+        Assert.assertEquals(logRecord.getAction(), "更新了订单删除了【创建人的用户ID】：【9001】；删除了【创建人的用户姓名】：【用户1】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】");
         logRecordService.clean();
     }
 
@@ -217,7 +256,7 @@ public class IOrderServiceTest extends BaseTest {
         List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
-        Assert.assertEquals(logRecord.getAction(), "更新了订单【订单ID】从【空】修改为【xxxx(88)】；【订单号】从【空】修改为【MT0000099】；");
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【订单ID】从【空】修改为【xxxx(88)】；【订单号】从【空】修改为【MT0000099】");
         logRecordService.clean();
     }
 
@@ -233,7 +272,7 @@ public class IOrderServiceTest extends BaseTest {
         List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
-        Assert.assertEquals(logRecord.getAction(), "更新了订单【订单ID】从【空】修改为【xxxx(88)】；【订单号】从【空】修改为【MT0000099】；");
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【订单ID】从【空】修改为【xxxx(88)】；【订单号】从【空】修改为【MT0000099】");
         logRecordService.clean();
     }
 
@@ -250,7 +289,7 @@ public class IOrderServiceTest extends BaseTest {
         List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
-        Assert.assertEquals(logRecord.getAction(), "更新了订单删除了【创建人的用户ID】：【9001】；删除了【创建人的用户姓名】：【用户1】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
+        Assert.assertEquals(logRecord.getAction(), "更新了订单删除了【创建人的用户ID】：【9001】；删除了【创建人的用户姓名】：【用户1】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】");
         logRecordService.clean();
     }
 

@@ -1,28 +1,21 @@
 package com.mzt.logserver.function;
 
-
 import com.mzt.logapi.service.IParseFunction;
 import org.springframework.stereotype.Component;
 
 /**
  * @author muzhantong
- * create on 2022/1/3 2:43 下午
+ * create on 2022/2/17 4:56 PM
  */
 @Component
-public class IdentityParseFunction implements IParseFunction {
-
-    @Override
-    public boolean executeBefore() {
-        return true;
-    }
-
+public class DollarParseFunction implements IParseFunction {
     @Override
     public String functionName() {
-        return "IDENTITY";
+        return "DOLLAR";
     }
 
     @Override
     public String apply(Object value) {
-        return value.toString();
+        return "10$,/666";
     }
 }

@@ -11,9 +11,14 @@ public interface IOrderService {
 
     boolean createOrder_fail(Order order);
 
-    boolean update(Long orderId, Order order);
+    boolean updateBefore(Long orderId, Order order);
+
+    boolean updateAfter(Long orderId, Order order);
 
     boolean identity(Long orderId, Order order);
+
+    boolean dollar(Long orderId, Order order);
+
 
     boolean diff(Order oldOrder, Order newOrder);
 
