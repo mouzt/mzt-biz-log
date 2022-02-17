@@ -14,13 +14,14 @@
 * fix了没有加EnableTransactionManagement切面不生效的逻辑
 * 补充了一些测试用例，不会使用的大大们可以参考测试用例的使用方式
 
-|版本 |状态|
-|----|----|
-| 1.0.1  |发版 |
-| 1.0.4  |支持 Context 添加变量|
-| 1.0.5  |支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18|
-| 1.0.8  |自定义函数支持 在业务的方法运行前执行|
-| 1.1.0  |1. 支持了对象DIFF，release 稳定下再发版 2.Function 的参数从 String修改为 Object了，可以给自定函数传递对象啦~~ 3. fix了没有加EnableTransactionManagement 切面不生效的逻辑 4. 添加了fail标志，代表是否成功|
+| 版本    | 状态                                                                                                                                           |
+|-------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| 1.0.1 | 发版                                                                                                                                           |
+| 1.0.4 | 支持 Context 添加变量                                                                                                                              |
+| 1.0.5 | 支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18                                                                                |
+| 1.0.8 | 自定义函数支持 在业务的方法运行前执行                                                                                                                          |
+| 1.1.0 | 1. 支持了对象DIFF，release 稳定下再发版 2.Function 的参数从 String修改为 Object了，可以给自定函数传递对象啦~~ 3. fix了没有加EnableTransactionManagement 切面不生效的逻辑 4. 添加了fail标志，代表是否成功 |
+| 1.1.1 | 1. 修复了自定义函数返回美元符号解析失败问题，2. 修复before自定义函数bug，3.删除了diff最后一个分隔符|                                                                                                                      |
 
 ## 使用方式(对象DIFF功能终于支持了)
 

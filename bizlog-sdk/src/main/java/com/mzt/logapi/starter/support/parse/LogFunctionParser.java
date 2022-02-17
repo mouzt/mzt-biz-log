@@ -31,6 +31,9 @@ public class LogFunctionParser {
     }
 
     /**
+     * @param functionName    函数名称
+     * @param paramExpression 解析前的表达式
+     * @return 函数缓存的key
      * 方法执行之前换成函数的结果，此时函数调用的唯一标志：函数名+参数表达式
      */
     public String getFunctionCallInstanceKey(String functionName, String paramExpression) {
