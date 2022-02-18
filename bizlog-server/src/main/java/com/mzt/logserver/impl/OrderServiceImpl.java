@@ -63,10 +63,19 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
+    @LogRecord(success = "更新了订单{ORDER_BEFORE{#order.orderId}},更新内容为...",
+            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
+            extra = "{{#order.toString()}}")
+    public boolean updateBefore(Long orderId, Order order) {
+        order.setOrderId(10000L);
+        return false;
+    }
+
+    @Override
     @LogRecord(success = "更新了订单{ORDER{#order.orderId}},更新内容为...",
             type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
             extra = "{{#order.toString()}}")
-    public boolean update(Long orderId, Order order) {
+    public boolean updateAfter(Long orderId, Order order) {
         order.setOrderId(10000L);
         return false;
     }
@@ -84,6 +93,14 @@ public class OrderServiceImpl implements IOrderService {
             extra = "{{#newOrder.toString()}}")
     public boolean diff(Order oldOrder, Order newOrder) {
 
+        return false;
+    }
+
+    @Override
+    @LogRecord(success = "测试刀了符号{DOLLAR{#order.orderId}}哈哈哈",
+            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
+            extra = "{{#order.toString()}}")
+    public boolean dollar(Long orderId, Order order) {
         return false;
     }
 

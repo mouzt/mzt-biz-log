@@ -1,4 +1,4 @@
-package com.mzt.logserver.infrastructure.logrecord.function;
+package com.mzt.logserver.function;
 
 import com.mzt.logapi.service.IParseFunction;
 import com.mzt.logserver.pojo.Order;
@@ -12,16 +12,16 @@ import org.springframework.util.StringUtils;
  */
 @Slf4j
 @Component
-public class OrderParseFunction implements IParseFunction {
+public class OrderBeforeParseFunction implements IParseFunction {
 
     @Override
     public boolean executeBefore() {
-        return false;
+        return true;
     }
 
     @Override
     public String functionName() {
-        return "ORDER";
+        return "ORDER_BEFORE";
     }
 
     @Override

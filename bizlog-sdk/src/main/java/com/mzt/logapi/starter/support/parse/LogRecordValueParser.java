@@ -61,9 +61,9 @@ public class LogRecordValueParser implements BeanFactoryAware {
                         expression = getDiffFunctionValue(evaluationContext, annotatedElementKey, expression);
                     } else {
                         Object value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
-                        expression = logFunctionParser.getFunctionReturnValue(beforeFunctionNameAndReturnMap, value, functionName);
+                        expression = logFunctionParser.getFunctionReturnValue(beforeFunctionNameAndReturnMap, value, expression, functionName);
                     }
-                    matcher.appendReplacement(parsedStr, Strings.nullToEmpty(expression));
+                    matcher.appendReplacement(parsedStr, Matcher.quoteReplacement(Strings.nullToEmpty(expression)));
                 }
                 matcher.appendTail(parsedStr);
                 expressionValues.put(expressionTemplate, parsedStr.toString());
@@ -111,8 +111,8 @@ public class LogRecordValueParser implements BeanFactoryAware {
                     String functionName = matcher.group(1);
                     if (logFunctionParser.beforeFunction(functionName)) {
                         Object value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
-                        String functionReturnValue = logFunctionParser.getFunctionReturnValue(null, value, functionName);
-                        String functionCallInstanceKey = logFunctionParser.getFunctionCallInstanceKey(functionName, value);
+                        String functionReturnValue = logFunctionParser.getFunctionReturnValue(null, value, expression, functionName);
+                        String functionCallInstanceKey = logFunctionParser.getFunctionCallInstanceKey(functionName, expression);
                         functionNameAndReturnValueMap.put(functionCallInstanceKey, functionReturnValue);
                     }
                 }

@@ -6,6 +6,7 @@ import de.danielbechler.diff.ObjectDifferBuilder;
 import de.danielbechler.diff.node.DiffNode;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 
 /**
@@ -32,9 +33,9 @@ public class DiffParseFunction {
         if (source == null || target == null) {
             try {
                 Class<?> clazz = source == null ? target.getClass() : source.getClass();
-                source = source == null ? clazz.newInstance() : source;
-                target = target == null ? clazz.newInstance() : target;
-            } catch (InstantiationException | IllegalAccessException e) {
+                source = source == null ? clazz.getDeclaredConstructor().newInstance() : source;
+                target = target == null ? clazz.getDeclaredConstructor().newInstance() : target;
+            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
         }
