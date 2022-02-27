@@ -25,12 +25,15 @@ public class LogRecord {
 
     /**
      * 保存的操作日志的类型，比如：订单类型、商品类型
+     *
+     * @since 2.0.0 从 prefix 修改为了type
      */
     @NotBlank(message = "type required")
     @Length(max = 200, message = "type max length is 200")
     private String type;
     /**
      * 日志的子类型，比如订单的C端日志，和订单的B端日志，type都是订单类型，但是子类型不一样
+     * @since 2.0.0 从 category 修改为 subtype
      */
     private String subType;
 
@@ -63,6 +66,7 @@ public class LogRecord {
     private Date createTime;
     /**
      * 日志的额外信息
+     * @since 2.0.0 从detail 修改为extra
      */
     private String extra;
 }
