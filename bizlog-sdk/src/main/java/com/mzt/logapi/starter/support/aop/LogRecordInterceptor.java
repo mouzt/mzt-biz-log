@@ -110,11 +110,11 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
                 if (logConditionPassed(operation.getCondition(), expressionValues)) {
                     LogRecord logRecord = LogRecord.builder()
                             .tenant(tenantId)
-                            .bizKey(expressionValues.get(operation.getBizKey()))
+                            .type(expressionValues.get(operation.getType()))
                             .bizNo(expressionValues.get(operation.getBizNo()))
                             .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
-                            .category(operation.getCategory())
-                            .detail(expressionValues.get(operation.getDetail()))
+                            .subType(operation.getSubType())
+                            .extra(expressionValues.get(operation.getExtra()))
                             .action(expressionValues.get(action))
                             .fail(!success)
                             .createTime(new Date())
@@ -135,7 +135,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
     }
 
     private List<String> getSpElTemplates(LogRecordOps operation, String action) {
-        List<String> spElTemplates = Lists.newArrayList(operation.getBizKey(), operation.getBizNo(), action, operation.getDetail());
+        List<String> spElTemplates = Lists.newArrayList(operation.getType(), operation.getBizNo(), action, operation.getExtra());
         if (!StringUtils.isEmpty(operation.getCondition())) {
             spElTemplates.add(operation.getCondition());
         }

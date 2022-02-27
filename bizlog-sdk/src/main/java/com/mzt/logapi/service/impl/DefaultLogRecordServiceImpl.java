@@ -26,15 +26,14 @@ public class DefaultLogRecordServiceImpl implements ILogRecordService {
     }
 
     @Override
-    public List<LogRecord> queryLog(String bizKey) {
-//        return logRecordMapper.queryByBizKey(bizKey);
+    public List<LogRecord> queryLog(String bizNo, String type) {
         return Lists.newArrayList();
     }
 
     @Override
-    public List<LogRecord> queryLogByBizNo(String bizNo) {
-
-//        return logRecordMapper.queryByBizNo(bizNo);
+    public List<LogRecord> queryLogByBizNo(String bizNo, String type, String subType) {
         return Lists.newArrayList();
     }
+
+
 }

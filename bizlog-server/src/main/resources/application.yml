@@ -31,7 +31,3 @@ spring:
     testOnBorrow: false
     testOnReturn: false
     poolPreparedStatements: true
-
-logging:
-  level:
-    com.mzt.logserver.repository.mapper: debug
