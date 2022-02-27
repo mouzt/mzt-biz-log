@@ -13,9 +13,9 @@ public class LogRecordOps {
     private String successLogTemplate;
     private String failLogTemplate;
     private String operatorId;
-    private String bizKey;
+    private String type;
     private String bizNo;
-    private String category;
-    private String detail;
+    private String subType;
+    private String extra;
     private String condition;
 }

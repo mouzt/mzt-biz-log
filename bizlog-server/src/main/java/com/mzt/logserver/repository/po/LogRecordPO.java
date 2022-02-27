@@ -1,23 +1,26 @@
-package com.mzt.logapi.beans;
+package com.mzt.logserver.repository.po;
 
-import lombok.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.google.common.collect.Lists;
+import com.mzt.logapi.beans.LogRecord;
+import lombok.Data;
 import org.hibernate.validator.constraints.Length;
+import org.springframework.beans.BeanUtils;
 
 import javax.validation.constraints.NotBlank;
-import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
-@Setter
-@Getter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-@ToString
-public class LogRecord {
+@TableName("t_logrecord")
+@Data
+public class LogRecordPO {
     /**
      * id
      */
-    private Serializable id;
+    @TableId(value = "id", type = IdType.AUTO)
+    private Long id;
     /**
      * 租户
      */
@@ -25,15 +28,12 @@ public class LogRecord {
 
     /**
      * 保存的操作日志的类型，比如：订单类型、商品类型
-     *
-     * @since 2.0.0 从 prefix 修改为了type
      */
     @NotBlank(message = "type required")
     @Length(max = 200, message = "type max length is 200")
     private String type;
     /**
      * 日志的子类型，比如订单的C端日志，和订单的B端日志，type都是订单类型，但是子类型不一样
-     * @since 2.0.0 从 category 修改为 subtype
      */
     private String subType;
 
@@ -66,7 +66,26 @@ public class LogRecord {
     private Date createTime;
     /**
      * 日志的额外信息
-     * @since 2.0.0 从detail 修改为extra
      */
     private String extra;
+
+    public static LogRecordPO from(LogRecord logRecord) {
+        LogRecordPO logRecordPO = new LogRecordPO();
+        BeanUtils.copyProperties(logRecord, logRecordPO);
+        return logRecordPO;
+    }
+
+    public static List<LogRecord> from(List<LogRecordPO> logRecordPOS) {
+        List<LogRecord> ret = Lists.newArrayListWithCapacity(logRecordPOS.size());
+        for (LogRecordPO logRecordPO : logRecordPOS) {
+            ret.add(toLogRecord(logRecordPO));
+        }
+        return ret;
+    }
+
+    private static LogRecord toLogRecord(LogRecordPO logRecordPO) {
+        LogRecord logRecord = new LogRecord();
+        BeanUtils.copyProperties(logRecordPO, logRecord);
+        return logRecord;
+    }
 }
