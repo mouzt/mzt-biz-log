@@ -41,6 +41,16 @@ public class OrderServiceImpl implements IOrderService {
         return true;
     }
 
+    @Override
+    public boolean createOrder_interface(Order order) {
+        log.info("【创建订单】orderNo={}", order.getOrderNo());
+        // db insert order
+        Order order1 = new Order();
+        order1.setProductName("内部变量测试");
+        LogRecordContext.putVariable("innerOrder", order1);
+        return true;
+    }
+
 
     /*'张三下了一个订单,购买商品「超值优惠红烧肉套餐」,下单结果:true' */
     @Override
