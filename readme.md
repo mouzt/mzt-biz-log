@@ -25,15 +25,16 @@
 * fix了没有加EnableTransactionManagement切面不生效的逻辑
 * 补充了一些测试用例，不会使用的大大们可以参考测试用例的使用方式
 
-| 版本    | 状态                                                                                                                                           |
-|-------|----------------------------------------------------------------------------------------------------------------------------------------------|
-| 1.0.1 | 发版                      |
-| 1.0.4 | 支持 Context 添加变量    |
-| 1.0.5 | 支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18   |
-| 1.0.8 | 自定义函数支持 在业务的方法运行前执行 |
+| 版本    | 状态                                                                                                                                              |
+|-------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1.0.1 | 发版                                                                                                                                              |
+| 1.0.4 | 支持 Context 添加变量                                                                                                                                 |
+| 1.0.5 | 支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18                                                                                   |
+| 1.0.8 | 自定义函数支持 在业务的方法运行前执行                                                                                                                             |
 | 1.1.0 | 1. 支持了对象DIFF，release 稳定下再发版 2.Function 的参数从 String修改为 Object了，可以给自定函数传递对象啦~~ 3. fix了没有加EnableTransactionManagement 切面不生效的逻辑 4. 添加了fail标志，代表是否成功 |
-| 1.1.1 | 1. 修复了自定义函数返回美元符号解析失败问题，2. 修复before自定义函数bug，3.删除了diff最后一个分隔符|
-| 2.0.0 | 1.修改了@LogRecordAnnotation 注解的名字 到LogRecord，2. 修改了注解的一些属性，使属性名称使得含义更加清晰更加，3.增加了默认的server端的实现|
+| 1.1.1 | 1. 修复了自定义函数返回美元符号解析失败问题，2. 修复before自定义函数bug，3.删除了diff最后一个分隔符                                                                                    |
+| 2.0.0 | 1.修改了@LogRecordAnnotation 注解的名字 到LogRecord，2. 修改了注解的一些属性，使属性名称使得含义更加清晰更加，3.增加了默认的server端的实现                                                     |
+| 2.0.1 | 修复了接口上的注解不能被拦截的问题                                                                                                                               |
 
 ## 使用方式(对象DIFF功能终于支持了)
 
@@ -45,7 +46,7 @@
         <dependency>
           <groupId>io.github.mouzt</groupId>
           <artifactId>bizlog-sdk</artifactId>
-          <version>2.0.0</version>
+          <version>2.0.1</version>
         </dependency>
 ```
 #### SpringBoot入口打开开关,添加 @EnableLogRecord 注解

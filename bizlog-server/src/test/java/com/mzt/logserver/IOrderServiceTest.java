@@ -37,6 +37,25 @@ public class IOrderServiceTest extends BaseTest {
         logRecordService.clean();
     }
 
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void createOrder_interface() {
+        Order order = new Order();
+        order.setOrderNo("MT0000011");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        orderService.createOrder_interface(order);
+        List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        Assert.assertEquals(logRecord.getAction(), "张三下了一个订单,购买商品「超值优惠红烧肉套餐」,测试变量「内部变量测试」,下单结果:true");
+        Assert.assertEquals(logRecord.getSubType(), "MANAGER_VIEW");
+        Assert.assertNotNull(logRecord.getExtra());
+        Assert.assertEquals(logRecord.getBizNo(), order.getOrderNo());
+        Assert.assertFalse(logRecord.isFail());
+        logRecordService.clean();
+    }
+
     @Test(expected = RuntimeException.class)
     @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void createOrder_fail() {
