@@ -113,7 +113,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
                             .type(expressionValues.get(operation.getType()))
                             .bizNo(expressionValues.get(operation.getBizNo()))
                             .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
-                            .subType(operation.getSubType())
+                            .subType(expressionValues.get(operation.getSubType()))
                             .extra(expressionValues.get(operation.getExtra()))
                             .action(expressionValues.get(action))
                             .fail(!success)
@@ -135,7 +135,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
     }
 
     private List<String> getSpElTemplates(LogRecordOps operation, String action) {
-        List<String> spElTemplates = Lists.newArrayList(operation.getType(), operation.getBizNo(), action, operation.getExtra());
+        List<String> spElTemplates = Lists.newArrayList(operation.getType(), operation.getBizNo(),operation.getSubType(), action, operation.getExtra());
         if (!StringUtils.isEmpty(operation.getCondition())) {
             spElTemplates.add(operation.getCondition());
         }
