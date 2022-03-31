@@ -2,6 +2,8 @@ package com.mzt.logapi.starter.support.aop;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.mzt.logapi.beans.CodeVariableType;
 import com.mzt.logapi.beans.LogRecord;
 import com.mzt.logapi.beans.LogRecordOps;
 import com.mzt.logapi.context.LogRecordContext;
@@ -115,6 +117,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
                             .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
                             .subType(expressionValues.get(operation.getSubType()))
                             .extra(expressionValues.get(operation.getExtra()))
+                            .codeVariable(getCodeVariable(method))
                             .action(expressionValues.get(action))
                             .fail(!success)
                             .createTime(new Date())
@@ -134,8 +137,15 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
         }
     }
 
+    private Map<CodeVariableType, Object> getCodeVariable(Method method) {
+        Map<CodeVariableType, Object> map = Maps.newHashMap();
+        map.put(CodeVariableType.ClassName, method.getDeclaringClass());
+        map.put(CodeVariableType.MethodName, method.getName());
+        return map;
+    }
+
     private List<String> getSpElTemplates(LogRecordOps operation, String action) {
-        List<String> spElTemplates = Lists.newArrayList(operation.getType(), operation.getBizNo(),operation.getSubType(), action, operation.getExtra());
+        List<String> spElTemplates = Lists.newArrayList(operation.getType(), operation.getBizNo(), operation.getSubType(), action, operation.getExtra());
         if (!StringUtils.isEmpty(operation.getCondition())) {
             spElTemplates.add(operation.getCondition());
         }

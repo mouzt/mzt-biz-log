@@ -98,6 +98,7 @@ public class OrderServiceImpl implements IOrderService {
         return false;
     }
 
+    @Override
     @LogRecord(success = "更新了订单{_DIFF{#oldOrder, #newOrder}}",
             type = LogRecordType.ORDER, bizNo = "{{#newOrder.orderNo}}",
             extra = "{{#newOrder.toString()}}")
@@ -157,6 +158,20 @@ public class OrderServiceImpl implements IOrderService {
     public boolean testContextCallContext(Long orderId, Order order) {
         LogRecordContext.putVariable("title", "外层调用");
         userQueryService.getUserList(Lists.newArrayList("mzt"));
+        return false;
+    }
+
+    @Override
+    @LogRecord(success = "更新了订单{ORDER{#orderId}},更新内容为..{{#title}}",
+            type = LogRecordType.ORDER, subType = "{{#order.orderNo}}", bizNo = "{{#order.orderNo}}")
+    public boolean testSubTypeSpEl(Long orderId, Order order) {
+        return false;
+    }
+
+    @Override
+    @LogRecord(success = "更新了订单{ORDER{#orderId}},更新内容为..{{#title}}",
+            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
+    public boolean testVariableInfo(Long orderId, Order order) {
         return false;
     }
 }
