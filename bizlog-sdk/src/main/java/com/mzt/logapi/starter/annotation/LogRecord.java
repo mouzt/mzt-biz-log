@@ -6,7 +6,7 @@ import java.lang.annotation.*;
  * @author muzhantong
  * create on 2020/4/29 3:22 下午
  */
-@Target({ElementType.METHOD})
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented

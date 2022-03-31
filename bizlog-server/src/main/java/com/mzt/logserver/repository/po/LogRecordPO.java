@@ -1,17 +1,22 @@
 package com.mzt.logserver.repository.po;
 
+import cn.hutool.core.lang.TypeReference;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.google.common.collect.Lists;
+import com.mzt.logapi.beans.CodeVariableType;
 import com.mzt.logapi.beans.LogRecord;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.beans.BeanUtils;
 
 import javax.validation.constraints.NotBlank;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @TableName("t_logrecord")
 @Data
@@ -69,9 +74,12 @@ public class LogRecordPO {
      */
     private String extra;
 
+    private String codeVariable;
+
     public static LogRecordPO from(LogRecord logRecord) {
         LogRecordPO logRecordPO = new LogRecordPO();
         BeanUtils.copyProperties(logRecord, logRecordPO);
+        logRecordPO.setCodeVariable(JSONUtil.toJsonStr(logRecord.getCodeVariable()));
         return logRecordPO;
     }
 
@@ -86,6 +94,12 @@ public class LogRecordPO {
     private static LogRecord toLogRecord(LogRecordPO logRecordPO) {
         LogRecord logRecord = new LogRecord();
         BeanUtils.copyProperties(logRecordPO, logRecord);
+        if (StringUtils.isNotBlank(logRecordPO.getCodeVariable())) {
+            Map<CodeVariableType, Object> toBean = JSONUtil.toBean(logRecordPO.getCodeVariable(),
+                    new TypeReference<Map<CodeVariableType, Object>>() {
+                    }, true);
+            logRecord.setCodeVariable(toBean);
+        }
         return logRecord;
     }
 }

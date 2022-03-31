@@ -29,7 +29,6 @@ public interface IOrderService {
 
     boolean dollar(Long orderId, Order order);
 
-
     boolean diff(Order oldOrder, Order newOrder);
 
     boolean diff1(Order newOrder);
@@ -39,4 +38,8 @@ public interface IOrderService {
     boolean testCondition(Long orderId, Order order, String condition);
 
     boolean testContextCallContext(Long orderId, Order order);
+
+    boolean testSubTypeSpEl(Long orderId, Order order);
+
+    boolean testVariableInfo(Long orderId, Order order);
 }
