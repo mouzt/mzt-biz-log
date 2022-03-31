@@ -35,6 +35,7 @@
 | 1.1.1 | 1. 修复了自定义函数返回美元符号解析失败问题，2. 修复before自定义函数bug，3.删除了diff最后一个分隔符                                                                                    |
 | 2.0.0 | 1.修改了@LogRecordAnnotation 注解的名字 到LogRecord，2. 修改了注解的一些属性，使属性名称使得含义更加清晰更加，3.增加了默认的server端的实现                                                     |
 | 2.0.1 | 修复了接口上的注解不能被拦截的问题                                                                                                                               |
+| 2.0.2 | 1.修复了 LogFunctionParser 的NPE，2. 主街上添加了ElementType.TYPE，3.记录了当前执行方法的Class和Method 4. 重新fix了没有加EnableTransactionManagement 切面不生效的逻辑 5. 增加了 Subtype 的 SpEl解析 |
 
 ## 使用方式(对象DIFF功能终于支持了)
 
