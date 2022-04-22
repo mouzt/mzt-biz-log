@@ -569,6 +569,3 @@ mail : mztsmile@163.com
 
 我的微信：
 ![联系我](https://github.com/mouzt/mzt-biz-log/blob/feature/diff/wechat-me.jpeg?raw=true)
-
-群微信：
-![联系我](https://github.com/mouzt/mzt-biz-log/blob/feature/diff/wechat-group.jpeg?raw=true)
