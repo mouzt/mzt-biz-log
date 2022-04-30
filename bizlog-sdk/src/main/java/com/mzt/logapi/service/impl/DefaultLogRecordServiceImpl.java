@@ -6,6 +6,7 @@ import com.mzt.logapi.service.ILogRecordService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author muzhantong
@@ -23,6 +24,12 @@ public class DefaultLogRecordServiceImpl implements ILogRecordService {
         log.info("【logRecord】log={}", logRecord);
         //throw new RuntimeException("sss");
 //        logRecordMapper.insertSelective(logRecord);
+    }
+
+    @Override
+    public void batchRecord(List<LogRecord> records) {
+        Optional.ofNullable(records).ifPresent(x -> x.forEach(y ->
+                log.info("【logRecord】log={}", y)));
     }
 
     @Override
