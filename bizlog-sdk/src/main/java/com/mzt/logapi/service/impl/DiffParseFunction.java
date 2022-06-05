@@ -7,7 +7,6 @@ import de.danielbechler.diff.node.DiffNode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -51,20 +50,6 @@ public class DiffParseFunction {
     public String diff(Object newObj) {
         Object oldObj = LogRecordContext.getVariable(OLD_OBJECT);
         return diff(oldObj, newObj);
-    }
-
-    public String diff(Object newObj, int index) {
-        Object oldObj = LogRecordContext.getVariable(OLD_OBJECT);
-        if (oldObj instanceof List) {
-            List<?> oldList = (List<?>) oldObj;
-            if (oldList.size() <= index) {
-                return diff(oldList.get(oldList.size() - 1), newObj);
-            } else {
-                return diff(oldList.get(index), newObj);
-            }
-        } else {
-            return diff(oldObj, newObj);
-        }
     }
 
     public void setDiffItemsToLogContentService(IDiffItemsToLogContentService diffItemsToLogContentService) {

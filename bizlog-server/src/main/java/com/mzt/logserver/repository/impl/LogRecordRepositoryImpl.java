@@ -34,12 +34,4 @@ public class LogRecordRepositoryImpl extends ServiceImpl<LogRecordMapper, LogRec
                 .orderByDesc(LogRecordPO::getCreateTime);
         return baseMapper.selectList(queryWrapper);
     }
-
-    @Override
-    public List<LogRecordPO> queryLog(String type) {
-        QueryWrapper<LogRecordPO> wrapper = new QueryWrapper<>();
-        wrapper.lambda().eq(LogRecordPO::getType, type);
-        return baseMapper.selectList(wrapper);
-    }
-
 }

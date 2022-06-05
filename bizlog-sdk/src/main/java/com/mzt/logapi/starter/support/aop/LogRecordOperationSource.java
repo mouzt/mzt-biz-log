@@ -59,7 +59,6 @@ public class LogRecordOperationSource {
                 .subType(recordAnnotation.subType())
                 .extra(recordAnnotation.extra())
                 .condition(recordAnnotation.condition())
-                .isBatch(recordAnnotation.isBatch())
                 .build();
         validateLogRecordOperation(ae, recordOps);
         return recordOps;

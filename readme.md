@@ -469,44 +469,6 @@ mzt:
       ### 加了配置，name更新的模板就是 "用户姓名 从 张三 变为 李四" 其中的 __fieldName 、 __sourceValue以及__targetValue 都是替换的变量
 ```
 
-###### 12. 批量保存日志功能
-
-该功能适用于当一个方法对多条数据进行了操作而使用者又希望对每条数据都记录操作日志的情况。由于是多条记录，那么各个表达式对应的变量是有对应关系的（或者说是有顺序的），因此这里我们只识别 `java.util.List` 及其子类型，并对其作特殊处理。
-
-使用方式和正常使用 `LogRecord` 注解区别不大，甚至兼容现有功能（如diff、自定义函数等），而使用者只需要设置 `LogRecord` 注解的 `isBatch` 属性即可。
-
-```
-    @Override
-    @LogRecord(fail = "创建订单失败，失败原因：「{{#_errorMsg}}」",
-            extra = "{{#orders}}",
-            success = "{{#purchaseNameList}}下了一个订单,购买商品「{{#productNameList}}」,下单结果:{{#_ret}}",
-            type = LogRecordType.ORDER, bizNo = "{{#orderNoList}}",
-            isBatch = true)
-    public boolean createBatchOrder(List<Order> orders) {
-        Optional.ofNullable(orders).ifPresent(x -> {
-            x.forEach(y -> log.info("【创建订单】orderNo={}", y.getOrderNo()));
-            List<String> purchaseNameList = orders.stream()
-                    .map(Order::getPurchaseName).collect(Collectors.toList());
-            List<String> productNameList = orders.stream()
-                    .map(Order::getProductName).collect(Collectors.toList());
-            List<String> orderNoList = orders.stream()
-                    .map(Order::getOrderNo).collect(Collectors.toList());
-            LogRecordContext.putVariable("purchaseNameList", purchaseNameList);
-            LogRecordContext.putVariable("productNameList", productNameList);
-            LogRecordContext.putVariable("orderNoList", orderNoList);
-        });
-        return true;
-    }
-```
-
-上面的例子结果会是 `orders` 中的每一条记录都有一条对应的操作记录。
-
-仔细查看上面的例子，这里的表达式有两种类型，一种是 `{{#orders}}` 这种含有 `List` 类型变量的，一种是 `{{#_ret}}` 这种含有非 `List` 类型变量的。如果是非 `List` 类型的变量，每次会被解析成相同的值，而 `List` 类型变量则不会。
-
-注意生成记录的条数是由 `LogRecord` 注解里的 `bizNo` 属性决定的。
-
-更多有关批量保存操作日志的功能请查看 `OrderServiceImpl` 里的测试用例。
-
 #### 框架的扩展点
 
 * 重写OperatorGetServiceImpl通过上下文获取用户的扩展，例子如下

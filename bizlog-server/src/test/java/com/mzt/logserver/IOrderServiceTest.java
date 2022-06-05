@@ -1,6 +1,5 @@
 package com.mzt.logserver;
 
-import cn.hutool.core.collection.CollectionUtil;
 import com.google.common.collect.Lists;
 import com.mzt.logapi.beans.CodeVariableType;
 import com.mzt.logapi.beans.LogRecord;
@@ -38,65 +37,6 @@ public class IOrderServiceTest extends BaseTest {
         Assert.assertEquals(logRecord.getBizNo(), order.getOrderNo());
         Assert.assertFalse(logRecord.isFail());
         logRecordService.clean();
-    }
-
-    @Test
-    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void testCreateBatchOrder() {
-        Order orderA = new Order();
-        orderA.setOrderNo("MT0000011");
-        orderA.setProductName("超值优惠红烧肉套餐");
-        orderA.setPurchaseName("张三");
-        Order orderB = new Order();
-        orderB.setOrderNo("MT0000012");
-        orderB.setProductName("超值优惠黄焖鸡套餐");
-        orderB.setPurchaseName("李四");
-        orderService.createBatchOrder(CollectionUtil.newArrayList(orderA, orderB));
-        List<LogRecord> records = logRecordService.queryLog(LogRecordType.ORDER);
-        Assert.assertEquals(2, records.size());
-        LogRecord recordA = records.get(0);
-        Assert.assertEquals(recordA.getAction(), "张三下了一个订单,购买商品「超值优惠红烧肉套餐」,下单结果:true");
-        Assert.assertNotNull(recordA.getExtra());
-        Assert.assertEquals(recordA.getBizNo(), orderA.getOrderNo());
-        Assert.assertFalse(recordA.isFail());
-        LogRecord recordB = records.get(1);
-        Assert.assertEquals(recordB.getAction(), "李四下了一个订单,购买商品「超值优惠黄焖鸡套餐」,下单结果:true");
-        Assert.assertNotNull(recordB.getExtra());
-        Assert.assertEquals(recordB.getBizNo(), orderB.getOrderNo());
-        Assert.assertFalse(recordB.isFail());
-    }
-
-    @Test
-    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void testCreateBatchOrder1() {
-        Order orderA = new Order();
-        orderA.setOrderNo("MT0000011");
-        orderA.setProductName("超值优惠红烧肉套餐");
-        orderA.setPurchaseName("张三");
-        Order orderB = new Order();
-        orderB.setOrderNo("MT0000012");
-        orderB.setProductName("超值优惠黄焖鸡套餐");
-        orderB.setPurchaseName("李四");
-        // 所有expression都是List类型，但是length不一致
-//        orderService.createBatchOrder1(CollectionUtil.newArrayList(orderA, orderB));
-        // bizNo是List类型，其余表达式不同时是List类型
-        orderService.createBatchOrder2(CollectionUtil.newArrayList(orderA, orderB));
-        List<LogRecord> records = logRecordService.queryLog(LogRecordType.ORDER);
-        System.out.println(records.size());
-        records.forEach(System.out::println);
-    }
-
-    @Test
-    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void testCreateBatchOrder2() {
-        Order order = new Order();
-        order.setOrderNo("MT0000011");
-        order.setProductName("超值优惠红烧肉套餐");
-        order.setPurchaseName("张三");
-        orderService.createBatchOrder3(order);
-        List<LogRecord> records = logRecordService.queryLog(LogRecordType.ORDER);
-        System.out.println(records.size());
-        records.forEach(System.out::println);
     }
 
     @Test
@@ -385,91 +325,6 @@ public class IOrderServiceTest extends BaseTest {
         LogRecord logRecord = logRecordList.get(0);
         Assert.assertEquals(logRecord.getAction(), "更新了订单删除了【创建人的用户ID】：【9001】；删除了【创建人的用户姓名】：【用户1】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】");
         logRecordService.clean();
-    }
-
-    @Test
-    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void testDiffAndBatch() {
-        Order orderA = new Order();
-        orderA.setOrderId(99L);
-        orderA.setOrderNo("MT0000099");
-        orderA.setProductName("超值优惠红烧肉套餐");
-        orderA.setPurchaseName("张三");
-        Order.UserDO userDO = new Order.UserDO();
-        userDO.setUserId(9001L);
-        userDO.setUserName("用户1");
-        orderA.setCreator(userDO);
-        orderA.setItems(Lists.newArrayList("123", "bbb"));
-        Order orderB = new Order();
-        orderB.setOrderId(88L);
-        orderB.setOrderNo("MT0000099");
-        orderB.setProductName("麻辣烫套餐");
-        orderB.setPurchaseName("赵四");
-        Order.UserDO userDO1 = new Order.UserDO();
-        userDO1.setUserId(9002L);
-        userDO1.setUserName("用户2");
-        orderB.setCreator(userDO1);
-        orderB.setItems(Lists.newArrayList("123", "aaa"));
-
-        Order orderC = new Order();
-        orderC.setOrderId(99L);
-        orderC.setOrderNo("MT0000099");
-        orderC.setProductName("超值优惠红烧肉套餐123");
-        orderC.setPurchaseName("张三");
-        Order.UserDO userDO2 = new Order.UserDO();
-        userDO2.setUserId(9001L);
-        userDO2.setUserName("用户1423423");
-        orderC.setCreator(userDO2);
-        orderC.setItems(Lists.newArrayList("123", "bbbdafsadfsd"));
-        Order orderD = new Order();
-        orderD.setOrderId(88L);
-        orderD.setOrderNo("MT0000099");
-        orderD.setProductName("麻辣烫套餐3123");
-        orderD.setPurchaseName("赵四");
-        Order.UserDO userDO3 = new Order.UserDO();
-        userDO3.setUserId(9002L);
-        userDO3.setUserName("用户24342");
-        orderD.setCreator(userDO3);
-        orderD.setItems(Lists.newArrayList("123", "fdsafsdfaaa"));
-
-        List<Order> oldList = CollectionUtil.newArrayList(orderA, orderB);
-        List<Order> newList = CollectionUtil.newArrayList(orderC, orderD);
-
-        // diff3
-//        orderService.diff3(oldList, newList);
-//        List<LogRecord> records = logRecordService.queryLog(LogRecordType.ORDER);
-//        Assert.assertEquals(2, records.size());
-//        records.forEach(System.out::println);
-
-        // diff4
-//        orderService.diff4(orderA, newList);
-//        List<LogRecord> records = logRecordService.queryLog(LogRecordType.ORDER);
-//        System.out.println(records.size());
-//        records.forEach(System.out::println);
-
-        // diff5
-//        orderService.diff5(oldList, orderC);
-//        List<LogRecord> records = logRecordService.queryLog(LogRecordType.ORDER);
-//        System.out.println(records.size());
-//        records.forEach(System.out::println);
-
-        // diff6
-//        orderService.diff6(orderA, orderC);
-//        List<LogRecord> records = logRecordService.queryLog(LogRecordType.ORDER);
-//        System.out.println(records.size());
-//        records.forEach(System.out::println);
-
-        // diff7
-//        orderService.diff7(newList);
-//        List<LogRecord> records = logRecordService.queryLog(LogRecordType.ORDER);
-//        System.out.println(records.size());
-//        records.forEach(System.out::println);
-
-        // diff8
-        orderService.diff8(orderC);
-        List<LogRecord> records = logRecordService.queryLog(LogRecordType.ORDER);
-        System.out.println(records.size());
-        records.forEach(System.out::println);
     }
 
     @Test

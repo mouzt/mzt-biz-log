@@ -24,8 +24,6 @@ import org.springframework.util.StringUtils;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * DATE 5:39 PM
@@ -110,55 +108,28 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
                 List<String> spElTemplates = getSpElTemplates(operation, action);
                 String operatorIdFromService = getOperatorIdFromServiceAndPutTemplate(operation, spElTemplates);
 
-                if (operation.isBatch()) {
-                    Map<String, List<String>> expressionValues = parseBatchTemplate(spElTemplates,
-                            ret, targetClass, method, args, errorMsg, functionNameAndReturnMap, operation.getBizNo());
-                    List<LogRecord> records = IntStream.range(0, expressionValues.get(operation.getBizNo()).size())
-                            .boxed().filter(x -> {
-                                String condition = operation.getCondition();
-                                return StringUtils.isEmpty(condition) || StringUtils.endsWithIgnoreCase(expressionValues.get(condition).get(x), "true");
-                            }).map(x -> {
-                                String operator = !StringUtils.isEmpty(operatorIdFromService) ? operatorIdFromService : expressionValues.get(operation.getOperatorId()).get(x);
-                                return LogRecord.builder()
-                                        .tenant(tenantId)
-                                        .type(expressionValues.get(operation.getType()).get(x))
-                                        .bizNo(expressionValues.get(operation.getBizNo()).get(x))
-                                        .operator(operator)
-                                        .subType(expressionValues.get(operation.getSubType()).get(x))
-                                        .extra(expressionValues.get(operation.getExtra()).get(x))
-                                        .codeVariable(getCodeVariable(method))
-                                        .action(expressionValues.get(action).get(x))
-                                        .fail(!success)
-                                        .createTime(new Date())
-                                        .build();
-                            }).filter(x -> !StringUtils.isEmpty(x.getAction()))
-                            .collect(Collectors.toList());
-                    Preconditions.checkNotNull(bizLogService, "bizLogService not init!!");
-                    bizLogService.batchRecord(records);
-                } else {
-                    Map<String, String> expressionValues = processTemplate(spElTemplates, ret, targetClass, method, args, errorMsg, functionNameAndReturnMap);
-                    if (logConditionPassed(operation.getCondition(), expressionValues)) {
-                        LogRecord logRecord = LogRecord.builder()
-                                .tenant(tenantId)
-                                .type(expressionValues.get(operation.getType()))
-                                .bizNo(expressionValues.get(operation.getBizNo()))
-                                .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
-                                .subType(expressionValues.get(operation.getSubType()))
-                                .extra(expressionValues.get(operation.getExtra()))
-                                .codeVariable(getCodeVariable(method))
-                                .action(expressionValues.get(action))
-                                .fail(!success)
-                                .createTime(new Date())
-                                .build();
+                Map<String, String> expressionValues = processTemplate(spElTemplates, ret, targetClass, method, args, errorMsg, functionNameAndReturnMap);
+                if (logConditionPassed(operation.getCondition(), expressionValues)) {
+                    LogRecord logRecord = LogRecord.builder()
+                            .tenant(tenantId)
+                            .type(expressionValues.get(operation.getType()))
+                            .bizNo(expressionValues.get(operation.getBizNo()))
+                            .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
+                            .subType(expressionValues.get(operation.getSubType()))
+                            .extra(expressionValues.get(operation.getExtra()))
+                            .codeVariable(getCodeVariable(method))
+                            .action(expressionValues.get(action))
+                            .fail(!success)
+                            .createTime(new Date())
+                            .build();
 
-                        //如果 action 为空，不记录日志
-                        if (StringUtils.isEmpty(logRecord.getAction())) {
-                            continue;
-                        }
-                        //save log 需要新开事务，失败日志不能因为事务回滚而丢失
-                        Preconditions.checkNotNull(bizLogService, "bizLogService not init!!");
-                        bizLogService.record(logRecord);
+                    //如果 action 为空，不记录日志
+                    if (StringUtils.isEmpty(logRecord.getAction())) {
+                        continue;
                     }
+                    //save log 需要新开事务，失败日志不能因为事务回滚而丢失
+                    Preconditions.checkNotNull(bizLogService, "bizLogService not init!!");
+                    bizLogService.record(logRecord);
                 }
             } catch (Exception t) {
                 log.error("log record execute exception", t);
@@ -178,7 +149,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
         if (!StringUtils.isEmpty(operation.getCondition())) {
             spElTemplates.add(operation.getCondition());
         }
-        return spElTemplates.stream().distinct().collect(Collectors.toList());
+        return spElTemplates;
     }
 
     private boolean logConditionPassed(String condition, Map<String, String> expressionValues) {
@@ -204,7 +175,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
     }
 
     private String getActionContent(boolean success, LogRecordOps operation) {
-        String action;
+        String action = "";
         if (success) {
             action = operation.getSuccessLogTemplate();
         } else {
