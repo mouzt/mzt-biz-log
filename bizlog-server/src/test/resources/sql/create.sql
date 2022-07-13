@@ -11,5 +11,6 @@ create table t_logrecord
     `create_time`   datetime(3)         not null default current_time(3) comment '创建时间',
     `extra`         varchar(2000)       not null default '' comment '扩展信息',
     `code_variable` varchar(2000)       not null default '' comment '代码变量信息',
+    `action_type`   varchar(20)         not null default '' comment '操作类型',
     primary key (id)
 );
