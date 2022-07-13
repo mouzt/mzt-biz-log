@@ -76,6 +76,8 @@ public class LogRecordPO {
 
     private String codeVariable;
 
+    private String actionType;
+
     public static LogRecordPO from(LogRecord logRecord) {
         LogRecordPO logRecordPO = new LogRecordPO();
         BeanUtils.copyProperties(logRecord, logRecordPO);

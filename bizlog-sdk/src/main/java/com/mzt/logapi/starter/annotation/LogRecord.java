@@ -53,4 +53,8 @@ public @interface LogRecord {
      * */
     boolean isBatch() default false;
 
+    /**
+     * 操作类型，比如：增、删、改，可自定义枚举，便于查询某种操作类型的日志
+     */
+    String actionType() default "";
 }

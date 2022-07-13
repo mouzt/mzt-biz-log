@@ -130,6 +130,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
                                         .action(expressionValues.get(action).get(x))
                                         .fail(!success)
                                         .createTime(new Date())
+                                        .actionType(operation.getActionType())
                                         .build();
                             }).filter(x -> !StringUtils.isEmpty(x.getAction()))
                             .collect(Collectors.toList());
@@ -149,6 +150,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
                                 .action(expressionValues.get(action))
                                 .fail(!success)
                                 .createTime(new Date())
+                                .actionType(operation.getActionType())
                                 .build();
 
                         //如果 action 为空，不记录日志

@@ -36,7 +36,7 @@ public class OrderServiceImpl implements IOrderService {
             subType = "MANAGER_VIEW",
             extra = "{{#order.toString()}}",
             success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,测试变量「{{#innerOrder.productName}}」,下单结果:{{#_ret}}",
-            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
+            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}", actionType = "INSERT")
     public boolean createOrder(Order order) {
         log.info("【创建订单】orderNo={}", order.getOrderNo());
         // db insert order
@@ -51,7 +51,7 @@ public class OrderServiceImpl implements IOrderService {
             extra = "{{#orders}}",
             success = "{{#purchaseNameList}}下了一个订单,购买商品「{{#productNameList}}」,下单结果:{{#_ret}}",
             type = LogRecordType.ORDER, bizNo = "{{#orderNoList}}",
-            isBatch = true)
+            isBatch = true, actionType = "INSERT")
     public boolean createBatchOrder(List<Order> orders) {
         Optional.ofNullable(orders).ifPresent(x -> {
             x.forEach(y -> log.info("【创建订单】orderNo={}", y.getOrderNo()));

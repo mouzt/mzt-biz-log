@@ -37,6 +37,7 @@ public class IOrderServiceTest extends BaseTest {
         Assert.assertNotNull(logRecord.getExtra());
         Assert.assertEquals(logRecord.getBizNo(), order.getOrderNo());
         Assert.assertFalse(logRecord.isFail());
+        Assert.assertEquals(logRecord.getActionType(), "INSERT");
         logRecordService.clean();
     }
 
@@ -59,11 +60,13 @@ public class IOrderServiceTest extends BaseTest {
         Assert.assertNotNull(recordA.getExtra());
         Assert.assertEquals(recordA.getBizNo(), orderA.getOrderNo());
         Assert.assertFalse(recordA.isFail());
+        Assert.assertEquals(recordA.getActionType(), "INSERT");
         LogRecord recordB = records.get(1);
         Assert.assertEquals(recordB.getAction(), "李四下了一个订单,购买商品「超值优惠黄焖鸡套餐」,下单结果:true");
         Assert.assertNotNull(recordB.getExtra());
         Assert.assertEquals(recordB.getBizNo(), orderB.getOrderNo());
         Assert.assertFalse(recordB.isFail());
+        Assert.assertEquals(recordB.getActionType(), "INSERT");
     }
 
     @Test
