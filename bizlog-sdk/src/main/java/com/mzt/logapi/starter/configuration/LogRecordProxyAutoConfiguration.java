@@ -125,7 +125,7 @@ public class LogRecordProxyAutoConfiguration implements ImportAware {
         this.enableLogRecord = AnnotationAttributes.fromMap(
                 importMetadata.getAnnotationAttributes(EnableLogRecord.class.getName(), false));
         if (this.enableLogRecord == null) {
-            log.info("@EnableCaching is not present on importing class");
+            log.info("EnableLogRecord is not present on importing class");
         }
     }
 }
