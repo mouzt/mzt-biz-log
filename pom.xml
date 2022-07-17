@@ -24,6 +24,7 @@
     <modules>
         <module>bizlog-sdk</module>
         <module>bizlog-server</module>
+        <module>bizlog-sdk-xml</module>
     </modules>
 
 

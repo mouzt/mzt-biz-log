@@ -47,10 +47,4 @@ public @interface LogRecord {
     String extra() default "";
 
     String condition() default "";
-
-    /**
-     * <p>是否是批量操作
-     * */
-    boolean isBatch() default false;
-
 }

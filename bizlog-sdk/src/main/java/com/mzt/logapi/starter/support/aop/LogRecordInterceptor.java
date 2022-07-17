@@ -7,6 +7,7 @@ import com.mzt.logapi.beans.CodeVariableType;
 import com.mzt.logapi.beans.LogRecord;
 import com.mzt.logapi.beans.LogRecordOps;
 import com.mzt.logapi.context.LogRecordContext;
+import com.mzt.logapi.service.ILogRecordPerformanceMonitor;
 import com.mzt.logapi.service.ILogRecordService;
 import com.mzt.logapi.service.IOperatorGetService;
 import com.mzt.logapi.starter.support.parse.LogRecordValueParser;
@@ -19,13 +20,14 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+
+import static com.mzt.logapi.service.ILogRecordPerformanceMonitor.*;
 
 /**
  * DATE 5:39 PM
@@ -43,6 +45,8 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
 
     private IOperatorGetService operatorGetService;
 
+    private ILogRecordPerformanceMonitor logRecordPerformanceMonitor;
+
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         Method method = invocation.getMethod();
@@ -50,6 +54,8 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
     }
 
     private Object execute(MethodInvocation invoker, Object target, Method method, Object[] args) throws Throwable {
+        StopWatch stopWatch = new StopWatch(MONITOR_NAME);
+        stopWatch.start(MONITOR_TASK_BEFORE_EXECUTE);
         Class<?> targetClass = getTargetClass(target);
         Object ret = null;
         MethodExecuteResult methodExecuteResult = new MethodExecuteResult(true, null, "");
@@ -62,12 +68,16 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
             functionNameAndReturnMap = processBeforeExecuteFunctionTemplate(spElTemplates, targetClass, method, args);
         } catch (Exception e) {
             log.error("log record parse before function exception", e);
+        } finally {
+            stopWatch.stop();
         }
+
         try {
             ret = invoker.proceed();
         } catch (Exception e) {
             methodExecuteResult = new MethodExecuteResult(false, e, e.getMessage());
         }
+        stopWatch.start(MONITOR_TASK_AFTER_EXECUTE);
         try {
             if (!CollectionUtils.isEmpty(operations)) {
                 recordExecute(ret, method, args, operations, targetClass,
@@ -78,6 +88,12 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
             log.error("log record parse exception", t);
         } finally {
             LogRecordContext.clear();
+            stopWatch.stop();
+            try {
+                logRecordPerformanceMonitor.print(stopWatch);
+            } catch (Exception e) {
+                log.error("execute exception", e);
+            }
         }
         if (methodExecuteResult.throwable != null) {
             throw methodExecuteResult.throwable;
@@ -110,55 +126,28 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
                 List<String> spElTemplates = getSpElTemplates(operation, action);
                 String operatorIdFromService = getOperatorIdFromServiceAndPutTemplate(operation, spElTemplates);
 
-                if (operation.isBatch()) {
-                    Map<String, List<String>> expressionValues = parseBatchTemplate(spElTemplates,
-                            ret, targetClass, method, args, errorMsg, functionNameAndReturnMap, operation.getBizNo());
-                    List<LogRecord> records = IntStream.range(0, expressionValues.get(operation.getBizNo()).size())
-                            .boxed().filter(x -> {
-                                String condition = operation.getCondition();
-                                return StringUtils.isEmpty(condition) || StringUtils.endsWithIgnoreCase(expressionValues.get(condition).get(x), "true");
-                            }).map(x -> {
-                                String operator = !StringUtils.isEmpty(operatorIdFromService) ? operatorIdFromService : expressionValues.get(operation.getOperatorId()).get(x);
-                                return LogRecord.builder()
-                                        .tenant(tenantId)
-                                        .type(expressionValues.get(operation.getType()).get(x))
-                                        .bizNo(expressionValues.get(operation.getBizNo()).get(x))
-                                        .operator(operator)
-                                        .subType(expressionValues.get(operation.getSubType()).get(x))
-                                        .extra(expressionValues.get(operation.getExtra()).get(x))
-                                        .codeVariable(getCodeVariable(method))
-                                        .action(expressionValues.get(action).get(x))
-                                        .fail(!success)
-                                        .createTime(new Date())
-                                        .build();
-                            }).filter(x -> !StringUtils.isEmpty(x.getAction()))
-                            .collect(Collectors.toList());
-                    Preconditions.checkNotNull(bizLogService, "bizLogService not init!!");
-                    bizLogService.batchRecord(records);
-                } else {
-                    Map<String, String> expressionValues = processTemplate(spElTemplates, ret, targetClass, method, args, errorMsg, functionNameAndReturnMap);
-                    if (logConditionPassed(operation.getCondition(), expressionValues)) {
-                        LogRecord logRecord = LogRecord.builder()
-                                .tenant(tenantId)
-                                .type(expressionValues.get(operation.getType()))
-                                .bizNo(expressionValues.get(operation.getBizNo()))
-                                .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
-                                .subType(expressionValues.get(operation.getSubType()))
-                                .extra(expressionValues.get(operation.getExtra()))
-                                .codeVariable(getCodeVariable(method))
-                                .action(expressionValues.get(action))
-                                .fail(!success)
-                                .createTime(new Date())
-                                .build();
+                Map<String, String> expressionValues = processTemplate(spElTemplates, ret, targetClass, method, args, errorMsg, functionNameAndReturnMap);
+                if (logConditionPassed(operation.getCondition(), expressionValues)) {
+                    LogRecord logRecord = LogRecord.builder()
+                            .tenant(tenantId)
+                            .type(expressionValues.get(operation.getType()))
+                            .bizNo(expressionValues.get(operation.getBizNo()))
+                            .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
+                            .subType(expressionValues.get(operation.getSubType()))
+                            .extra(expressionValues.get(operation.getExtra()))
+                            .codeVariable(getCodeVariable(method))
+                            .action(expressionValues.get(action))
+                            .fail(!success)
+                            .createTime(new Date())
+                            .build();
 
-                        //如果 action 为空，不记录日志
-                        if (StringUtils.isEmpty(logRecord.getAction())) {
-                            continue;
-                        }
-                        //save log 需要新开事务，失败日志不能因为事务回滚而丢失
-                        Preconditions.checkNotNull(bizLogService, "bizLogService not init!!");
-                        bizLogService.record(logRecord);
+                    //如果 action 为空，不记录日志
+                    if (StringUtils.isEmpty(logRecord.getAction())) {
+                        continue;
                     }
+                    //save log 需要新开事务，失败日志不能因为事务回滚而丢失
+                    Preconditions.checkNotNull(bizLogService, "bizLogService not init!!");
+                    bizLogService.record(logRecord);
                 }
             } catch (Exception t) {
                 log.error("log record execute exception", t);
@@ -178,7 +167,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
         if (!StringUtils.isEmpty(operation.getCondition())) {
             spElTemplates.add(operation.getCondition());
         }
-        return spElTemplates.stream().distinct().collect(Collectors.toList());
+        return spElTemplates;
     }
 
     private boolean logConditionPassed(String condition, Map<String, String> expressionValues) {
@@ -204,7 +193,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
     }
 
     private String getActionContent(boolean success, LogRecordOps operation) {
-        String action;
+        String action = "";
         if (success) {
             action = operation.getSuccessLogTemplate();
         } else {
@@ -228,6 +217,10 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
 
     public void setLogRecordService(ILogRecordService bizLogService) {
         this.bizLogService = bizLogService;
+    }
+
+    public void setLogRecordPerformanceMonitor(ILogRecordPerformanceMonitor logRecordPerformanceMonitor) {
+        this.logRecordPerformanceMonitor = logRecordPerformanceMonitor;
     }
 
     @Override

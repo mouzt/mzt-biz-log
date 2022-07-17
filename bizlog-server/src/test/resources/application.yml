@@ -35,3 +35,4 @@ spring:
 logging:
   level:
     com.mzt.logserver.repository.mapper: debug
+    com.mzt.logapi.service.impl: debug

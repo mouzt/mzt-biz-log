@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://www.springframework.org/schema/bizlog"
+            elementFormDefault="qualified">
+    <xsd:element name="log-record">
+        <xsd:complexType>
+            <xsd:attribute name="tenant" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+			评论的租户，一般一个服务或者一个业务使用同一个租户
+							]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+        </xsd:complexType>
+    </xsd:element>
+</xsd:schema>

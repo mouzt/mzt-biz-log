@@ -18,5 +18,4 @@ public class LogRecordOps {
     private String subType;
     private String extra;
     private String condition;
-    private boolean isBatch;
 }

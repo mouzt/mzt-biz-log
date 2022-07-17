@@ -25,17 +25,18 @@
 * fix了没有加EnableTransactionManagement切面不生效的逻辑
 * 补充了一些测试用例，不会使用的大大们可以参考测试用例的使用方式
 
-| 版本    | 状态                                                                                                                                              |
-|-------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1.0.1 | 发版                                                                                                                                              |
-| 1.0.4 | 支持 Context 添加变量                                                                                                                                 |
-| 1.0.5 | 支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18                                                                                   |
-| 1.0.8 | 自定义函数支持 在业务的方法运行前执行                                                                                                                             |
-| 1.1.0 | 1. 支持了对象DIFF，release 稳定下再发版 2.Function 的参数从 String修改为 Object了，可以给自定函数传递对象啦~~ 3. fix了没有加EnableTransactionManagement 切面不生效的逻辑 4. 添加了fail标志，代表是否成功 |
-| 1.1.1 | 1. 修复了自定义函数返回美元符号解析失败问题，2. 修复before自定义函数bug，3.删除了diff最后一个分隔符                                                                                    |
-| 2.0.0 | 1.修改了@LogRecordAnnotation 注解的名字 到LogRecord，2. 修改了注解的一些属性，使属性名称使得含义更加清晰更加，3.增加了默认的server端的实现                                                     |
-| 2.0.1 | 修复了接口上的注解不能被拦截的问题                                                                                                                               |
+| 版本    | 状态                                                                                                                                                       |
+|-------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1.0.1 | 发版                                                                                                                                                       |
+| 1.0.4 | 支持 Context 添加变量                                                                                                                                          |
+| 1.0.5 | 支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18                                                                                            |
+| 1.0.8 | 自定义函数支持 在业务的方法运行前执行                                                                                                                                      |
+| 1.1.0 | 1. 支持了对象DIFF，release 稳定下再发版 2.Function 的参数从 String修改为 Object了，可以给自定函数传递对象啦~~ 3. fix了没有加EnableTransactionManagement 切面不生效的逻辑 4. 添加了fail标志，代表是否成功          |
+| 1.1.1 | 1. 修复了自定义函数返回美元符号解析失败问题，2. 修复before自定义函数bug，3.删除了diff最后一个分隔符                                                                                             |
+| 2.0.0 | 1.修改了@LogRecordAnnotation 注解的名字 到LogRecord，2. 修改了注解的一些属性，使属性名称使得含义更加清晰更加，3.增加了默认的server端的实现                                                              |
+| 2.0.1 | 修复了接口上的注解不能被拦截的问题                                                                                                                                        |
 | 2.0.2 | 1.修复了 LogFunctionParser 的NPE，2. 注解上添加了ElementType.TYPE，3.记录了当前执行方法的Class和Method 4. 重新fix了没有加EnableTransactionManagement 切面不生效的逻辑 5. 增加了 Subtype 的 SpEl解析 |
+| 3.0.0 | 暂时删除了list实现优化中,增加了xml的方式,增加了性能监控接口                                                                                                                       |                                                                                                                                              |                                                                                                                                                       |
 
 ## 使用方式(对象DIFF功能终于支持了)
 
@@ -47,7 +48,7 @@
         <dependency>
           <groupId>io.github.mouzt</groupId>
           <artifactId>bizlog-sdk</artifactId>
-          <version>2.0.1</version>
+          <version>3.0.0-SNAPSHOT</version>
         </dependency>
 ```
 #### SpringBoot入口打开开关,添加 @EnableLogRecord 注解
@@ -469,44 +470,24 @@ mzt:
       ### 加了配置，name更新的模板就是 "用户姓名 从 张三 变为 李四" 其中的 __fieldName 、 __sourceValue以及__targetValue 都是替换的变量
 ```
 
-###### 12. 批量保存日志功能
+###### 12. 增加了操作日志 Monitor 监控接口
 
-该功能适用于当一个方法对多条数据进行了操作而使用者又希望对每条数据都记录操作日志的情况。由于是多条记录，那么各个表达式对应的变量是有对应关系的（或者说是有顺序的），因此这里我们只识别 `java.util.List` 及其子类型，并对其作特殊处理。
-
-使用方式和正常使用 `LogRecord` 注解区别不大，甚至兼容现有功能（如diff、自定义函数等），而使用者只需要设置 `LogRecord` 注解的 `isBatch` 属性即可。
+用户可以自己实现 ILogRecordPerformanceMonitor 接口，实现对日志性能的监控。默认是 DefaultLogRecordPerformanceMonitor 需要开启 debug 才能打印日志
 
 ```
-    @Override
-    @LogRecord(fail = "创建订单失败，失败原因：「{{#_errorMsg}}」",
-            extra = "{{#orders}}",
-            success = "{{#purchaseNameList}}下了一个订单,购买商品「{{#productNameList}}」,下单结果:{{#_ret}}",
-            type = LogRecordType.ORDER, bizNo = "{{#orderNoList}}",
-            isBatch = true)
-    public boolean createBatchOrder(List<Order> orders) {
-        Optional.ofNullable(orders).ifPresent(x -> {
-            x.forEach(y -> log.info("【创建订单】orderNo={}", y.getOrderNo()));
-            List<String> purchaseNameList = orders.stream()
-                    .map(Order::getPurchaseName).collect(Collectors.toList());
-            List<String> productNameList = orders.stream()
-                    .map(Order::getProductName).collect(Collectors.toList());
-            List<String> orderNoList = orders.stream()
-                    .map(Order::getOrderNo).collect(Collectors.toList());
-            LogRecordContext.putVariable("purchaseNameList", purchaseNameList);
-            LogRecordContext.putVariable("productNameList", productNameList);
-            LogRecordContext.putVariable("orderNoList", orderNoList);
-        });
-        return true;
-    }
+//开启debug方法：
+logging:
+  level:
+    com.mzt.logapi.service.impl: debug
+
+
+//日志打印例子：
+---------------------------------------------
+ns         %     Task name
+---------------------------------------------
+000111278  003%  before-execute
+003277960  097%  after-execute
 ```
-
-上面的例子结果会是 `orders` 中的每一条记录都有一条对应的操作记录。
-
-仔细查看上面的例子，这里的表达式有两种类型，一种是 `{{#orders}}` 这种含有 `List` 类型变量的，一种是 `{{#_ret}}` 这种含有非 `List` 类型变量的。如果是非 `List` 类型的变量，每次会被解析成相同的值，而 `List` 类型变量则不会。
-
-注意生成记录的条数是由 `LogRecord` 注解里的 `bizNo` 属性决定的。
-
-更多有关批量保存操作日志的功能请查看 `OrderServiceImpl` 里的测试用例。
-
 #### 框架的扩展点
 
 * 重写OperatorGetServiceImpl通过上下文获取用户的扩展，例子如下
@@ -606,4 +587,9 @@ mail : mztsmile@163.com
 ## 加微信我们一起讨论技术吧~~，一起进步(*❦ω❦)！！！
 
 我的微信：
-![联系我](https://github.com/mouzt/mzt-biz-log/blob/feature/diff/wechat-me.jpeg?raw=true)
+![联系我](https://img-blog.csdnimg.cn/a6803dde49e94de396340179c33f8d79.jpeg#pic_center)
+
+群微信
+
+![联系我](https://img-blog.csdnimg.cn/cc53cbc32e81479abc872bdf86ee5601.jpeg#pic_center)
+
