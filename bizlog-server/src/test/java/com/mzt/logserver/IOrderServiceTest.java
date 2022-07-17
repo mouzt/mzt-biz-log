@@ -41,6 +41,21 @@ public class IOrderServiceTest extends BaseTest {
 
     @Test
     @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void createOrderMonitor() {
+
+        for (int i = 0; i < 100; i++) {
+            Order order = new Order();
+            order.setOrderNo("MT0000011");
+            order.setProductName("超值优惠红烧肉套餐");
+            order.setPurchaseName("张三");
+            orderService.createOrder(order);
+
+        }
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void createOrder_interface() {
         Order order = new Order();
         order.setOrderNo("MT0000011");

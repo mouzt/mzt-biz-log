@@ -1,9 +1,6 @@
 package com.mzt.logapi.starter.configuration;
 
-import com.mzt.logapi.service.IFunctionService;
-import com.mzt.logapi.service.ILogRecordService;
-import com.mzt.logapi.service.IOperatorGetService;
-import com.mzt.logapi.service.IParseFunction;
+import com.mzt.logapi.service.*;
 import com.mzt.logapi.service.impl.*;
 import com.mzt.logapi.starter.annotation.EnableLogRecord;
 import com.mzt.logapi.starter.diff.DefaultDiffItemsToLogContentService;
@@ -73,6 +70,12 @@ public class LogRecordProxyAutoConfiguration implements ImportAware {
     }
 
     @Bean
+    @ConditionalOnMissingBean(ILogRecordPerformanceMonitor.class)
+    public ILogRecordPerformanceMonitor logRecordPerformanceMonitor() {
+        return new DefaultLogRecordPerformanceMonitor();
+    }
+
+    @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
     public LogRecordInterceptor logRecordInterceptor(IFunctionService functionService, DiffParseFunction diffParseFunction) {
         LogRecordInterceptor interceptor = new LogRecordInterceptor();
@@ -80,6 +83,7 @@ public class LogRecordProxyAutoConfiguration implements ImportAware {
         interceptor.setTenant(enableLogRecord.getString("tenant"));
         interceptor.setLogFunctionParser(logFunctionParser(functionService));
         interceptor.setDiffParseFunction(diffParseFunction);
+        interceptor.setLogRecordPerformanceMonitor(logRecordPerformanceMonitor());
         return interceptor;
     }
 

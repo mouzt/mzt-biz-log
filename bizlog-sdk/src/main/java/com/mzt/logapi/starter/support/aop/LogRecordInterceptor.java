@@ -7,6 +7,7 @@ import com.mzt.logapi.beans.CodeVariableType;
 import com.mzt.logapi.beans.LogRecord;
 import com.mzt.logapi.beans.LogRecordOps;
 import com.mzt.logapi.context.LogRecordContext;
+import com.mzt.logapi.service.ILogRecordPerformanceMonitor;
 import com.mzt.logapi.service.ILogRecordService;
 import com.mzt.logapi.service.IOperatorGetService;
 import com.mzt.logapi.starter.support.parse.LogRecordValueParser;
@@ -19,11 +20,14 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.*;
+
+import static com.mzt.logapi.service.ILogRecordPerformanceMonitor.*;
 
 /**
  * DATE 5:39 PM
@@ -41,6 +45,8 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
 
     private IOperatorGetService operatorGetService;
 
+    private ILogRecordPerformanceMonitor logRecordPerformanceMonitor;
+
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         Method method = invocation.getMethod();
@@ -48,6 +54,8 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
     }
 
     private Object execute(MethodInvocation invoker, Object target, Method method, Object[] args) throws Throwable {
+        StopWatch stopWatch = new StopWatch(MONITOR_NAME);
+        stopWatch.start(MONITOR_TASK_BEFORE_EXECUTE);
         Class<?> targetClass = getTargetClass(target);
         Object ret = null;
         MethodExecuteResult methodExecuteResult = new MethodExecuteResult(true, null, "");
@@ -60,12 +68,16 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
             functionNameAndReturnMap = processBeforeExecuteFunctionTemplate(spElTemplates, targetClass, method, args);
         } catch (Exception e) {
             log.error("log record parse before function exception", e);
+        } finally {
+            stopWatch.stop();
         }
+
         try {
             ret = invoker.proceed();
         } catch (Exception e) {
             methodExecuteResult = new MethodExecuteResult(false, e, e.getMessage());
         }
+        stopWatch.start(MONITOR_TASK_AFTER_EXECUTE);
         try {
             if (!CollectionUtils.isEmpty(operations)) {
                 recordExecute(ret, method, args, operations, targetClass,
@@ -76,6 +88,12 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
             log.error("log record parse exception", t);
         } finally {
             LogRecordContext.clear();
+            stopWatch.stop();
+            try {
+                logRecordPerformanceMonitor.print(stopWatch);
+            } catch (Exception e) {
+                log.error("execute exception", e);
+            }
         }
         if (methodExecuteResult.throwable != null) {
             throw methodExecuteResult.throwable;
@@ -199,6 +217,10 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
 
     public void setLogRecordService(ILogRecordService bizLogService) {
         this.bizLogService = bizLogService;
+    }
+
+    public void setLogRecordPerformanceMonitor(ILogRecordPerformanceMonitor logRecordPerformanceMonitor) {
+        this.logRecordPerformanceMonitor = logRecordPerformanceMonitor;
     }
 
     @Override
