@@ -1,10 +1,13 @@
 package com.mzt.logserver.function;
 
 import com.mzt.logapi.service.IParseFunction;
+import com.mzt.logserver.UserQueryService;
 import com.mzt.logserver.pojo.Order;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
+import javax.annotation.Resource;
 
 /**
  * @author muzhantong
@@ -13,6 +16,10 @@ import org.springframework.util.StringUtils;
 @Slf4j
 @Component
 public class OrderBeforeParseFunction implements IParseFunction {
+
+    @Resource
+//    @Lazy
+    private UserQueryService userQueryService;
 
     @Override
     public boolean executeBefore() {

@@ -7,9 +7,12 @@ import com.mzt.logapi.beans.CodeVariableType;
 import com.mzt.logapi.beans.LogRecord;
 import com.mzt.logapi.beans.LogRecordOps;
 import com.mzt.logapi.context.LogRecordContext;
+import com.mzt.logapi.service.IFunctionService;
 import com.mzt.logapi.service.ILogRecordPerformanceMonitor;
 import com.mzt.logapi.service.ILogRecordService;
 import com.mzt.logapi.service.IOperatorGetService;
+import com.mzt.logapi.service.impl.DiffParseFunction;
+import com.mzt.logapi.starter.support.parse.LogFunctionParser;
 import com.mzt.logapi.starter.support.parse.LogRecordValueParser;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,6 +22,7 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
@@ -35,7 +39,7 @@ import static com.mzt.logapi.service.ILogRecordPerformanceMonitor.*;
  * @author mzt.
  */
 @Slf4j
-public class LogRecordInterceptor extends LogRecordValueParser implements InitializingBean, MethodInterceptor, Serializable {
+public class LogRecordInterceptor extends LogRecordValueParser implements InitializingBean, MethodInterceptor, Serializable, SmartInitializingSingleton {
 
     private LogRecordOperationSource logRecordOperationSource;
 
@@ -230,8 +234,10 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
         Preconditions.checkNotNull(bizLogService, "bizLogService not null");
     }
 
-    public void setOperatorGetService(IOperatorGetService operatorGetService) {
-        this.operatorGetService = operatorGetService;
+    @Override
+    public void afterSingletonsInstantiated() {
+        this.setLogFunctionParser(new LogFunctionParser(beanFactory.getBean(IFunctionService.class)));
+        this.setDiffParseFunction(beanFactory.getBean(DiffParseFunction.class));
     }
 
     @Data

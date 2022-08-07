@@ -5,8 +5,14 @@ import com.mzt.logapi.service.IFunctionService;
 import com.mzt.logapi.starter.annotation.DiffLogField;
 import com.mzt.logapi.starter.configuration.LogRecordProperties;
 import de.danielbechler.diff.node.DiffNode;
-import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.lang.NonNull;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -18,11 +24,17 @@ import java.util.Collection;
  * create on 2022/1/3 8:52 下午
  */
 @Slf4j
-@AllArgsConstructor
-public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogContentService {
+@Setter
+@Getter
+public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogContentService, BeanFactoryAware, SmartInitializingSingleton {
 
-    private final IFunctionService functionService;
+    private IFunctionService functionService;
     private final LogRecordProperties logRecordProperties;
+    private BeanFactory beanFactory;
+
+    public DefaultDiffItemsToLogContentService(LogRecordProperties logRecordProperties) {
+        this.logRecordProperties = logRecordProperties;
+    }
 
     @Override
     public String toLogContent(DiffNode diffNode, final Object sourceObject, final Object targetObject) {
@@ -153,5 +165,15 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
 
     private Object getFieldValue(DiffNode node, Object o2) {
         return node.canonicalGet(o2);
+    }
+
+    @Override
+    public void setBeanFactory(@NonNull BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
+    }
+
+    @Override
+    public void afterSingletonsInstantiated() {
+        this.functionService = beanFactory.getBean(IFunctionService.class);
     }
 }

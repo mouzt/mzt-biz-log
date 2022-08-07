@@ -8,7 +8,6 @@ import com.mzt.logapi.starter.diff.IDiffItemsToLogContentService;
 import com.mzt.logapi.starter.support.aop.BeanFactoryLogRecordAdvisor;
 import com.mzt.logapi.starter.support.aop.LogRecordInterceptor;
 import com.mzt.logapi.starter.support.aop.LogRecordOperationSource;
-import com.mzt.logapi.starter.support.parse.LogFunctionParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -61,11 +60,11 @@ public class LogRecordProxyAutoConfiguration implements ImportAware {
 
     @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-    public BeanFactoryLogRecordAdvisor logRecordAdvisor(IFunctionService functionService, DiffParseFunction diffParseFunction) {
+    public BeanFactoryLogRecordAdvisor logRecordAdvisor() {
         BeanFactoryLogRecordAdvisor advisor =
                 new BeanFactoryLogRecordAdvisor();
         advisor.setLogRecordOperationSource(logRecordOperationSource());
-        advisor.setAdvice(logRecordInterceptor(functionService, diffParseFunction));
+        advisor.setAdvice(logRecordInterceptor());
         return advisor;
     }
 
@@ -77,20 +76,20 @@ public class LogRecordProxyAutoConfiguration implements ImportAware {
 
     @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-    public LogRecordInterceptor logRecordInterceptor(IFunctionService functionService, DiffParseFunction diffParseFunction) {
+    public LogRecordInterceptor logRecordInterceptor() {
         LogRecordInterceptor interceptor = new LogRecordInterceptor();
         interceptor.setLogRecordOperationSource(logRecordOperationSource());
         interceptor.setTenant(enableLogRecord.getString("tenant"));
-        interceptor.setLogFunctionParser(logFunctionParser(functionService));
-        interceptor.setDiffParseFunction(diffParseFunction);
+        //interceptor.setLogFunctionParser(logFunctionParser(functionService));
+        //interceptor.setDiffParseFunction(diffParseFunction);
         interceptor.setLogRecordPerformanceMonitor(logRecordPerformanceMonitor());
         return interceptor;
     }
 
-    @Bean
-    public LogFunctionParser logFunctionParser(IFunctionService functionService) {
-        return new LogFunctionParser(functionService);
-    }
+//    @Bean
+//    public LogFunctionParser logFunctionParser(IFunctionService functionService) {
+//        return new LogFunctionParser(functionService);
+//    }
 
     @Bean
     public DiffParseFunction diffParseFunction(IDiffItemsToLogContentService diffItemsToLogContentService) {
@@ -102,8 +101,8 @@ public class LogRecordProxyAutoConfiguration implements ImportAware {
     @Bean
     @ConditionalOnMissingBean(IDiffItemsToLogContentService.class)
     @Role(BeanDefinition.ROLE_APPLICATION)
-    public IDiffItemsToLogContentService diffItemsToLogContentService(IFunctionService functionService, LogRecordProperties logRecordProperties) {
-        return new DefaultDiffItemsToLogContentService(functionService, logRecordProperties);
+    public IDiffItemsToLogContentService diffItemsToLogContentService(LogRecordProperties logRecordProperties) {
+        return new DefaultDiffItemsToLogContentService(logRecordProperties);
     }
 
     @Bean
