@@ -13,9 +13,6 @@ import org.springframework.lang.Nullable;
  * @author mzt.
  */
 public class LogRecordConfigureSelector extends AdviceModeImportSelector<EnableLogRecord> {
-    private static final String ASYNC_EXECUTION_ASPECT_CONFIGURATION_CLASS_NAME =
-            "com.mzt.logapi.starter.configuration.LogRecordProxyAutoConfiguration";
-
 
     @Override
     @Nullable
@@ -24,7 +21,7 @@ public class LogRecordConfigureSelector extends AdviceModeImportSelector<EnableL
             case PROXY:
                 return new String[]{AutoProxyRegistrar.class.getName(), LogRecordProxyAutoConfiguration.class.getName()};
             case ASPECTJ:
-                return new String[]{ASYNC_EXECUTION_ASPECT_CONFIGURATION_CLASS_NAME};
+                return new String[]{LogRecordProxyAutoConfiguration.class.toString()};
             default:
                 return null;
         }
