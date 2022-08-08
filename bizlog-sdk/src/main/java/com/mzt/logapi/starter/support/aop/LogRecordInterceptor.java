@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.framework.AopProxyUtils;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
@@ -39,7 +38,7 @@ import static com.mzt.logapi.service.ILogRecordPerformanceMonitor.*;
  * @author mzt.
  */
 @Slf4j
-public class LogRecordInterceptor extends LogRecordValueParser implements InitializingBean, MethodInterceptor, Serializable, SmartInitializingSingleton {
+public class LogRecordInterceptor extends LogRecordValueParser implements MethodInterceptor, Serializable, SmartInitializingSingleton {
 
     private LogRecordOperationSource logRecordOperationSource;
 
@@ -228,16 +227,12 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterSingletonsInstantiated() {
         bizLogService = beanFactory.getBean(ILogRecordService.class);
         operatorGetService = beanFactory.getBean(IOperatorGetService.class);
-        Preconditions.checkNotNull(bizLogService, "bizLogService not null");
-    }
-
-    @Override
-    public void afterSingletonsInstantiated() {
         this.setLogFunctionParser(new LogFunctionParser(beanFactory.getBean(IFunctionService.class)));
         this.setDiffParseFunction(beanFactory.getBean(DiffParseFunction.class));
+
     }
 
     @Data
