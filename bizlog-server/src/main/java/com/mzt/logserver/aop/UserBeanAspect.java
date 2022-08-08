@@ -20,10 +20,9 @@
 //
 //    @Around(value = "myPointCut()")
 //    public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
-//        System.out.println("环绕前-----通知");
-//        //执行了目标方法
+//        System.out.println("before");
 //        Object obj = joinPoint.proceed();
-//        System.out.println("环绕后------通知");
+//        System.out.println("after");
 //        return obj;
 //
 //    }
