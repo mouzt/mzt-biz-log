@@ -11,4 +11,5 @@ create table t_logrecord
     `create_time` datetime(3)         not null default current_time(3) comment '创建时间',
     `extra`       varchar(2000)       not null default '' comment '扩展信息',
     primary key (id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 comment '操作日志表';
