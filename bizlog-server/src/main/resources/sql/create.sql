@@ -1,6 +1,6 @@
 create table t_logrecord
 (
-    `id`          bigint(11) unsigned not null default 0 auto_increment comment 'id',
+    `id`          bigint(11) unsigned not null auto_increment comment 'id',
     `tenant`      varchar(63)         not null default '' comment '租户标识',
     `type`        varchar(63)         not null default '' comment '保存的操作日志的类型，比如：订单类型、商品类型',
     `sub_type`    varchar(63)         not null default '' comment '日志的子类型，比如订单的C端日志，和订单的B端日志，type都是订单类型，但是子类型不一样',
