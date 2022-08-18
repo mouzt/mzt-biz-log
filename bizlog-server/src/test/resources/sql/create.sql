@@ -8,7 +8,7 @@ create table t_logrecord
     `operator`      varchar(63)         not null default '' comment '操作人',
     `action`        varchar(1023)       not null default '' comment '日志内容',
     `fail`          tinyint(1) unsigned not null default 0 comment '记录是否是操作失败的日志',
-    `create_time`   datetime(3)         not null default current_time(3) comment '创建时间',
+    `create_time`   datetime(3)         not null default current_timestamp(3) comment '创建时间',
     `extra`         varchar(2000)       not null default '' comment '扩展信息',
     `code_variable` varchar(2000)       not null default '' comment '代码变量信息',
     primary key (id)
