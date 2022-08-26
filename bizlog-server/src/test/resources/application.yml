@@ -35,3 +35,5 @@ spring:
 logging:
   level:
     com.mzt.logserver.repository.mapper: debug
+    #    org.springframework.aop.framework.autoproxy: trace
+    com.mzt.logapi.service.impl: debug

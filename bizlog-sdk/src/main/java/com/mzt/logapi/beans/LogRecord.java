@@ -6,6 +6,7 @@ import org.hibernate.validator.constraints.Length;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
 
 @Setter
 @Getter
@@ -66,7 +67,14 @@ public class LogRecord {
     private Date createTime;
     /**
      * 日志的额外信息
+     *
      * @since 2.0.0 从detail 修改为extra
      */
     private String extra;
+
+    /**
+     * 打印日志的代码信息
+     * CodeVariableType 日志记录的ClassName、MethodName
+     */
+    private Map<CodeVariableType, Object> codeVariable;
 }

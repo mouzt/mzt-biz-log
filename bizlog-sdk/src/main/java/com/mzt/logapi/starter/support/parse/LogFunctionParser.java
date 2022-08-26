@@ -2,6 +2,7 @@ package com.mzt.logapi.starter.support.parse;
 
 import com.mzt.logapi.service.IFunctionService;
 import lombok.AllArgsConstructor;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.util.StringUtils;
 
 import java.util.Map;
@@ -18,7 +19,7 @@ public class LogFunctionParser {
 
     public String getFunctionReturnValue(Map<String, String> beforeFunctionNameAndReturnMap, Object value, String expression, String functionName) {
         if (StringUtils.isEmpty(functionName)) {
-            return value.toString();
+            return value == null ? Strings.EMPTY : value.toString();
         }
         String functionReturnValue = "";
         String functionCallInstanceKey = getFunctionCallInstanceKey(functionName, expression);

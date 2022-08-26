@@ -5,10 +5,9 @@ import org.apache.ibatis.annotations.Mapper;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 
-@SpringBootApplication
-@EnableTransactionManagement
+@SpringBootApplication(exclude = {DataSourceTransactionManagerAutoConfiguration.class})
 @MapperScan(basePackages = "com.mzt.logserver.repository.mapper", annotationClass = Mapper.class)
 @EnableLogRecord(tenant = "com.mzt.test")
 public class Main {

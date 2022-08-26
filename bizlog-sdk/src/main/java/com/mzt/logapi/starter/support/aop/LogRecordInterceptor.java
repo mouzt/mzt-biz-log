@@ -2,11 +2,17 @@ package com.mzt.logapi.starter.support.aop;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.mzt.logapi.beans.CodeVariableType;
 import com.mzt.logapi.beans.LogRecord;
 import com.mzt.logapi.beans.LogRecordOps;
 import com.mzt.logapi.context.LogRecordContext;
+import com.mzt.logapi.service.IFunctionService;
+import com.mzt.logapi.service.ILogRecordPerformanceMonitor;
 import com.mzt.logapi.service.ILogRecordService;
 import com.mzt.logapi.service.IOperatorGetService;
+import com.mzt.logapi.service.impl.DiffParseFunction;
+import com.mzt.logapi.starter.support.parse.LogFunctionParser;
 import com.mzt.logapi.starter.support.parse.LogRecordValueParser;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,13 +21,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.framework.AopProxyUtils;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.*;
+
+import static com.mzt.logapi.service.ILogRecordPerformanceMonitor.*;
 
 /**
  * DATE 5:39 PM
@@ -29,7 +38,7 @@ import java.util.*;
  * @author mzt.
  */
 @Slf4j
-public class LogRecordInterceptor extends LogRecordValueParser implements InitializingBean, MethodInterceptor, Serializable {
+public class LogRecordInterceptor extends LogRecordValueParser implements MethodInterceptor, Serializable, SmartInitializingSingleton {
 
     private LogRecordOperationSource logRecordOperationSource;
 
@@ -39,6 +48,8 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
 
     private IOperatorGetService operatorGetService;
 
+    private ILogRecordPerformanceMonitor logRecordPerformanceMonitor;
+
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         Method method = invocation.getMethod();
@@ -46,6 +57,8 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
     }
 
     private Object execute(MethodInvocation invoker, Object target, Method method, Object[] args) throws Throwable {
+        StopWatch stopWatch = new StopWatch(MONITOR_NAME);
+        stopWatch.start(MONITOR_TASK_BEFORE_EXECUTE);
         Class<?> targetClass = getTargetClass(target);
         Object ret = null;
         MethodExecuteResult methodExecuteResult = new MethodExecuteResult(true, null, "");
@@ -58,12 +71,16 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
             functionNameAndReturnMap = processBeforeExecuteFunctionTemplate(spElTemplates, targetClass, method, args);
         } catch (Exception e) {
             log.error("log record parse before function exception", e);
+        } finally {
+            stopWatch.stop();
         }
+
         try {
             ret = invoker.proceed();
         } catch (Exception e) {
             methodExecuteResult = new MethodExecuteResult(false, e, e.getMessage());
         }
+        stopWatch.start(MONITOR_TASK_AFTER_EXECUTE);
         try {
             if (!CollectionUtils.isEmpty(operations)) {
                 recordExecute(ret, method, args, operations, targetClass,
@@ -74,6 +91,12 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
             log.error("log record parse exception", t);
         } finally {
             LogRecordContext.clear();
+            stopWatch.stop();
+            try {
+                logRecordPerformanceMonitor.print(stopWatch);
+            } catch (Exception e) {
+                log.error("execute exception", e);
+            }
         }
         if (methodExecuteResult.throwable != null) {
             throw methodExecuteResult.throwable;
@@ -113,8 +136,9 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
                             .type(expressionValues.get(operation.getType()))
                             .bizNo(expressionValues.get(operation.getBizNo()))
                             .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
-                            .subType(operation.getSubType())
+                            .subType(expressionValues.get(operation.getSubType()))
                             .extra(expressionValues.get(operation.getExtra()))
+                            .codeVariable(getCodeVariable(method))
                             .action(expressionValues.get(action))
                             .fail(!success)
                             .createTime(new Date())
@@ -134,8 +158,15 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
         }
     }
 
+    private Map<CodeVariableType, Object> getCodeVariable(Method method) {
+        Map<CodeVariableType, Object> map = Maps.newHashMap();
+        map.put(CodeVariableType.ClassName, method.getDeclaringClass());
+        map.put(CodeVariableType.MethodName, method.getName());
+        return map;
+    }
+
     private List<String> getSpElTemplates(LogRecordOps operation, String action) {
-        List<String> spElTemplates = Lists.newArrayList(operation.getType(), operation.getBizNo(), action, operation.getExtra());
+        List<String> spElTemplates = Lists.newArrayList(operation.getType(), operation.getBizNo(), operation.getSubType(), action, operation.getExtra());
         if (!StringUtils.isEmpty(operation.getCondition())) {
             spElTemplates.add(operation.getCondition());
         }
@@ -191,15 +222,17 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Initia
         this.bizLogService = bizLogService;
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        bizLogService = beanFactory.getBean(ILogRecordService.class);
-        operatorGetService = beanFactory.getBean(IOperatorGetService.class);
-        Preconditions.checkNotNull(bizLogService, "bizLogService not null");
+    public void setLogRecordPerformanceMonitor(ILogRecordPerformanceMonitor logRecordPerformanceMonitor) {
+        this.logRecordPerformanceMonitor = logRecordPerformanceMonitor;
     }
 
-    public void setOperatorGetService(IOperatorGetService operatorGetService) {
-        this.operatorGetService = operatorGetService;
+    @Override
+    public void afterSingletonsInstantiated() {
+        bizLogService = beanFactory.getBean(ILogRecordService.class);
+        operatorGetService = beanFactory.getBean(IOperatorGetService.class);
+        this.setLogFunctionParser(new LogFunctionParser(beanFactory.getBean(IFunctionService.class)));
+        this.setDiffParseFunction(beanFactory.getBean(DiffParseFunction.class));
+
     }
 
     @Data

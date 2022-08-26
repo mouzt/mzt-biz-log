@@ -1,6 +1,7 @@
 package com.mzt.logserver;
 
 import com.google.common.collect.Lists;
+import com.mzt.logapi.beans.CodeVariableType;
 import com.mzt.logapi.beans.LogRecord;
 import com.mzt.logserver.infrastructure.constants.LogRecordType;
 import com.mzt.logserver.infrastructure.logrecord.service.DbLogRecordService;
@@ -11,6 +12,7 @@ import org.springframework.test.context.jdbc.Sql;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 
 public class IOrderServiceTest extends BaseTest {
     @Resource
@@ -26,6 +28,40 @@ public class IOrderServiceTest extends BaseTest {
         order.setProductName("超值优惠红烧肉套餐");
         order.setPurchaseName("张三");
         orderService.createOrder(order);
+        List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        Assert.assertEquals(logRecord.getAction(), "张三下了一个订单,购买商品「超值优惠红烧肉套餐」,测试变量「内部变量测试」,下单结果:true");
+        Assert.assertEquals(logRecord.getSubType(), "MANAGER_VIEW");
+        Assert.assertNotNull(logRecord.getExtra());
+        Assert.assertEquals(logRecord.getBizNo(), order.getOrderNo());
+        Assert.assertFalse(logRecord.isFail());
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void createOrderMonitor() {
+
+        for (int i = 0; i < 100; i++) {
+            Order order = new Order();
+            order.setOrderNo("MT0000011");
+            order.setProductName("超值优惠红烧肉套餐");
+            order.setPurchaseName("张三");
+            orderService.createOrder(order);
+
+        }
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void createOrder_interface() {
+        Order order = new Order();
+        order.setOrderNo("MT0000011");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        orderService.createOrder_interface(order);
         List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
@@ -346,6 +382,39 @@ public class IOrderServiceTest extends BaseTest {
         Assert.assertEquals(2, logRecordList.size());
         Assert.assertEquals(logRecordList.get(1).getAction(), "获取用户列表,内层方法调用人mzt");
         Assert.assertEquals(logRecordList.get(0).getAction(), "更新了订单xxxx(1),更新内容为..外层调用");
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void testSubTypeSpEl() {
+        Order order = new Order();
+        order.setOrderNo("MT0000011");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        orderService.testSubTypeSpEl(1L, order);
+        // 打印两条日志
+        List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(1, logRecordList.size());
+        Assert.assertEquals(logRecordList.get(0).getSubType(), order.getOrderNo());
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void testVariableInfo() {
+        Order order = new Order();
+        order.setOrderNo("MT0000011");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        orderService.testVariableInfo(1L, order);
+        // 打印两条日志
+        List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(1, logRecordList.size());
+        Map<CodeVariableType, Object> codeVariable = logRecordList.get(0).getCodeVariable();
+        Assert.assertEquals(codeVariable.size(), 2);
+        Assert.assertEquals(codeVariable.get(CodeVariableType.ClassName), IOrderService.class.toString());
+        Assert.assertEquals(codeVariable.get(CodeVariableType.MethodName), "testVariableInfo");
         logRecordService.clean();
     }
 }

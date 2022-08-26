@@ -38,7 +38,7 @@ public class LogRecordOperationSource {
     }
 
     private Collection<LogRecordOps> parseLogRecordAnnotations(AnnotatedElement ae) {
-        Collection<LogRecord> logRecordAnnotationAnnotations = AnnotatedElementUtils.getAllMergedAnnotations(ae, LogRecord.class);
+        Collection<LogRecord> logRecordAnnotationAnnotations = AnnotatedElementUtils.findAllMergedAnnotations(ae, LogRecord.class);
         Collection<LogRecordOps> ret = null;
         if (!logRecordAnnotationAnnotations.isEmpty()) {
             ret = lazyInit(ret);
