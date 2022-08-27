@@ -32,6 +32,9 @@ public class Order {
     @DiffLogField(name = "列表项", function = "ORDER")
     private List<String> items;
 
+    @DiffLogField(name = "拓展信息", function = "extInfo")
+    private String[] extInfo;
+
     @Data
     public static class UserDO {
         @DiffLogField(name = "用户ID")

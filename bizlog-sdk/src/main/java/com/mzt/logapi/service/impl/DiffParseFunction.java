@@ -2,7 +2,9 @@ package com.mzt.logapi.service.impl;
 
 import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.diff.IDiffItemsToLogContentService;
+import com.mzt.logapi.util.diff.ArrayDiffer;
 import de.danielbechler.diff.ObjectDifferBuilder;
+import de.danielbechler.diff.comparison.ComparisonService;
 import de.danielbechler.diff.node.DiffNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,7 +45,12 @@ public class DiffParseFunction {
             log.error("diff的两个对象类型不同, source.class={}, target.class={}", source.getClass().toString(), target.getClass().toString());
             return "";
         }
-        DiffNode diffNode = ObjectDifferBuilder.buildDefault().compare(target, source);
+        ObjectDifferBuilder objectDifferBuilder = ObjectDifferBuilder.startBuilding();
+        DiffNode diffNode = objectDifferBuilder
+                .differs().register((differDispatcher, nodeQueryService) ->
+                        new ArrayDiffer(differDispatcher, (ComparisonService) objectDifferBuilder.comparison(), objectDifferBuilder.identity()))
+                .build()
+                .compare(target, source);
         return diffItemsToLogContentService.toLogContent(diffNode, source, target);
     }
 

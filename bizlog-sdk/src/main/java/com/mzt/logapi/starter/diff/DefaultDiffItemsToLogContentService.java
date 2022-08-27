@@ -17,6 +17,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -61,11 +62,11 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
         if (StringUtils.isEmpty(filedLogName)) {
             return;
         }
-        //是否是List类型的字段
-        boolean valueIsCollection = valueIsCollection(node, sourceObject, targetObject);
+        // 是否是容器类型的字段
+        boolean valueIsContainer = valueIsContainer(node, sourceObject, targetObject);
         //获取值的转换函数
         DiffNode.State state = node.getState();
-        String logContent = getDiffLogContent(filedLogName, node, state, sourceObject, targetObject, diffLogFieldAnnotation.function(), valueIsCollection);
+        String logContent = getDiffLogContent(filedLogName, node, state, sourceObject, targetObject, diffLogFieldAnnotation.function(), valueIsContainer);
         if (!StringUtils.isEmpty(logContent)) {
             stringBuilder.append(logContent).append(logRecordProperties.getFieldSeparator());
         }
@@ -80,15 +81,16 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
         return filedLogName;
     }
 
-    private boolean valueIsCollection(DiffNode node, Object sourceObject, Object targetObject) {
+    private boolean valueIsContainer(DiffNode node, Object sourceObject, Object targetObject) {
         if (sourceObject != null) {
             Object sourceValue = node.canonicalGet(sourceObject);
             if (sourceValue == null) {
                 if (targetObject != null) {
-                    return node.canonicalGet(targetObject) instanceof Collection;
+                    return node.canonicalGet(targetObject) instanceof Collection || node.canonicalGet(targetObject).getClass().isArray();
                 }
+            } else {
+                return sourceValue instanceof Collection || sourceValue.getClass().isArray();
             }
-            return sourceValue instanceof Collection;
         }
         return false;
     }
@@ -137,6 +139,9 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
     private Collection<Object> getListValue(DiffNode node, Object object) {
         Object fieldSourceValue = getFieldValue(node, object);
         //noinspection unchecked
+        if (fieldSourceValue != null && fieldSourceValue.getClass().isArray()) {
+            return new ArrayList<>(Arrays.asList((Object[]) fieldSourceValue));
+        }
         return fieldSourceValue == null ? Lists.newArrayList() : (Collection<Object>) fieldSourceValue;
     }
 
