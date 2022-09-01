@@ -344,6 +344,118 @@ public class IOrderServiceTest extends BaseTest {
 
     @Test
     @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void testCondition_数组修改() {
+        Order order = new Order();
+        order.setOrderId(99L);
+        order.setOrderNo("MT0000099");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        Order.UserDO userDO = new Order.UserDO();
+        userDO.setUserId(9001L);
+        userDO.setUserName("用户1");
+        order.setCreator(userDO);
+        order.setItems(Lists.newArrayList("123", "bbb"));
+        order.setExtInfo(new String[]{"p", "k"});
+
+        Order order1 = new Order();
+        order1.setOrderId(88L);
+        order1.setOrderNo("MT0000099");
+        order1.setProductName("麻辣烫套餐");
+        order1.setPurchaseName("赵四");
+        Order.UserDO userDO1 = new Order.UserDO();
+        userDO1.setUserId(9002L);
+        userDO1.setUserName("用户2");
+        order1.setCreator(userDO1);
+        order1.setItems(Lists.newArrayList("123", "aaa"));
+        order1.setExtInfo(new String[]{"q", "k"});
+        orderService.diff(order, order1);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【创建人的用户ID】从【9001】修改为【9002】；【创建人的用户姓名】从【用户1】修改为【用户2】；【拓展信息】添加了【q】删除了【p】；【列表项】添加了【xxxx(aaa)】删除了【xxxx(bbb)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】");
+        Assert.assertNotNull(logRecord.getExtra());
+        Assert.assertEquals(logRecord.getOperator(), "111");
+        Assert.assertEquals(logRecord.getBizNo(), order1.getOrderNo());
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void testCondition_数组增加() {
+        Order order = new Order();
+        order.setOrderId(99L);
+        order.setOrderNo("MT0000099");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        Order.UserDO userDO = new Order.UserDO();
+        userDO.setUserId(9001L);
+        userDO.setUserName("用户1");
+        order.setCreator(userDO);
+        order.setItems(Lists.newArrayList("123", "bbb"));
+
+        Order order1 = new Order();
+        order1.setOrderId(88L);
+        order1.setOrderNo("MT0000099");
+        order1.setProductName("麻辣烫套餐");
+        order1.setPurchaseName("赵四");
+        Order.UserDO userDO1 = new Order.UserDO();
+        userDO1.setUserId(9002L);
+        userDO1.setUserName("用户2");
+        order1.setCreator(userDO1);
+        order1.setItems(Lists.newArrayList("123", "aaa"));
+        order1.setExtInfo(new String[]{"q", "k"});
+        orderService.diff(order, order1);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【创建人的用户ID】从【9001】修改为【9002】；【创建人的用户姓名】从【用户1】修改为【用户2】；【拓展信息】添加了【q，k】；【列表项】添加了【xxxx(aaa)】删除了【xxxx(bbb)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】");
+        Assert.assertNotNull(logRecord.getExtra());
+        Assert.assertEquals(logRecord.getOperator(), "111");
+        Assert.assertEquals(logRecord.getBizNo(), order1.getOrderNo());
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void testCondition_数组删除() {
+        Order order = new Order();
+        order.setOrderId(99L);
+        order.setOrderNo("MT0000099");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        Order.UserDO userDO = new Order.UserDO();
+        userDO.setUserId(9001L);
+        userDO.setUserName("用户1");
+        order.setCreator(userDO);
+        order.setItems(Lists.newArrayList("123", "bbb"));
+        order.setExtInfo(new String[]{"p", "k"});
+
+        Order order1 = new Order();
+        order1.setOrderId(88L);
+        order1.setOrderNo("MT0000099");
+        order1.setProductName("麻辣烫套餐");
+        order1.setPurchaseName("赵四");
+        Order.UserDO userDO1 = new Order.UserDO();
+        userDO1.setUserId(9002L);
+        userDO1.setUserName("用户2");
+        order1.setCreator(userDO1);
+        order1.setItems(Lists.newArrayList("123", "aaa"));
+        orderService.diff(order, order1);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【创建人的用户ID】从【9001】修改为【9002】；【创建人的用户姓名】从【用户1】修改为【用户2】；【拓展信息】删除了【p，k】；【列表项】添加了【xxxx(aaa)】删除了【xxxx(bbb)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】");
+        Assert.assertNotNull(logRecord.getExtra());
+        Assert.assertEquals(logRecord.getOperator(), "111");
+        Assert.assertEquals(logRecord.getBizNo(), order1.getOrderNo());
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void testCondition_打印日志() {
         Order order = new Order();
         order.setOrderNo("MT0000011");
