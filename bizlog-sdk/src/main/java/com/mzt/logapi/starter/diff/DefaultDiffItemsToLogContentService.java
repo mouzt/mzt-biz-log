@@ -70,13 +70,8 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
         }
         // 是否是容器类型的字段
         boolean valueIsContainer = valueIsContainer(node, sourceObject, targetObject);
-        //获取值的转换函数
-        DiffNode.State state = node.getState();
-        String logContent = getDiffLogContent(filedLogName, node, state, sourceObject, targetObject, diffLogFieldAnnotation.function(), valueIsContainer);
-        //是否是List类型的字段
-        boolean valueIsCollection = valueIsCollection(node, sourceObject, targetObject);
         String functionName = diffLogFieldAnnotation != null ? diffLogFieldAnnotation.function() : "";
-        String logContent = valueIsCollection
+        String logContent = valueIsContainer
                 ? getCollectionDiffLogContent(filedLogName, node, sourceObject, targetObject, functionName)
                 : getDiffLogContent(filedLogName, node, sourceObject, targetObject, functionName);
         if (!StringUtils.isEmpty(logContent)) {
@@ -103,7 +98,6 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
             } else {
                 return sourceValue instanceof Collection || sourceValue.getClass().isArray();
             }
-            return sourceValue instanceof Collection;
         }
         return false;
     }
@@ -148,7 +142,6 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
             default:
                 log.warn("diff log not support");
                 return "";
-
         }
     }
 
