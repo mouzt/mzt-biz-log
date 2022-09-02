@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 /**
- * @author: wulang
+ * @author wulang
  **/
 @Slf4j
 @Component

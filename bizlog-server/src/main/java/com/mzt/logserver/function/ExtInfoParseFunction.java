@@ -6,8 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 /**
- * @author: wulang
- * @date: 2022-08-27 21:01
+ * @author wulang
  **/
 @Slf4j
 @Component

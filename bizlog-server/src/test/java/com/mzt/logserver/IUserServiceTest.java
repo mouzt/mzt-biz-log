@@ -12,7 +12,7 @@ import javax.annotation.Resource;
 import java.util.List;
 
 /**
- * @author: wulang
+ * @author wulang
  **/
 public class IUserServiceTest extends BaseTest {
     @Resource

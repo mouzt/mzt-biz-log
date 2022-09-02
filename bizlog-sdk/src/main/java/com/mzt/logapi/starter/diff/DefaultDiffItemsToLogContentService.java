@@ -3,8 +3,8 @@ package com.mzt.logapi.starter.diff;
 import com.google.common.collect.Lists;
 import com.mzt.logapi.service.IFunctionService;
 import com.mzt.logapi.starter.annotation.DiffLogField;
-import com.mzt.logapi.starter.annotation.LogAllUnannotated;
-import com.mzt.logapi.starter.annotation.LogIgnore;
+import com.mzt.logapi.starter.annotation.DiffLogAllFields;
+import com.mzt.logapi.starter.annotation.DIffLogIgnore;
 import com.mzt.logapi.starter.configuration.LogRecordProperties;
 import de.danielbechler.diff.node.DiffNode;
 import lombok.Getter;
@@ -44,18 +44,18 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
         if (!diffNode.hasChanges()) {
             return "";
         }
-        LogAllUnannotated annotation = sourceObject.getClass().getAnnotation(LogAllUnannotated.class);
+        DiffLogAllFields annotation = sourceObject.getClass().getAnnotation(DiffLogAllFields.class);
         StringBuilder stringBuilder = new StringBuilder();
         diffNode.visit((node, visit) -> generateAllFieldLog(sourceObject, targetObject, stringBuilder, node, annotation));
         return stringBuilder.toString().replaceAll(logRecordProperties.getFieldSeparator().concat("$"), "");
     }
 
     private void generateAllFieldLog(Object sourceObject, Object targetObject, StringBuilder stringBuilder, DiffNode node,
-                                     LogAllUnannotated annotation) {
+                                     DiffLogAllFields annotation) {
         if (node.isRootNode() || node.getValueTypeInfo() != null) {
             return;
         }
-        LogIgnore logIgnore = node.getFieldAnnotation(LogIgnore.class);
+        DIffLogIgnore logIgnore = node.getFieldAnnotation(DIffLogIgnore.class);
         if (logIgnore != null) {
             return;
         }

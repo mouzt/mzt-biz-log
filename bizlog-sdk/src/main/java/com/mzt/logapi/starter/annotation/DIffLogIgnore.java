@@ -3,13 +3,13 @@ package com.mzt.logapi.starter.annotation;
 import java.lang.annotation.*;
 
 /**
- * all unannotated fields.
+ * Ignore convert field
  *
- * @author: wulang
+ * @author wulang
  **/
 @Documented
-@Target(ElementType.TYPE)
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface LogAllUnannotated {
+public @interface DIffLogIgnore {
 }

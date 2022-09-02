@@ -14,8 +14,7 @@ import de.danielbechler.util.Assert;
 import java.util.*;
 
 /**
- * @author: wulang
- * @date: 2022-08-27 20:26
+ * @author wulang
  **/
 public class ArrayDiffer implements Differ {
     private final DifferDispatcher differDispatcher;
