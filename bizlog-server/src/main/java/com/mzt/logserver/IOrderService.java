@@ -3,6 +3,7 @@ package com.mzt.logserver;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import com.mzt.logserver.infrastructure.constants.LogRecordType;
 import com.mzt.logserver.pojo.Order;
+import com.mzt.logserver.pojo.Result;
 
 /**
  * @author muzhantong
@@ -42,4 +43,10 @@ public interface IOrderService {
     boolean testSubTypeSpEl(Long orderId, Order order);
 
     boolean testVariableInfo(Long orderId, Order order);
+
+    Result<Boolean> testResultOnSuccess(Long orderId, Order order);
+
+    Result<Boolean> testResultOnFail(Long orderId, Order order);
+
+    Result<Boolean> testResultNoLog(Long orderId, Order order);
 }

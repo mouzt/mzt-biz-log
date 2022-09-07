@@ -1,6 +1,7 @@
 package com.mzt.logapi.starter.support.parse;
 
 import com.google.common.base.Strings;
+import com.mzt.logapi.beans.MethodExecuteResult;
 import com.mzt.logapi.service.impl.DiffParseFunction;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -10,6 +11,7 @@ import org.springframework.expression.EvaluationContext;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -42,17 +44,26 @@ public class LogRecordValueParser implements BeanFactoryAware {
         return count;
     }
 
-    public Map<String, String> processTemplate(Collection<String> templates, Object ret,
-                                               Class<?> targetClass, Method method, Object[] args, String errorMsg,
+    public String singleProcessTemplate(MethodExecuteResult methodExecuteResult,
+                                        String templates,
+                                        Map<String, String> beforeFunctionNameAndReturnMap) {
+        Map<String, String> stringStringMap = processTemplate(Collections.singletonList(templates), methodExecuteResult,
+                beforeFunctionNameAndReturnMap);
+        return stringStringMap.get(templates);
+    }
+
+    public Map<String, String> processTemplate(Collection<String> templates, MethodExecuteResult methodExecuteResult,
                                                Map<String, String> beforeFunctionNameAndReturnMap) {
         Map<String, String> expressionValues = new HashMap<>();
-        EvaluationContext evaluationContext = expressionEvaluator.createEvaluationContext(method, args, targetClass, ret, errorMsg, beanFactory);
+        EvaluationContext evaluationContext = expressionEvaluator.createEvaluationContext(methodExecuteResult.getMethod(),
+                methodExecuteResult.getArgs(), methodExecuteResult.getTargetClass(), methodExecuteResult.getResult(),
+                methodExecuteResult.getErrorMsg(), beanFactory);
 
         for (String expressionTemplate : templates) {
             if (expressionTemplate.contains("{")) {
                 Matcher matcher = pattern.matcher(expressionTemplate);
                 StringBuffer parsedStr = new StringBuffer();
-                AnnotatedElementKey annotatedElementKey = new AnnotatedElementKey(method, targetClass);
+                AnnotatedElementKey annotatedElementKey = new AnnotatedElementKey(methodExecuteResult.getMethod(), methodExecuteResult.getTargetClass());
                 while (matcher.find()) {
 
                     String expression = matcher.group(2);
