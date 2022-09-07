@@ -1,4 +1,4 @@
-package com.mzt.logserver.function;
+package com.mzt.logserver.infrastructure.logrecord.function;
 
 import com.mzt.logapi.service.IParseFunction;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +10,8 @@ import org.springframework.util.StringUtils;
  **/
 @Slf4j
 @Component
-public class ExtInfoParseFunction implements IParseFunction {
+public class SexParseFunction implements IParseFunction {
+
     @Override
     public boolean executeBefore() {
         return false;
@@ -18,16 +19,11 @@ public class ExtInfoParseFunction implements IParseFunction {
 
     @Override
     public String functionName() {
-        return "extInfo";
+        return "SEX";
     }
 
     @Override
     public String apply(Object value) {
-        log.info("===========");
-        if (StringUtils.isEmpty(value)) {
-            return "";
-        }
-        log.info("当前拓展信息值为,{}", value);
-        return value.toString();
+        return StringUtils.isEmpty(value) ? "" : value + "333";
     }
 }
