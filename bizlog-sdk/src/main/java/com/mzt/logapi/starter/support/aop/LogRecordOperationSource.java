@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * DATE 6:03 PM
@@ -24,7 +25,7 @@ public class LogRecordOperationSource {
     public Collection<LogRecordOps> computeLogRecordOperations(Method method, Class<?> targetClass) {
         // Don't allow no-public methods as required.
         if (!Modifier.isPublic(method.getModifiers())) {
-            return null;
+            return Collections.emptyList();
         }
 
         // The method may be on an interface, but we need attributes from the target class.
