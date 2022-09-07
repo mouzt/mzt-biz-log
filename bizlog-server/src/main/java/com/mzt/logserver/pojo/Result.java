@@ -4,7 +4,6 @@ import lombok.Data;
 
 /**
  * @author wulang
- * @date 2022-09-07 20:12
  **/
 @Data
 public class Result<T> {
