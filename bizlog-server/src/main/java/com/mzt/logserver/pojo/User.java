@@ -1,15 +1,15 @@
 package com.mzt.logserver.pojo;
 
 import com.mzt.logapi.starter.annotation.DiffLogField;
-import com.mzt.logapi.starter.annotation.LogAllUnannotated;
-import com.mzt.logapi.starter.annotation.LogIgnore;
+import com.mzt.logapi.starter.annotation.DiffLogAllFields;
+import com.mzt.logapi.starter.annotation.DIffLogIgnore;
 import lombok.Data;
 
 /**
- * @author: wulang
+ * @author wulang
  **/
 @Data
-@LogAllUnannotated
+@DiffLogAllFields
 public class User {
 
     private Long id;
@@ -21,7 +21,7 @@ public class User {
     /**
      * 年龄
      */
-    @LogIgnore
+    @DIffLogIgnore
     private Integer age;
 
     /**

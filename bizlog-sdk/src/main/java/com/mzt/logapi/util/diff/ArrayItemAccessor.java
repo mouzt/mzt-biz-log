@@ -14,8 +14,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 /**
- * @author: wulang
- * @date: 2022-08-27 20:34
+ * @author wulang
  **/
 public class ArrayItemAccessor implements TypeAwareAccessor, Accessor {
 

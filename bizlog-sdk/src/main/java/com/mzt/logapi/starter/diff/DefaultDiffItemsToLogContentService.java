@@ -3,8 +3,8 @@ package com.mzt.logapi.starter.diff;
 import com.google.common.collect.Lists;
 import com.mzt.logapi.service.IFunctionService;
 import com.mzt.logapi.starter.annotation.DiffLogField;
-import com.mzt.logapi.starter.annotation.LogAllUnannotated;
-import com.mzt.logapi.starter.annotation.LogIgnore;
+import com.mzt.logapi.starter.annotation.DiffLogAllFields;
+import com.mzt.logapi.starter.annotation.DIffLogIgnore;
 import com.mzt.logapi.starter.configuration.LogRecordProperties;
 import de.danielbechler.diff.node.DiffNode;
 import lombok.Getter;
@@ -44,18 +44,18 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
         if (!diffNode.hasChanges()) {
             return "";
         }
-        LogAllUnannotated annotation = sourceObject.getClass().getAnnotation(LogAllUnannotated.class);
+        DiffLogAllFields annotation = sourceObject.getClass().getAnnotation(DiffLogAllFields.class);
         StringBuilder stringBuilder = new StringBuilder();
         diffNode.visit((node, visit) -> generateAllFieldLog(sourceObject, targetObject, stringBuilder, node, annotation));
         return stringBuilder.toString().replaceAll(logRecordProperties.getFieldSeparator().concat("$"), "");
     }
 
     private void generateAllFieldLog(Object sourceObject, Object targetObject, StringBuilder stringBuilder, DiffNode node,
-                                     LogAllUnannotated annotation) {
+                                     DiffLogAllFields annotation) {
         if (node.isRootNode() || node.getValueTypeInfo() != null) {
             return;
         }
-        LogIgnore logIgnore = node.getFieldAnnotation(LogIgnore.class);
+        DIffLogIgnore logIgnore = node.getFieldAnnotation(DIffLogIgnore.class);
         if (logIgnore != null) {
             return;
         }
@@ -70,13 +70,8 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
         }
         // 是否是容器类型的字段
         boolean valueIsContainer = valueIsContainer(node, sourceObject, targetObject);
-        //获取值的转换函数
-        DiffNode.State state = node.getState();
-        String logContent = getDiffLogContent(filedLogName, node, state, sourceObject, targetObject, diffLogFieldAnnotation.function(), valueIsContainer);
-        //是否是List类型的字段
-        boolean valueIsCollection = valueIsCollection(node, sourceObject, targetObject);
         String functionName = diffLogFieldAnnotation != null ? diffLogFieldAnnotation.function() : "";
-        String logContent = valueIsCollection
+        String logContent = valueIsContainer
                 ? getCollectionDiffLogContent(filedLogName, node, sourceObject, targetObject, functionName)
                 : getDiffLogContent(filedLogName, node, sourceObject, targetObject, functionName);
         if (!StringUtils.isEmpty(logContent)) {
@@ -103,7 +98,6 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
             } else {
                 return sourceValue instanceof Collection || sourceValue.getClass().isArray();
             }
-            return sourceValue instanceof Collection;
         }
         return false;
     }
@@ -148,7 +142,6 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
             default:
                 log.warn("diff log not support");
                 return "";
-
         }
     }
 
