@@ -21,21 +21,10 @@ public class ArrayItemAccessor implements TypeAwareAccessor, Accessor {
     private final Object referenceItem;
     private final IdentityStrategy identityStrategy;
 
-    /**
-     * Default implementation uses IdentityService.EQUALS_IDENTITY_STRATEGY.
-     *
-     * @param referenceItem
-     */
     public ArrayItemAccessor(final Object referenceItem) {
         this(referenceItem, EqualsIdentityStrategy.getInstance());
     }
 
-    /**
-     * Allows for custom IdentityStrategy.
-     *
-     * @param referenceItem
-     * @param identityStrategy
-     */
     public ArrayItemAccessor(final Object referenceItem,
                              final IdentityStrategy identityStrategy) {
         Assert.notNull(identityStrategy, "identityStrategy");

@@ -7,6 +7,7 @@ import com.mzt.logserver.IOrderService;
 import com.mzt.logserver.UserQueryService;
 import com.mzt.logserver.infrastructure.constants.LogRecordType;
 import com.mzt.logserver.pojo.Order;
+import com.mzt.logserver.pojo.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.springframework.stereotype.Service;
@@ -173,5 +174,37 @@ public class OrderServiceImpl implements IOrderService {
             type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
     public boolean testVariableInfo(Long orderId, Order order) {
         return false;
+    }
+
+    @Override
+    @LogRecord(success = "更新成功了订单{ORDER{#orderId}},更新内容为...",
+            fail = "更新失败了订单{ORDER{#orderId}},更新内容为...",
+            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
+            condition = "{{#condition == null}}", isSuccess = "{{#result.code == 200}}")
+    public Result<Boolean> testResultOnSuccess(Long orderId, Order order) {
+        Result<Boolean> result = new Result<>(200, "成功", true);
+        LogRecordContext.putVariable("result", result);
+        return result;
+    }
+
+    @Override
+    @LogRecord(success = "更新成功了订单{ORDER{#orderId}},更新内容为...",
+            fail = "更新失败了订单{ORDER{#orderId}},更新内容为...",
+            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
+            condition = "{{#condition == null}}", isSuccess = "{{#result.code == 200}}")
+    public Result<Boolean> testResultOnFail(Long orderId, Order order) {
+        Result<Boolean> result = new Result<>(500, "服务错误", false);
+        LogRecordContext.putVariable("result", result);
+        return result;
+    }
+
+    @Override
+    @LogRecord(success = "更新成功了订单{ORDER{#orderId}},更新内容为...",
+            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
+            condition = "{{#condition == null}}", isSuccess = "{{#result.code == 200}}")
+    public Result<Boolean> testResultNoLog(Long orderId, Order order) {
+        Result<Boolean> result = new Result<>(500, "服务错误", false);
+        LogRecordContext.putVariable("result", result);
+        return result;
     }
 }

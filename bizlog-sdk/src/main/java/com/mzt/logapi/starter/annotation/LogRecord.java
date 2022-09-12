@@ -50,4 +50,11 @@ public @interface LogRecord {
      * @return 是否记录日志
      */
     String condition() default "";
+
+    /**
+     * 记录成功日志or失败日志
+     *
+     * @return condition优先级最高
+     */
+    String isSuccess() default "";
 }
