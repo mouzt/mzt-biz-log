@@ -52,9 +52,9 @@ public @interface LogRecord {
     String condition() default "";
 
     /**
-     * 记录成功日志or失败日志
+     * 记录成功日志的条件
      *
-     * @return condition优先级最高
+     * @return 表示成功的表达式，默认为空，代表不抛异常为成功
      */
-    String isSuccess() default "";
+    String successCondition() default "";
 }

@@ -60,7 +60,7 @@ public class LogRecordOperationSource {
                 .subType(recordAnnotation.subType())
                 .extra(recordAnnotation.extra())
                 .condition(recordAnnotation.condition())
-                .isSuccess(recordAnnotation.isSuccess())
+                .isSuccess(recordAnnotation.successCondition())
                 .build();
         validateLogRecordOperation(ae, recordOps);
         return recordOps;

@@ -180,7 +180,7 @@ public class OrderServiceImpl implements IOrderService {
     @LogRecord(success = "更新成功了订单{ORDER{#orderId}},更新内容为...",
             fail = "更新失败了订单{ORDER{#orderId}},更新内容为...",
             type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
-            condition = "{{#condition == null}}", isSuccess = "{{#result.code == 200}}")
+            condition = "{{#condition == null}}", successCondition = "{{#result.code == 200}}")
     public Result<Boolean> testResultOnSuccess(Long orderId, Order order) {
         Result<Boolean> result = new Result<>(200, "成功", true);
         LogRecordContext.putVariable("result", result);
@@ -191,7 +191,7 @@ public class OrderServiceImpl implements IOrderService {
     @LogRecord(success = "更新成功了订单{ORDER{#orderId}},更新内容为...",
             fail = "更新失败了订单{ORDER{#orderId}},更新内容为...",
             type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
-            condition = "{{#condition == null}}", isSuccess = "{{#result.code == 200}}")
+            condition = "{{#condition == null}}", successCondition = "{{#result.code == 200}}")
     public Result<Boolean> testResultOnFail(Long orderId, Order order) {
         Result<Boolean> result = new Result<>(500, "服务错误", false);
         LogRecordContext.putVariable("result", result);
@@ -201,7 +201,7 @@ public class OrderServiceImpl implements IOrderService {
     @Override
     @LogRecord(success = "更新成功了订单{ORDER{#orderId}},更新内容为...",
             type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
-            condition = "{{#condition == null}}", isSuccess = "{{#result.code == 200}}")
+            condition = "{{#condition == null}}", successCondition = "{{#result.code == 200}}")
     public Result<Boolean> testResultNoLog(Long orderId, Order order) {
         Result<Boolean> result = new Result<>(500, "服务错误", false);
         LogRecordContext.putVariable("result", result);
