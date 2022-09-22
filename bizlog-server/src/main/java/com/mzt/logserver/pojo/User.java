@@ -5,6 +5,8 @@ import com.mzt.logapi.starter.annotation.DiffLogAllFields;
 import com.mzt.logapi.starter.annotation.DIffLogIgnore;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @author wulang
  **/
@@ -34,6 +36,25 @@ public class User {
      * 用户地址
      */
     private Address address;
+
+    /**
+     * 爱好
+     */
+    @DIffLogIgnore
+    private List<String> likeList;
+
+    /**
+     * 不喜欢
+     */
+    private List<String> noLikeList;
+
+    @DIffLogIgnore
+    private List<Address> testList;
+
+    @DIffLogIgnore
+    private String[] likeStrings;
+
+    private String[] noLikeStrings;
 
     @Data
     public static class Address {
