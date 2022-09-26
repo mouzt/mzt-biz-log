@@ -13,6 +13,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerA
 public class Main {
 
     public static void main(String[] args) {
+        System.out.println("sss");
         SpringApplication.run(Main.class, args);
     }
 }

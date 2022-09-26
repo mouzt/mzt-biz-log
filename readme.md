@@ -25,18 +25,18 @@
 * fix了没有加EnableTransactionManagement切面不生效的逻辑
 * 补充了一些测试用例，不会使用的大大们可以参考测试用例的使用方式
 
-| 版本             | 状态                                                                                                                                             |
-|----------------|------------------------------------------------------------------------------------------------------------------------------------------------|
-| 3.0.1 | diff 功能支持了数组(https://github.com/mouzt/mzt-biz-log/issues/75) ，增加判断是否成功的条件表达式                                                                   |
-| 3.0.0          | 暂时删除了list实现优化中,增加了xml的方式,增加了性能监控接口,修复了function 内的 service 需要添加 @Lazy 的问题                                                                       || 2.0.2 | 1.修复了 LogFunctionParser 的NPE，2. 注解上添加了ElementType.TYPE，3.记录了当前执行方法的Class和Method 4. 重新fix了没有加EnableTransactionManagement 切面不生效的逻辑 5. 增加了 Subtype 的 SpEl解析 |
-| 2.0.1          | 修复了接口上的注解不能被拦截的问题                                                                                                                              |
-| 2.0.0          | 1.修改了@LogRecordAnnotation 注解的名字 到LogRecord                                                                                                     |
-| 1.1.1          | 1. 修复了自定义函数返回美元符号解析失败问题，2. 修复before自定义函数bug，3.删除了diff最后一个分隔符                                                                                   |
+| 版本             | 状态                                                                                                                                              |
+|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| 3.0.1 | diff 功能支持了数组(https://github.com/mouzt/mzt-biz-log/issues/75) ，增加判断是否成功的条件表达式，增加 @DiffLogAllFields、@DIffLogIgnore 注解支持                           |
+| 3.0.0          | 暂时删除了list实现优化中,增加了xml的方式,增加了性能监控接口,修复了function 内的 service 需要添加 @Lazy 的问题                                                                        || 2.0.2 | 1.修复了 LogFunctionParser 的NPE，2. 注解上添加了ElementType.TYPE，3.记录了当前执行方法的Class和Method 4. 重新fix了没有加EnableTransactionManagement 切面不生效的逻辑 5. 增加了 Subtype 的 SpEl解析 |
+| 2.0.1          | 修复了接口上的注解不能被拦截的问题                                                                                                                               |
+| 2.0.0          | 1.修改了@LogRecordAnnotation 注解的名字 到LogRecord                                                                                                      |
+| 1.1.1          | 1. 修复了自定义函数返回美元符号解析失败问题，2. 修复before自定义函数bug，3.删除了diff最后一个分隔符                                                                                    |
 | 1.1.0          | 1. 支持了对象DIFF，release 稳定下再发版 2.Function 的参数从 String修改为 Object了，可以给自定函数传递对象啦~~ 3. fix了没有加EnableTransactionManagement 切面不生效的逻辑 4. 添加了fail标志，代表是否成功 |
-| 1.0.8          | 自定义函数支持 在业务的方法运行前执行                                                                                                                            |
-| 1.0.5          | 支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18                                                                                  |
-| 1.0.4          | 支持 Context 添加变量                                                                                                                                |
-| 1.0.1          | 发版                                                                                                                                             |
+| 1.0.8          | 自定义函数支持 在业务的方法运行前执行                                                                                                                             |
+| 1.0.5          | 支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18                                                                                   |
+| 1.0.4          | 支持 Context 添加变量                                                                                                                                 |
+| 1.0.1          | 发版                                                                                                                                              |
 
 ## 使用方式(对象DIFF功能终于支持了)
 
@@ -251,6 +251,7 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
     }
 ```
 ###### 7. 日志文案调整 使用 SpEL 三目表达式
+
 ```
     @LogRecord(type = LogRecordTypeConstant.CUSTOM_ATTRIBUTE, bizNo = "{{#businessLineId}}",
             success = "{{#disable ? '停用' : '启用'}}了自定义属性{ATTRIBUTE{#attributeId}}")
@@ -258,10 +259,15 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
     	return xxx;
     }
 ```
+
 ###### 8. 日志文案调整 模版中使用方法参数之外的变量&函数中也可以使用Context中变量
-可以在方法中通过 LogRecordContext.putVariable(variableName, Object) 的方法添加变量，第一个对象为变量名称，后面为变量的对象，
-然后我们就可以使用 SpEL 使用这个变量了，例如：例子中的 {{#innerOrder.productName}} 是在方法中设置的变量，除此之外，在上面提到的自定义函数中也可以使用LogRecordContext中的变量。
-（注意：LogRecordContext中变量的生命周期为这个方法，超出这个方法，方法中set到Context的变量就获取不到了）
+
+可以在方法中通过 LogRecordContext.putVariable(variableName, Object) 的方法添加变量，第一个对象为变量名称，后面为变量的对象， 然后我们就可以使用 SpEL 使用这个变量了，例如：例子中的
+{{#innerOrder.productName}} 是在方法中设置的变量，除此之外，在上面提到的自定义函数中也可以使用LogRecordContext中的变量。
+~~（注意：LogRecordContext中变量的生命周期为这个方法，超出这个方法，方法中set到Context的变量就获取不到了）~~
+
+若想跨方法使用，可通过LogRecordContext.putGlobalVariable(variableName, Object) 放入上下文中，此优先级为最低，若方法上下文中存在相同的变量，则会覆盖
+
 ```
     @Override
     @LogRecord(
@@ -458,6 +464,102 @@ public class Order {
 
 ```
 更新了订单【创建人的用户ID】从【9001】修改为【9002】；【创建人的用户姓名】从【用户1】修改为【用户2】；【列表项】添加了【xxxx(aaa)】删除了【xxxx(bbb)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；
+```
+
+如果用户需要记录的对象字段过多不想每个字段都增加 @DiffLogField 注解，框架还提供了 @DiffLogAllFields 注解，默认就使用属性名来做日志记录，也提供了 @DIffLogIgnore 注解来忽略字段。
+
+这时对象可以有如下写法：
+
+```java
+@Data
+@DiffLogAllFields
+public class User {
+
+    private Long id;
+    /**
+     * 姓名
+     */
+    private String name;
+
+    /**
+     * 年龄
+     */
+    @DIffLogIgnore
+    private Integer age;
+
+    /**
+     * 性别
+     */
+    @DiffLogField(name = "性别", function = "SEX")
+    private String sex;
+
+    /**
+     * 用户地址
+     */
+    private Address address;
+
+    @Data
+    public static class Address {
+        /**
+         * 省名称
+         */
+        private String provinceName;
+
+        /**
+         * 市名称
+         */
+        private String cityName;
+
+        /**
+         * 区/县名称
+         */
+        private String areaName;
+    }
+}
+```
+
+源码中的 test 示例：
+
+```
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void diffUser() {
+        User user = new User();
+        user.setId(1L);
+        user.setName("张三");
+        user.setSex("男");
+        user.setAge(18);
+        User.Address address = new User.Address();
+        address.setProvinceName("湖北省");
+        address.setCityName("武汉市");
+        user.setAddress(address);
+
+        User newUser = new User();
+        newUser.setId(1L);
+        newUser.setName("李四");
+        newUser.setSex("女");
+        newUser.setAge(20);
+        User.Address newAddress = new User.Address();
+        newAddress.setProvinceName("湖南省");
+        newAddress.setCityName("长沙市");
+        newUser.setAddress(newAddress);
+        userService.diffUser(user, newUser);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog(String.valueOf(user.getId()), LogRecordType.USER);
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        Assert.assertEquals(logRecord.getAction(), "更新了用户信息【address的cityName】从【武汉市】修改为【长沙市】；【address的provinceName】从【湖北省】修改为【湖南省】；【name】从【张三】修改为【李四】；【性别】从【男333】修改为【女333】");
+        Assert.assertNotNull(logRecord.getExtra());
+        Assert.assertEquals(logRecord.getOperator(), "111");
+        Assert.assertEquals(logRecord.getId(), user.getId());
+        logRecordService.clean();
+    }
+```
+
+最后打印的日志内容：
+
+```
+更新了用户信息【address的cityName】从【武汉市】修改为【长沙市】；【address的provinceName】从【湖北省】修改为【湖南省】；【name】从【张三】修改为【李四】；【性别】从【男333】修改为【女333】
 ```
 
 如果用户不想使用这样的文案怎么办呢？ 可以在配置文件中配置：其中__fieldName是：字段名称的替换变量，其他内置替换变量可以看 LogRecordProperties 的源码注释

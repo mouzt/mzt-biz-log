@@ -4,6 +4,7 @@ import com.mzt.logapi.starter.annotation.LogRecord;
 import com.mzt.logserver.infrastructure.constants.LogRecordType;
 import com.mzt.logserver.pojo.Order;
 import com.mzt.logserver.pojo.Result;
+import com.mzt.logserver.pojo.User;
 
 /**
  * @author muzhantong
@@ -49,4 +50,8 @@ public interface IOrderService {
     Result<Boolean> testResultOnFail(Long orderId, Order order);
 
     Result<Boolean> testResultNoLog(Long orderId, Order order);
+
+    boolean testGlobalVariable(Order order);
+
+    boolean testGlobalVariableCover(Order order, User user);
 }
