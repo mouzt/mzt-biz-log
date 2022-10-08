@@ -51,6 +51,8 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
 
     private ILogRecordPerformanceMonitor logRecordPerformanceMonitor;
 
+    private boolean joinTransaction;
+
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         Method method = invocation.getMethod();
@@ -91,8 +93,8 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
                 recordExecute(methodExecuteResult, functionNameAndReturnMap, operations);
             }
         } catch (Exception t) {
-            //记录日志错误不要影响业务
             log.error("log record parse exception", t);
+            throw t;
         } finally {
             LogRecordContext.clear();
             stopWatch.stop();
@@ -102,6 +104,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
                 log.error("execute exception", e);
             }
         }
+
         if (methodExecuteResult.getThrowable() != null) {
             throw methodExecuteResult.getThrowable();
         }
@@ -128,9 +131,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
                         && StringUtils.isEmpty(operation.getFailLogTemplate())) {
                     continue;
                 }
-
                 if (exitsCondition(methodExecuteResult, functionNameAndReturnMap, operation)) continue;
-
                 if (!methodExecuteResult.isSuccess()) {
                     failRecordExecute(methodExecuteResult, functionNameAndReturnMap, operation);
                 } else {
@@ -138,6 +139,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
                 }
             } catch (Exception t) {
                 log.error("log record execute exception", t);
+                if (joinTransaction) throw t;
             }
         }
     }
@@ -208,7 +210,6 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
                 .createTime(new Date())
                 .build();
 
-        //save log 需要新开事务，失败日志不能因为事务回滚而丢失
         Preconditions.checkNotNull(bizLogService, "bizLogService not init!!");
         bizLogService.record(logRecord);
     }
@@ -265,12 +266,15 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
         this.logRecordPerformanceMonitor = logRecordPerformanceMonitor;
     }
 
+    public void setJoinTransaction(boolean joinTransaction) {
+        this.joinTransaction = joinTransaction;
+    }
+
     @Override
     public void afterSingletonsInstantiated() {
         bizLogService = beanFactory.getBean(ILogRecordService.class);
         operatorGetService = beanFactory.getBean(IOperatorGetService.class);
         this.setLogFunctionParser(new LogFunctionParser(beanFactory.getBean(IFunctionService.class)));
         this.setDiffParseFunction(beanFactory.getBean(DiffParseFunction.class));
-
     }
 }

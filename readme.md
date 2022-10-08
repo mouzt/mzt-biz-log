@@ -59,9 +59,9 @@ tenant是代表租户的标识，一般一个服务或者一个业务下的多�
 @EnableLogRecord(tenant = "com.mzt.test")
 public class Main {
 
-    public static void main(String[] args) {
-        SpringApplication.run(Main.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(Main.class, args);
+  }
 }
 ```
 #### 日志埋点
@@ -86,7 +86,7 @@ public class Main {
     }
 ```
 
-此时会打印操作日志 "张三下了一个订单,购买商品「超值优惠红烧肉套餐」,下单结果:true"
+此时会打印操作日志 "张三下了一个订单,购买商品「超值优惠红烧肉套餐」,测试变量「内部变量测试」,下单结果:true"
 
 ###### 2. 期望记录失败的日志, 如果抛出异常则记录fail的日志，没有抛出记录 success 的日志。从 1.1.0-SNAPSHOT 版本开始，在LogRecord实体中添加了 fail 标志，可以通过这个标志区分方法是否执行成功了
 
@@ -600,6 +600,21 @@ success内容，否则记录 fail 内容
         LogRecordContext.putVariable("result", result);
         return result;
     }
+```
+
+###### 14.日志记录与业务逻辑一起回滚
+
+默认日志记录错误不影响业务的流程，若希望日志记录过程如果出现异常，让业务逻辑也一起回滚，在 @EnableLogRecord 中 joinTransaction 属性设置为 true，
+另外 @EnableTransactionManagement order 属性设置为0 (让事务的优先级在@EnableLogRecord之前)
+```
+@EnableLogRecord(tenant = "com.mzt.test", joinTransaction = true)
+@EnableTransactionManagement(order = 0)
+public class Main {
+
+    public static void main(String[] args) {
+        SpringApplication.run(Main.class, args);
+    }
+}
 ```
 
 #### 框架的扩展点
