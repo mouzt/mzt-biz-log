@@ -13,6 +13,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 
 /**
  * DATE 6:03 PM
@@ -35,14 +36,18 @@ public class LogRecordOperationSource {
         specificMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);
 
         // First try is the method in the target class.
-        return parseLogRecordAnnotations(specificMethod);
+        Collection<LogRecordOps> logRecordOps = parseLogRecordAnnotations(specificMethod);
+        Collection<LogRecordOps> abstractLogRecordOps = parseLogRecordAnnotations(ClassUtils.getInterfaceMethodIfPossible(method));
+        HashSet<LogRecordOps> result = new HashSet<>();
+        result.addAll(logRecordOps);
+        result.addAll(abstractLogRecordOps);
+        return result;
     }
 
     private Collection<LogRecordOps> parseLogRecordAnnotations(AnnotatedElement ae) {
         Collection<LogRecord> logRecordAnnotationAnnotations = AnnotatedElementUtils.findAllMergedAnnotations(ae, LogRecord.class);
-        Collection<LogRecordOps> ret = null;
+        Collection<LogRecordOps> ret = new ArrayList<>();
         if (!logRecordAnnotationAnnotations.isEmpty()) {
-            ret = lazyInit(ret);
             for (LogRecord recordAnnotation : logRecordAnnotationAnnotations) {
                 ret.add(parseLogRecordAnnotation(ae, recordAnnotation));
             }
@@ -72,10 +77,6 @@ public class LogRecordOperationSource {
             throw new IllegalStateException("Invalid logRecord annotation configuration on '" +
                     ae.toString() + "'. 'one of successTemplate and failLogTemplate' attribute must be set.");
         }
-    }
-
-    private Collection<LogRecordOps> lazyInit(Collection<LogRecordOps> ops) {
-        return (ops != null ? ops : new ArrayList<>(1));
     }
 
 }
