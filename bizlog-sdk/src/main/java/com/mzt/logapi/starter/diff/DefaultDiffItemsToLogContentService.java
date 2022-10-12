@@ -2,6 +2,8 @@ package com.mzt.logapi.starter.diff;
 
 import com.google.common.collect.Lists;
 import com.mzt.logapi.service.IFunctionService;
+import com.mzt.logapi.service.impl.DiffParseFunction;
+import com.mzt.logapi.starter.annotation.CompareID;
 import com.mzt.logapi.starter.annotation.DiffLogField;
 import com.mzt.logapi.starter.annotation.DiffLogAllFields;
 import com.mzt.logapi.starter.annotation.DIffLogIgnore;
@@ -91,7 +93,9 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
             ReflectionUtils.makeAccessible(childrenField);
             Map<ElementSelector, DiffNode> children = (Map<ElementSelector, DiffNode>) ReflectionUtils.getField(childrenField, node);
             assert children != null;
-            for (DiffNode value : children.values()) memorandum(value, set);
+            for (DiffNode value : children.values()){
+                memorandum(value, set);
+            } 
         }
     }
 
@@ -144,9 +148,35 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
         Collection<Object> delItemList = listSubtract(sourceList, targetList);
         String listAddContent = listToContent(functionName, addItemList);
         String listDelContent = listToContent(functionName, delItemList);
-        return logRecordProperties.formatList(filedLogName, listAddContent, listDelContent);
+        
+         return logRecordProperties.formatList(filedLogName, listAddContent, listDelContent)
+                + retainContent(filedLogName,sourceList,targetList);
     }
 
+    private String retainContent(String filedLogName, Collection<Object> sourceList, Collection<Object> targetList){
+
+        Collection<Object> sources = new ArrayList<>(sourceList);
+        Collection<Object> targets = new ArrayList<>(targetList);
+
+        StringBuilder stringBuilder = new StringBuilder();
+        Iterator sourceIt = sources.iterator();
+
+        sources.stream().forEach(e->{
+            Object source = sourceIt.next();
+            Iterator targetIt = targets.iterator();
+            while (targetIt.hasNext()){
+                Object target = targetIt.next();
+                if(compare(source,target) && isContainsCompareId(source)){
+                    stringBuilder.append(getCompareFieldAndValue(source))
+                            .append(getBeanFactory().getBean(DiffParseFunction.class).diff(source,target))
+                            .append(logRecordProperties.getListItemSeparator());
+                    targetIt.remove();
+                }
+            }
+        });
+        return  logRecordProperties.formatUpdateForListObject(filedLogName,stringBuilder.toString());
+    }
+    
     public String getDiffLogContent(String filedLogName, DiffNode node, Object sourceObject, Object targetObject, String functionName) {
         switch (node.getState()) {
             case ADDED:
@@ -163,7 +193,6 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
 
     private Collection<Object> getListValue(DiffNode node, Object object) {
         Object fieldSourceValue = getFieldValue(node, object);
-        //noinspection unchecked
         if (fieldSourceValue != null && fieldSourceValue.getClass().isArray()) {
             return new ArrayList<>(Arrays.asList((Object[]) fieldSourceValue));
         }
@@ -172,9 +201,125 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
 
     private Collection<Object> listSubtract(Collection<Object> minuend, Collection<Object> subTractor) {
         Collection<Object> addItemList = new ArrayList<>(minuend);
-        addItemList.removeAll(subTractor);
+                Collection<Object> delItemList = new ArrayList<>(subTractor);
+
+        Iterator addItemListIt = addItemList.iterator();
+        boolean removeFlag = false;
+
+        while ( addItemListIt.hasNext()){
+            Object source = addItemListIt.next();
+            Iterator delItemListIt = delItemList.iterator();
+
+            while (delItemListIt.hasNext()){
+                Object target = delItemListIt.next();
+                if(compare(source,target)){
+                    removeFlag = true;
+                }
+            }
+
+            if(removeFlag){
+                addItemListIt.remove();
+                removeFlag = false;
+            }
+        }
+
         return addItemList;
     }
+
+    
+    /**
+     * 两个对象之间的比较是否相等
+     */
+    protected boolean compare(Object source, Object target){
+
+        if(!isContainsCompareId(source)){
+            return source.equals(target);
+        }
+
+        Map<String,Object> sourceFieldValueMap = getCompareIdFieldValueMap(source);
+        Map<String,Object> targetFieldValueMap = getCompareIdFieldValueMap(target);
+
+        for (Map.Entry<String,Object> entry : sourceFieldValueMap.entrySet()){
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            if(!Objects.equals(value,targetFieldValueMap.get(key))){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+    private boolean isContainsCompareId(Object target){
+
+        Field[] fields = target.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            CompareID compareID = field.getAnnotation(CompareID.class);
+            if(compareID != null){
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    private String getCompareFieldAndValue(Object target){
+        Field[] fields = target.getClass().getDeclaredFields();
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            CompareID compareID = field.getAnnotation(CompareID.class);
+            if(compareID == null){
+                continue;
+            }
+
+            try {
+                Object obj = field.get(target);
+                DiffLogField diffLogField = field.getAnnotation(DiffLogField.class);
+                String compareKey = diffLogField == null ?  field.getName() : diffLogField.name();
+                stringBuilder.append(compareKey)
+                        .append(logRecordProperties.getEq())
+                        .append(obj)
+                        .append(logRecordProperties.getListItemSeparator());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+
+        return logRecordProperties.formatUpdateForListElementWithCompareId(stringBuilder.toString());
+    }
+
+
+    /**
+     * 获取存在比较唯一ID的注解的对象
+     * @return  key= fieldName,  value=fieldValue
+     */
+    private Map<String,Object> getCompareIdFieldValueMap(Object source){
+
+        Map<String,Object> fieldValueMap = new HashMap<>();
+
+        Field[] fields = source.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            CompareID compareID = field.getAnnotation(CompareID.class);
+            if(compareID != null){
+                try {
+                    fieldValueMap.put(field.getName(),field.get(source));
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        return fieldValueMap;
+    }
+
+
+
 
     private String listToContent(String functionName, Collection<Object> addItemList) {
         StringBuilder listAddContent = new StringBuilder();
