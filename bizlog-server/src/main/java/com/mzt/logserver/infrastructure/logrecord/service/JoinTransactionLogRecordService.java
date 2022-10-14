@@ -5,23 +5,31 @@ import com.mzt.logapi.service.ILogRecordService;
 import com.mzt.logserver.repository.LogRecordRepository;
 import com.mzt.logserver.repository.po.LogRecordPO;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 
-@Primary
-@Service
+/**
+ * @author wulang
+ **/
 @Slf4j
-public class DbLogRecordService implements ILogRecordService {
+@Service("JoinTransactionLogRecordService")
+public class JoinTransactionLogRecordService implements ILogRecordService {
 
     @Resource
     private LogRecordRepository logRecordRepository;
 
     @Override
     public void record(LogRecord logRecord) {
+        if (Objects.equals(logRecord.getExtra(), "日志错误_事务不回滚")) {
+            int i = 1 / 0;
+        }
         logRecordRepository.save(LogRecordPO.from(logRecord));
+        if (Objects.equals(logRecord.getExtra(), "日志错误_事务回滚")) {
+            int i = 1 / 0;
+        }
     }
 
     @Override

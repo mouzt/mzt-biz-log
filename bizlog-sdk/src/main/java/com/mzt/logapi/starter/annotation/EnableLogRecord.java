@@ -3,6 +3,7 @@ package com.mzt.logapi.starter.annotation;
 import com.mzt.logapi.starter.support.LogRecordConfigureSelector;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.Ordered;
 
 import java.lang.annotation.*;
 
@@ -36,4 +37,18 @@ public @interface EnableLogRecord {
      * @see AdviceMode
      */
     AdviceMode mode() default AdviceMode.PROXY;
+
+    /**
+     * 记录日志日志与业务日志是否同一个事务
+     *
+     * @return 默认独立
+     */
+    boolean joinTransaction() default false;
+
+    /**
+     * Indicate the ordering of the execution of the transaction advisor
+     * when multiple advices are applied at a specific joinpoint.
+     * <p>The default is {@link Ordered#LOWEST_PRECEDENCE}.
+     */
+    int order() default Ordered.LOWEST_PRECEDENCE;
 }
