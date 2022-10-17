@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
  **/
 @Slf4j
 @Service
-public class UserServiceImpl implements IUserService {
+public class UserServiceImpl extends AbsUserServiceImpl implements IUserService {
 
     @Autowired
     private IOrderService orderService;
