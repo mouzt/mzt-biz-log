@@ -2,7 +2,10 @@ package com.mzt.logapi.context;
 
 import com.google.common.collect.Maps;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author muzhantong

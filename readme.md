@@ -6,7 +6,7 @@
 
 ## Change Log
 
-2.0.0版本修改了一些变量名称，而且做的使向下不兼容的修改，如果大家不想改，可以一直使用1.x的版本，后续还会迭代的， 如果第一次接入推荐大家使用 最新版本～～ 1.x 文档: ./doc/document-1.x.md
+2.0.0版本修改了一些变量名称，而且做的使向下不兼容的修改，如果大家不想改，可以一直使用1.x的版本，后续还会迭代的， 如果第一次接入推荐大家使用最新版本 3.X ～～ 1.x 文档: ./doc/document-1.x.md
 
 修改点：
 
@@ -25,18 +25,19 @@
 * fix了没有加EnableTransactionManagement切面不生效的逻辑
 * 补充了一些测试用例，不会使用的大大们可以参考测试用例的使用方式
 
-| 版本             | 状态                                                                                                                                              |
-|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| 版本    | 状态                                                                                                                                              |
+|-------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| 3.0.2 | 1.修复 DIffLogIgnore注解在集合类型上失效问题 2.支持跨方法的全局变量                                                                                                    |
 | 3.0.1 | diff 功能支持了数组(https://github.com/mouzt/mzt-biz-log/issues/75) ，增加判断是否成功的条件表达式，增加 @DiffLogAllFields、@DIffLogIgnore 注解支持                           |
-| 3.0.0          | 暂时删除了list实现优化中,增加了xml的方式,增加了性能监控接口,修复了function 内的 service 需要添加 @Lazy 的问题                                                                        || 2.0.2 | 1.修复了 LogFunctionParser 的NPE，2. 注解上添加了ElementType.TYPE，3.记录了当前执行方法的Class和Method 4. 重新fix了没有加EnableTransactionManagement 切面不生效的逻辑 5. 增加了 Subtype 的 SpEl解析 |
-| 2.0.1          | 修复了接口上的注解不能被拦截的问题                                                                                                                               |
-| 2.0.0          | 1.修改了@LogRecordAnnotation 注解的名字 到LogRecord                                                                                                      |
-| 1.1.1          | 1. 修复了自定义函数返回美元符号解析失败问题，2. 修复before自定义函数bug，3.删除了diff最后一个分隔符                                                                                    |
-| 1.1.0          | 1. 支持了对象DIFF，release 稳定下再发版 2.Function 的参数从 String修改为 Object了，可以给自定函数传递对象啦~~ 3. fix了没有加EnableTransactionManagement 切面不生效的逻辑 4. 添加了fail标志，代表是否成功 |
-| 1.0.8          | 自定义函数支持 在业务的方法运行前执行                                                                                                                             |
-| 1.0.5          | 支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18                                                                                   |
-| 1.0.4          | 支持 Context 添加变量                                                                                                                                 |
-| 1.0.1          | 发版                                                                                                                                              |
+| 3.0.0 | 暂时删除了list实现优化中,增加了xml的方式,增加了性能监控接口,修复了function 内的 service 需要添加 @Lazy 的问题                                                                        || 2.0.2 | 1.修复了 LogFunctionParser 的NPE，2. 注解上添加了ElementType.TYPE，3.记录了当前执行方法的Class和Method 4. 重新fix了没有加EnableTransactionManagement 切面不生效的逻辑 5. 增加了 Subtype 的 SpEl解析 |
+| 2.0.1 | 修复了接口上的注解不能被拦截的问题                                                                                                                               |
+| 2.0.0 | 1.修改了@LogRecordAnnotation 注解的名字 到LogRecord                                                                                                      |
+| 1.1.1 | 1. 修复了自定义函数返回美元符号解析失败问题，2. 修复before自定义函数bug，3.删除了diff最后一个分隔符                                                                                    |
+| 1.1.0 | 1. 支持了对象DIFF，release 稳定下再发版 2.Function 的参数从 String修改为 Object了，可以给自定函数传递对象啦~~ 3. fix了没有加EnableTransactionManagement 切面不生效的逻辑 4. 添加了fail标志，代表是否成功 |
+| 1.0.8 | 自定义函数支持 在业务的方法运行前执行                                                                                                                             |
+| 1.0.5 | 支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18                                                                                   |
+| 1.0.4 | 支持 Context 添加变量                                                                                                                                 |
+| 1.0.1 | 发版                                                                                                                                              |
 
 ## 使用方式(对象DIFF功能终于支持了)
 
@@ -251,6 +252,7 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
     }
 ```
 ###### 7. 日志文案调整 使用 SpEL 三目表达式
+
 ```
     @LogRecord(type = LogRecordTypeConstant.CUSTOM_ATTRIBUTE, bizNo = "{{#businessLineId}}",
             success = "{{#disable ? '停用' : '启用'}}了自定义属性{ATTRIBUTE{#attributeId}}")
@@ -258,12 +260,15 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
     	return xxx;
     }
 ```
+
 ###### 8. 日志文案调整 模版中使用方法参数之外的变量&函数中也可以使用Context中变量
-可以在方法中通过 LogRecordContext.putVariable(variableName, Object) 的方法添加变量，第一个对象为变量名称，后面为变量的对象，
-然后我们就可以使用 SpEL 使用这个变量了，例如：例子中的 {{#innerOrder.productName}} 是在方法中设置的变量，除此之外，在上面提到的自定义函数中也可以使用LogRecordContext中的变量。
+
+可以在方法中通过 LogRecordContext.putVariable(variableName, Object) 的方法添加变量，第一个对象为变量名称，后面为变量的对象， 然后我们就可以使用 SpEL 使用这个变量了，例如：例子中的
+{{#innerOrder.productName}} 是在方法中设置的变量，除此之外，在上面提到的自定义函数中也可以使用LogRecordContext中的变量。
 ~~（注意：LogRecordContext中变量的生命周期为这个方法，超出这个方法，方法中set到Context的变量就获取不到了）~~
 
 若想跨方法使用，可通过LogRecordContext.putGlobalVariable(variableName, Object) 放入上下文中，此优先级为最低，若方法上下文中存在相同的变量，则会覆盖
+
 ```
     @Override
     @LogRecord(
@@ -465,6 +470,7 @@ public class Order {
 如果用户需要记录的对象字段过多不想每个字段都增加 @DiffLogField 注解，框架还提供了 @DiffLogAllFields 注解，默认就使用属性名来做日志记录，也提供了 @DIffLogIgnore 注解来忽略字段。
 
 这时对象可以有如下写法：
+
 ```java
 @Data
 @DiffLogAllFields
@@ -514,6 +520,7 @@ public class User {
 ```
 
 源码中的 test 示例：
+
 ```
     @Test
     @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
