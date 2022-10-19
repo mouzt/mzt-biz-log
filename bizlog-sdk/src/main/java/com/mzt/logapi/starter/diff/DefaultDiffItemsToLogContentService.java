@@ -1,12 +1,12 @@
 package com.mzt.logapi.starter.diff;
 
-import com.google.common.collect.Lists;
 import com.mzt.logapi.service.IFunctionService;
-import com.mzt.logapi.starter.annotation.DiffLogField;
-import com.mzt.logapi.starter.annotation.DiffLogAllFields;
 import com.mzt.logapi.starter.annotation.DIffLogIgnore;
+import com.mzt.logapi.starter.annotation.DiffLogAllFields;
+import com.mzt.logapi.starter.annotation.DiffLogField;
 import com.mzt.logapi.starter.configuration.LogRecordProperties;
 import de.danielbechler.diff.node.DiffNode;
+import de.danielbechler.diff.selector.ElementSelector;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,11 +16,11 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.lang.NonNull;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import java.lang.reflect.Field;
+import java.util.*;
 
 /**
  * @author muzhantong
@@ -46,22 +46,24 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
         }
         DiffLogAllFields annotation = sourceObject.getClass().getAnnotation(DiffLogAllFields.class);
         StringBuilder stringBuilder = new StringBuilder();
-        diffNode.visit((node, visit) -> generateAllFieldLog(sourceObject, targetObject, stringBuilder, node, annotation));
+        Set<DiffNode> set = new HashSet<>();
+        diffNode.visit((node, visit) -> generateAllFieldLog(sourceObject, targetObject, stringBuilder, node, annotation, set));
+        set.clear();
         return stringBuilder.toString().replaceAll(logRecordProperties.getFieldSeparator().concat("$"), "");
     }
 
     private void generateAllFieldLog(Object sourceObject, Object targetObject, StringBuilder stringBuilder, DiffNode node,
-                                     DiffLogAllFields annotation) {
-        if (node.isRootNode() || node.getValueTypeInfo() != null) {
+                                     DiffLogAllFields annotation, Set<DiffNode> set) {
+        if (node.isRootNode() || node.getValueTypeInfo() != null || set.contains(node)) {
             return;
         }
         DIffLogIgnore logIgnore = node.getFieldAnnotation(DIffLogIgnore.class);
         if (logIgnore != null) {
+            memorandum(node, set);
             return;
         }
         DiffLogField diffLogFieldAnnotation = node.getFieldAnnotation(DiffLogField.class);
         if (annotation == null && diffLogFieldAnnotation == null) {
-            // 自定义对象类型直接进入对象里面, diff
             return;
         }
         String filedLogName = getFieldLogName(node, diffLogFieldAnnotation, annotation != null);
@@ -76,6 +78,19 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
                 : getDiffLogContent(filedLogName, node, sourceObject, targetObject, functionName);
         if (!StringUtils.isEmpty(logContent)) {
             stringBuilder.append(logContent).append(logRecordProperties.getFieldSeparator());
+        }
+        memorandum(node, set);
+    }
+
+    private void memorandum(DiffNode node, Set<DiffNode> set) {
+        set.add(node);
+        if (node.hasChildren()) {
+            Field childrenField = ReflectionUtils.findField(DiffNode.class, "children");
+            assert childrenField != null;
+            ReflectionUtils.makeAccessible(childrenField);
+            Map<ElementSelector, DiffNode> children = (Map<ElementSelector, DiffNode>) ReflectionUtils.getField(childrenField, node);
+            assert children != null;
+            for (DiffNode value : children.values()) memorandum(value, set);
         }
     }
 
@@ -151,7 +166,7 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
         if (fieldSourceValue != null && fieldSourceValue.getClass().isArray()) {
             return new ArrayList<>(Arrays.asList((Object[]) fieldSourceValue));
         }
-        return fieldSourceValue == null ? Lists.newArrayList() : (Collection<Object>) fieldSourceValue;
+        return fieldSourceValue == null ? new ArrayList<>() : (Collection<Object>) fieldSourceValue;
     }
 
     private Collection<Object> listSubtract(Collection<Object> minuend, Collection<Object> subTractor) {

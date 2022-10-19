@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
  **/
 @Slf4j
 @Service
-public class UserServiceImpl implements IUserService {
+public class UserServiceImpl extends AbsUserServiceImpl implements IUserService {
 
     @Autowired
     private IOrderService orderService;
@@ -47,7 +47,7 @@ public class UserServiceImpl implements IUserService {
     public boolean testGlobalVariableCover(User user, Order order) {
         User newUser = new User();
         LogRecordContext.putGlobalVariable("user", user);
-        BeanUtil.copyProperties(user,newUser);
+        BeanUtil.copyProperties(user, newUser);
         newUser.setName("李四");
         orderService.testGlobalVariableCover(order, newUser);
         return false;

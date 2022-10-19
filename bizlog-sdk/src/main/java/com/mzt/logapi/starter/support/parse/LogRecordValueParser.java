@@ -1,6 +1,5 @@
 package com.mzt.logapi.starter.support.parse;
 
-import com.google.common.base.Strings;
 import com.mzt.logapi.beans.MethodExecuteResult;
 import com.mzt.logapi.service.impl.DiffParseFunction;
 import org.springframework.beans.BeansException;
@@ -74,7 +73,7 @@ public class LogRecordValueParser implements BeanFactoryAware {
                         Object value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
                         expression = logFunctionParser.getFunctionReturnValue(beforeFunctionNameAndReturnMap, value, expression, functionName);
                     }
-                    matcher.appendReplacement(parsedStr, Matcher.quoteReplacement(Strings.nullToEmpty(expression)));
+                    matcher.appendReplacement(parsedStr, Matcher.quoteReplacement(expression == null ? "" : expression));
                 }
                 matcher.appendTail(parsedStr);
                 expressionValues.put(expressionTemplate, parsedStr.toString());

@@ -6,7 +6,7 @@
 
 ## Change Log
 
-2.0.0版本修改了一些变量名称，而且做的使向下不兼容的修改，如果大家不想改，可以一直使用1.x的版本，后续还会迭代的， 如果第一次接入推荐大家使用 最新版本～～ 1.x 文档: ./doc/document-1.x.md
+2.0.0版本修改了一些变量名称，而且做的使向下不兼容的修改，如果大家不想改，可以一直使用1.x的版本，后续还会迭代的， 如果第一次接入推荐大家使用最新版本 3.X ～～ 1.x 文档: ./doc/document-1.x.md
 
 修改点：
 
@@ -19,24 +19,24 @@
 
 ### 最近主要修改 (！！创建了技术交流群，微信二维码在在文章末尾，欢迎大家加入一起探讨技术！！！)
 
-* 支持了对象DIFF
-* Function 的参数从 String修改为 Object了，老版本需要稍微修改下
-* 在 LogRecord 实体中添加了 fail 的标志位，可以区分方法是否执行成功（是否抛异常）
-* fix了没有加EnableTransactionManagement切面不生效的逻辑
-* 补充了一些测试用例，不会使用的大大们可以参考测试用例的使用方式
+* 修复 DIffLogIgnore注解在集合类型上失效问题
+* 支持跨方法的全局变量
+* 支持日志记录异常与业务逻辑一起回滚的逻辑，默认日志记录不影响业务逻辑
+* 移除了 guava 依赖
 
-| 版本             | 状态                                                                                                                                              |
-|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| 版本    | 状态                                                                                                                                              |
+|-------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| 3.0.2 | 1.修复 DIffLogIgnore注解在集合类型上失效问题 2.支持跨方法的全局变量 3. 支持日志记录异常与业务逻辑一起回滚的逻辑，默认日志记录不影响业务逻辑                                                               |
 | 3.0.1 | diff 功能支持了数组(https://github.com/mouzt/mzt-biz-log/issues/75) ，增加判断是否成功的条件表达式，增加 @DiffLogAllFields、@DIffLogIgnore 注解支持                           |
-| 3.0.0          | 暂时删除了list实现优化中,增加了xml的方式,增加了性能监控接口,修复了function 内的 service 需要添加 @Lazy 的问题                                                                        || 2.0.2 | 1.修复了 LogFunctionParser 的NPE，2. 注解上添加了ElementType.TYPE，3.记录了当前执行方法的Class和Method 4. 重新fix了没有加EnableTransactionManagement 切面不生效的逻辑 5. 增加了 Subtype 的 SpEl解析 |
-| 2.0.1          | 修复了接口上的注解不能被拦截的问题                                                                                                                               |
-| 2.0.0          | 1.修改了@LogRecordAnnotation 注解的名字 到LogRecord                                                                                                      |
-| 1.1.1          | 1. 修复了自定义函数返回美元符号解析失败问题，2. 修复before自定义函数bug，3.删除了diff最后一个分隔符                                                                                    |
-| 1.1.0          | 1. 支持了对象DIFF，release 稳定下再发版 2.Function 的参数从 String修改为 Object了，可以给自定函数传递对象啦~~ 3. fix了没有加EnableTransactionManagement 切面不生效的逻辑 4. 添加了fail标志，代表是否成功 |
-| 1.0.8          | 自定义函数支持 在业务的方法运行前执行                                                                                                                             |
-| 1.0.5          | 支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18                                                                                   |
-| 1.0.4          | 支持 Context 添加变量                                                                                                                                 |
-| 1.0.1          | 发版                                                                                                                                              |
+| 3.0.0 | 暂时删除了list实现优化中,增加了xml的方式,增加了性能监控接口,修复了function 内的 service 需要添加 @Lazy 的问题                                                                        || 2.0.2 | 1.修复了 LogFunctionParser 的NPE，2. 注解上添加了ElementType.TYPE，3.记录了当前执行方法的Class和Method 4. 重新fix了没有加EnableTransactionManagement 切面不生效的逻辑 5. 增加了 Subtype 的 SpEl解析 |
+| 2.0.1 | 修复了接口上的注解不能被拦截的问题                                                                                                                               |
+| 2.0.0 | 1.修改了@LogRecordAnnotation 注解的名字 到LogRecord                                                                                                      |
+| 1.1.1 | 1. 修复了自定义函数返回美元符号解析失败问题，2. 修复before自定义函数bug，3.删除了diff最后一个分隔符                                                                                    |
+| 1.1.0 | 1. 支持了对象DIFF，release 稳定下再发版 2.Function 的参数从 String修改为 Object了，可以给自定函数传递对象啦~~ 3. fix了没有加EnableTransactionManagement 切面不生效的逻辑 4. 添加了fail标志，代表是否成功 |
+| 1.0.8 | 自定义函数支持 在业务的方法运行前执行                                                                                                                             |
+| 1.0.5 | 支持 condition；修复https://github.com/mouzt/mzt-biz-log/issues/18                                                                                   |
+| 1.0.4 | 支持 Context 添加变量                                                                                                                                 |
+| 1.0.1 | 发版                                                                                                                                              |
 
 ## 使用方式(对象DIFF功能终于支持了)
 
@@ -48,7 +48,7 @@
         <dependency>
           <groupId>io.github.mouzt</groupId>
           <artifactId>bizlog-sdk</artifactId>
-          <version>3.0.1<version>
+          <version>3.0.2<version>
         </dependency>
 ```
 #### SpringBoot入口打开开关,添加 @EnableLogRecord 注解
@@ -59,9 +59,9 @@ tenant是代表租户的标识，一般一个服务或者一个业务下的多�
 @EnableLogRecord(tenant = "com.mzt.test")
 public class Main {
 
-    public static void main(String[] args) {
-        SpringApplication.run(Main.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(Main.class, args);
+  }
 }
 ```
 #### 日志埋点
@@ -86,7 +86,7 @@ public class Main {
     }
 ```
 
-此时会打印操作日志 "张三下了一个订单,购买商品「超值优惠红烧肉套餐」,下单结果:true"
+此时会打印操作日志 "张三下了一个订单,购买商品「超值优惠红烧肉套餐」,测试变量「内部变量测试」,下单结果:true"
 
 ###### 2. 期望记录失败的日志, 如果抛出异常则记录fail的日志，没有抛出记录 success 的日志。从 1.1.0-SNAPSHOT 版本开始，在LogRecord实体中添加了 fail 标志，可以通过这个标志区分方法是否执行成功了
 
@@ -251,6 +251,7 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
     }
 ```
 ###### 7. 日志文案调整 使用 SpEL 三目表达式
+
 ```
     @LogRecord(type = LogRecordTypeConstant.CUSTOM_ATTRIBUTE, bizNo = "{{#businessLineId}}",
             success = "{{#disable ? '停用' : '启用'}}了自定义属性{ATTRIBUTE{#attributeId}}")
@@ -258,12 +259,15 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
     	return xxx;
     }
 ```
+
 ###### 8. 日志文案调整 模版中使用方法参数之外的变量&函数中也可以使用Context中变量
-可以在方法中通过 LogRecordContext.putVariable(variableName, Object) 的方法添加变量，第一个对象为变量名称，后面为变量的对象，
-然后我们就可以使用 SpEL 使用这个变量了，例如：例子中的 {{#innerOrder.productName}} 是在方法中设置的变量，除此之外，在上面提到的自定义函数中也可以使用LogRecordContext中的变量。
+
+可以在方法中通过 LogRecordContext.putVariable(variableName, Object) 的方法添加变量，第一个对象为变量名称，后面为变量的对象， 然后我们就可以使用 SpEL 使用这个变量了，例如：例子中的
+{{#innerOrder.productName}} 是在方法中设置的变量，除此之外，在上面提到的自定义函数中也可以使用LogRecordContext中的变量。
 ~~（注意：LogRecordContext中变量的生命周期为这个方法，超出这个方法，方法中set到Context的变量就获取不到了）~~
 
 若想跨方法使用，可通过LogRecordContext.putGlobalVariable(variableName, Object) 放入上下文中，此优先级为最低，若方法上下文中存在相同的变量，则会覆盖
+
 ```
     @Override
     @LogRecord(
@@ -465,6 +469,7 @@ public class Order {
 如果用户需要记录的对象字段过多不想每个字段都增加 @DiffLogField 注解，框架还提供了 @DiffLogAllFields 注解，默认就使用属性名来做日志记录，也提供了 @DIffLogIgnore 注解来忽略字段。
 
 这时对象可以有如下写法：
+
 ```java
 @Data
 @DiffLogAllFields
@@ -514,6 +519,7 @@ public class User {
 ```
 
 源码中的 test 示例：
+
 ```
     @Test
     @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
@@ -600,6 +606,21 @@ success内容，否则记录 fail 内容
         LogRecordContext.putVariable("result", result);
         return result;
     }
+```
+
+###### 14.日志记录与业务逻辑一起回滚
+
+默认日志记录错误不影响业务的流程，若希望日志记录过程如果出现异常，让业务逻辑也一起回滚，在 @EnableLogRecord 中 joinTransaction 属性设置为 true，
+另外 @EnableTransactionManagement order 属性设置为0 (让事务的优先级在@EnableLogRecord之前)
+```
+@EnableLogRecord(tenant = "com.mzt.test", joinTransaction = true)
+@EnableTransactionManagement(order = 0)
+public class Main {
+
+    public static void main(String[] args) {
+        SpringApplication.run(Main.class, args);
+    }
+}
 ```
 
 #### 框架的扩展点

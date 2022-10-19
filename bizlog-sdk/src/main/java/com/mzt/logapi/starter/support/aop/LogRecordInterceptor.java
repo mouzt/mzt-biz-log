@@ -1,8 +1,5 @@
 package com.mzt.logapi.starter.support.aop;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.mzt.logapi.beans.CodeVariableType;
 import com.mzt.logapi.beans.LogRecord;
 import com.mzt.logapi.beans.LogRecordOps;
@@ -15,9 +12,6 @@ import com.mzt.logapi.service.IOperatorGetService;
 import com.mzt.logapi.service.impl.DiffParseFunction;
 import com.mzt.logapi.starter.support.parse.LogFunctionParser;
 import com.mzt.logapi.starter.support.parse.LogRecordValueParser;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -50,6 +44,8 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
     private IOperatorGetService operatorGetService;
 
     private ILogRecordPerformanceMonitor logRecordPerformanceMonitor;
+
+    private boolean joinTransaction;
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
@@ -91,8 +87,8 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
                 recordExecute(methodExecuteResult, functionNameAndReturnMap, operations);
             }
         } catch (Exception t) {
-            //记录日志错误不要影响业务
             log.error("log record parse exception", t);
+            throw t;
         } finally {
             LogRecordContext.clear();
             stopWatch.stop();
@@ -102,6 +98,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
                 log.error("execute exception", e);
             }
         }
+
         if (methodExecuteResult.getThrowable() != null) {
             throw methodExecuteResult.getThrowable();
         }
@@ -128,9 +125,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
                         && StringUtils.isEmpty(operation.getFailLogTemplate())) {
                     continue;
                 }
-
                 if (exitsCondition(methodExecuteResult, functionNameAndReturnMap, operation)) continue;
-
                 if (!methodExecuteResult.isSuccess()) {
                     failRecordExecute(methodExecuteResult, functionNameAndReturnMap, operation);
                 } else {
@@ -138,6 +133,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
                 }
             } catch (Exception t) {
                 log.error("log record execute exception", t);
+                if (joinTransaction) throw t;
             }
         }
     }
@@ -208,20 +204,22 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
                 .createTime(new Date())
                 .build();
 
-        //save log 需要新开事务，失败日志不能因为事务回滚而丢失
-        Preconditions.checkNotNull(bizLogService, "bizLogService not init!!");
         bizLogService.record(logRecord);
     }
 
     private Map<CodeVariableType, Object> getCodeVariable(Method method) {
-        Map<CodeVariableType, Object> map = Maps.newHashMap();
+        Map<CodeVariableType, Object> map = new HashMap<>();
         map.put(CodeVariableType.ClassName, method.getDeclaringClass());
         map.put(CodeVariableType.MethodName, method.getName());
         return map;
     }
 
     private List<String> getSpElTemplates(LogRecordOps operation, String... actions) {
-        List<String> spElTemplates = Lists.newArrayList(operation.getType(), operation.getBizNo(), operation.getSubType(), operation.getExtra());
+        List<String> spElTemplates = new ArrayList<>();
+        spElTemplates.add(operation.getType());
+        spElTemplates.add(operation.getBizNo());
+        spElTemplates.add(operation.getSubType());
+        spElTemplates.add(operation.getExtra());
         spElTemplates.addAll(Arrays.asList(actions));
         return spElTemplates;
     }
@@ -265,12 +263,15 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
         this.logRecordPerformanceMonitor = logRecordPerformanceMonitor;
     }
 
+    public void setJoinTransaction(boolean joinTransaction) {
+        this.joinTransaction = joinTransaction;
+    }
+
     @Override
     public void afterSingletonsInstantiated() {
         bizLogService = beanFactory.getBean(ILogRecordService.class);
         operatorGetService = beanFactory.getBean(IOperatorGetService.class);
         this.setLogFunctionParser(new LogFunctionParser(beanFactory.getBean(IFunctionService.class)));
         this.setDiffParseFunction(beanFactory.getBean(DiffParseFunction.class));
-
     }
 }
