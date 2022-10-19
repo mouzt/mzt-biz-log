@@ -1,7 +1,5 @@
 package com.mzt.logapi.context;
 
-import com.google.common.collect.Maps;
-
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -28,7 +26,7 @@ public class LogRecordContext {
         }
         Deque<Map<String, Object>> mapStack = VARIABLE_MAP_STACK.get();
         if (mapStack.isEmpty()) {
-            VARIABLE_MAP_STACK.get().push(Maps.newHashMap());
+            VARIABLE_MAP_STACK.get().push(new HashMap<>());
         }
         VARIABLE_MAP_STACK.get().element().put(name, value);
     }
@@ -73,7 +71,7 @@ public class LogRecordContext {
             Deque<Map<String, Object>> stack = new ArrayDeque<>();
             VARIABLE_MAP_STACK.set(stack);
         }
-        VARIABLE_MAP_STACK.get().push(Maps.newHashMap());
+        VARIABLE_MAP_STACK.get().push(new HashMap<>());
 
         if (GLOBAL_VARIABLE_MAP.get() == null) {
             GLOBAL_VARIABLE_MAP.set(new HashMap<>());

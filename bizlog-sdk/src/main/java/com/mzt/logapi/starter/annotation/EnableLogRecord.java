@@ -49,6 +49,8 @@ public @interface EnableLogRecord {
      * Indicate the ordering of the execution of the transaction advisor
      * when multiple advices are applied at a specific joinpoint.
      * <p>The default is {@link Ordered#LOWEST_PRECEDENCE}.
+     *
+     * @return 事务 advisor 的优先级
      */
     int order() default Ordered.LOWEST_PRECEDENCE;
 }

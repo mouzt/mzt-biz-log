@@ -1,8 +1,5 @@
 package com.mzt.logapi.starter.support.aop;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.mzt.logapi.beans.CodeVariableType;
 import com.mzt.logapi.beans.LogRecord;
 import com.mzt.logapi.beans.LogRecordOps;
@@ -15,9 +12,6 @@ import com.mzt.logapi.service.IOperatorGetService;
 import com.mzt.logapi.service.impl.DiffParseFunction;
 import com.mzt.logapi.starter.support.parse.LogFunctionParser;
 import com.mzt.logapi.starter.support.parse.LogRecordValueParser;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -210,19 +204,22 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
                 .createTime(new Date())
                 .build();
 
-        Preconditions.checkNotNull(bizLogService, "bizLogService not init!!");
         bizLogService.record(logRecord);
     }
 
     private Map<CodeVariableType, Object> getCodeVariable(Method method) {
-        Map<CodeVariableType, Object> map = Maps.newHashMap();
+        Map<CodeVariableType, Object> map = new HashMap<>();
         map.put(CodeVariableType.ClassName, method.getDeclaringClass());
         map.put(CodeVariableType.MethodName, method.getName());
         return map;
     }
 
     private List<String> getSpElTemplates(LogRecordOps operation, String... actions) {
-        List<String> spElTemplates = Lists.newArrayList(operation.getType(), operation.getBizNo(), operation.getSubType(), operation.getExtra());
+        List<String> spElTemplates = new ArrayList<>();
+        spElTemplates.add(operation.getType());
+        spElTemplates.add(operation.getBizNo());
+        spElTemplates.add(operation.getSubType());
+        spElTemplates.add(operation.getExtra());
         spElTemplates.addAll(Arrays.asList(actions));
         return spElTemplates;
     }

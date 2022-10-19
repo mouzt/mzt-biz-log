@@ -1,10 +1,9 @@
 package com.mzt.logapi.starter.diff;
 
-import com.google.common.collect.Lists;
 import com.mzt.logapi.service.IFunctionService;
-import com.mzt.logapi.starter.annotation.DiffLogField;
-import com.mzt.logapi.starter.annotation.DiffLogAllFields;
 import com.mzt.logapi.starter.annotation.DIffLogIgnore;
+import com.mzt.logapi.starter.annotation.DiffLogAllFields;
+import com.mzt.logapi.starter.annotation.DiffLogField;
 import com.mzt.logapi.starter.configuration.LogRecordProperties;
 import de.danielbechler.diff.node.DiffNode;
 import de.danielbechler.diff.selector.ElementSelector;
@@ -167,7 +166,7 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
         if (fieldSourceValue != null && fieldSourceValue.getClass().isArray()) {
             return new ArrayList<>(Arrays.asList((Object[]) fieldSourceValue));
         }
-        return fieldSourceValue == null ? Lists.newArrayList() : (Collection<Object>) fieldSourceValue;
+        return fieldSourceValue == null ? new ArrayList<>() : (Collection<Object>) fieldSourceValue;
     }
 
     private Collection<Object> listSubtract(Collection<Object> minuend, Collection<Object> subTractor) {
