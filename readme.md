@@ -19,15 +19,13 @@
 
 ### 最近主要修改 (！！创建了技术交流群，微信二维码在在文章末尾，欢迎大家加入一起探讨技术！！！)
 
-* 支持了对象DIFF
-* Function 的参数从 String修改为 Object了，老版本需要稍微修改下
-* 在 LogRecord 实体中添加了 fail 的标志位，可以区分方法是否执行成功（是否抛异常）
-* fix了没有加EnableTransactionManagement切面不生效的逻辑
-* 补充了一些测试用例，不会使用的大大们可以参考测试用例的使用方式
+* 修复 DIffLogIgnore注解在集合类型上失效问题
+* 支持跨方法的全局变量
+* 支持日志记录异常与业务逻辑一起回滚的逻辑，默认日志记录不影响业务逻辑
 
 | 版本    | 状态                                                                                                                                              |
 |-------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| 3.0.2 | 1.修复 DIffLogIgnore注解在集合类型上失效问题 2.支持跨方法的全局变量                                                                                                    |
+| 3.0.2 | 1.修复 DIffLogIgnore注解在集合类型上失效问题 2.支持跨方法的全局变量 3. 支持日志记录异常与业务逻辑一起回滚的逻辑，默认日志记录不影响业务逻辑                                                               |
 | 3.0.1 | diff 功能支持了数组(https://github.com/mouzt/mzt-biz-log/issues/75) ，增加判断是否成功的条件表达式，增加 @DiffLogAllFields、@DIffLogIgnore 注解支持                           |
 | 3.0.0 | 暂时删除了list实现优化中,增加了xml的方式,增加了性能监控接口,修复了function 内的 service 需要添加 @Lazy 的问题                                                                        || 2.0.2 | 1.修复了 LogFunctionParser 的NPE，2. 注解上添加了ElementType.TYPE，3.记录了当前执行方法的Class和Method 4. 重新fix了没有加EnableTransactionManagement 切面不生效的逻辑 5. 增加了 Subtype 的 SpEl解析 |
 | 2.0.1 | 修复了接口上的注解不能被拦截的问题                                                                                                                               |
@@ -49,7 +47,7 @@
         <dependency>
           <groupId>io.github.mouzt</groupId>
           <artifactId>bizlog-sdk</artifactId>
-          <version>3.0.1<version>
+          <version>3.0.2<version>
         </dependency>
 ```
 #### SpringBoot入口打开开关,添加 @EnableLogRecord 注解
