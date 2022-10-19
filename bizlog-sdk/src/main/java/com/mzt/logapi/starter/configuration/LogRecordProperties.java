@@ -1,6 +1,7 @@
 package com.mzt.logapi.starter.configuration;
 
 import lombok.Data;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
 
@@ -53,6 +54,16 @@ public class LogRecordProperties {
      * 字段更新后的日志内容模板
      */
     private String updateTemplate = "【" + FIELD_PLACEHOLDER + "】从【" + SOURCE_VALUE_PLACEHOLDER + "】修改为【" + TARGET_VALUE_PLACEHOLDER + "】";
+    
+    /**
+     * 列表更新后，更新列表中元素内容的日志模板内容
+     */
+    private String updateTemplateForListElement= FIELD_PLACEHOLDER + "：List内部的数据更新如下： {" +TARGET_VALUE_PLACEHOLDER+ "}";
+
+    /**
+     * 列表更新后， 更新列表中标识为同一个对象的Id日志模板内容
+     */
+    private String formatUpdateForListElementWithCompareId = "[CompareId:{" +TARGET_VALUE_PLACEHOLDER+ "}]:\t";
     /**
      * 字段值被设置为null后的日志内容模板
      */
@@ -70,7 +81,10 @@ public class LogRecordProperties {
      */
     private String ofWord = "的";
 
-
+    /**
+     * 作为标识对象唯一标识的属性的值的分隔符
+     */
+    private String eq = "=";
     public void setAddTemplate(String template) {
         validatePlaceHolder(template);
         this.addTemplate = template;
@@ -119,6 +133,19 @@ public class LogRecordProperties {
             return updateTemplateForList.replace(FIELD_PLACEHOLDER, fieldName)
                     .replace(LIST_ADD_VALUE_PLACEHOLDER, addContent)
                     .replace(LIST_DEL_VALUE_PLACEHOLDER, delContent);
+        }
+        return "";
+    }
+        public String formatUpdateForListObject(String filedLogName, String targetValue) {
+        if(!StringUtils.isEmpty(targetValue)){
+            return updateTemplateForListElement.replace(FIELD_PLACEHOLDER,filedLogName).replace(TARGET_VALUE_PLACEHOLDER,targetValue);
+        }
+        return "";
+    }
+
+    public String formatUpdateForListElementWithCompareId(String targetValue) {
+        if(!Strings.isEmpty(targetValue)){
+            return formatUpdateForListElementWithCompareId.replace(TARGET_VALUE_PLACEHOLDER,targetValue);
         }
         return "";
     }

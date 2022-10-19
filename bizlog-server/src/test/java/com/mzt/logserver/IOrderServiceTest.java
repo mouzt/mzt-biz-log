@@ -454,6 +454,171 @@ public class IOrderServiceTest extends BaseTest {
         logRecordService.clean();
     }
 
+      @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void testCondition_对象数组添加() {
+        Order order = new Order();
+        order.setOrderId(99L);
+        order.setOrderNo("MT0000099");
+        order.setProductName("超值优惠红烧肉套餐");
+
+        Order order1 = new Order();
+        order1.setOrderId(88L);
+        order1.setOrderNo("MT0000099");
+        order1.setProductName("麻辣烫套餐");
+        order1.addAuditor(1L,"张三");
+        orderService.diff(order, order1);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        System.out.println(logRecord.getAction());
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【审核人列表】添加了【Order.UserDO(userId=1, userName=张三)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】");
+        Assert.assertNotNull(logRecord.getExtra());
+        Assert.assertEquals(logRecord.getOperator(), "111");
+        Assert.assertEquals(logRecord.getBizNo(), order1.getOrderNo());
+        logRecordService.clean();
+    }
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void testCondition_对象数组删除() {
+        Order order = new Order();
+        order.setOrderId(99L);
+        order.setOrderNo("MT0000099");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.addAuditor(1L,"张三");
+
+        Order order1 = new Order();
+        order1.setOrderId(88L);
+        order1.setOrderNo("MT0000099");
+        order1.setProductName("麻辣烫套餐");
+        orderService.diff(order, order1);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        System.out.println(logRecord.getAction());
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【审核人列表】删除了【Order.UserDO(userId=1, userName=张三)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】");
+        Assert.assertNotNull(logRecord.getExtra());
+        Assert.assertEquals(logRecord.getOperator(), "111");
+        Assert.assertEquals(logRecord.getBizNo(), order1.getOrderNo());
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void testCondition_对象数组修改() {
+        Order order = new Order();
+        order.setOrderId(99L);
+        order.setOrderNo("MT0000099");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.addAuditor(1L,"张三");
+
+        Order order1 = new Order();
+        order1.setOrderId(99L);
+        order1.setOrderNo("MT0000099");
+        order1.setProductName("麻辣烫套餐");
+        order1.addAuditor(1L,"李四");
+        orderService.diff(order, order1);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        System.out.println(logRecord.getAction());
+        Assert.assertEquals(logRecord.getAction(), "更新了订单审核人列表：List内部的数据更新如下： {[CompareId:{用户ID=1，}]:	【用户姓名】从【张三】修改为【李四】，}");
+        Assert.assertNotNull(logRecord.getExtra());
+        Assert.assertEquals(logRecord.getOperator(), "111");
+        Assert.assertEquals(logRecord.getBizNo(), order1.getOrderNo());
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void testCondition_对象数组修改1_修改多个对象() {
+        Order order = new Order();
+        order.setOrderId(99L);
+        order.setOrderNo("MT0000099");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.addAuditor(1L,"张三");
+        order.addAuditor(2L,"张2");
+
+        Order order1 = new Order();
+        order1.setOrderId(99L);
+        order1.setOrderNo("MT0000099");
+        order1.setProductName("麻辣烫套餐");
+        order1.addAuditor(1L,"李四");
+        order1.addAuditor(2L,"王五");
+        orderService.diff(order, order1);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        System.out.println(logRecord.getAction());
+        Assert.assertEquals(logRecord.getAction(), "更新了订单审核人列表：List内部的数据更新如下： {[CompareId:{用户ID=1，}]:	【用户姓名】从【张三】修改为【李四】，[CompareId:{用户ID=2，}]:	【用户姓名】从【张2】修改为【王五】，}");
+        Assert.assertNotNull(logRecord.getExtra());
+        Assert.assertEquals(logRecord.getOperator(), "111");
+        Assert.assertEquals(logRecord.getBizNo(), order1.getOrderNo());
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void testCondition_对象数组修改2_新增新对象_删除就对象_更新原有对象() {
+        Order order = new Order();
+        order.setOrderId(99L);
+        order.setOrderNo("MT0000099");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.addAuditor(1L,"张三");
+        order.addAuditor(2L,"张2");
+
+        Order order1 = new Order();
+        order1.setOrderId(99L);
+        order1.setOrderNo("MT0000099");
+        order1.setProductName("麻辣烫套餐");
+        order1.addAuditor(1L,"李四");
+        order1.addAuditor(3L,"王五");
+        orderService.diff(order, order1);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        System.out.println(logRecord.getAction());
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【审核人列表】添加了【Order.UserDO(userId=3, userName=王五)】删除了【Order.UserDO(userId=2, userName=张2)】审核人列表：List内部的数据更新如下： {[CompareId:{用户ID=1，}]:	【用户姓名】从【张三】修改为【李四】，}");
+        Assert.assertNotNull(logRecord.getExtra());
+        Assert.assertEquals(logRecord.getOperator(), "111");
+        Assert.assertEquals(logRecord.getBizNo(), order1.getOrderNo());
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void testCondition_对象数组修改3_新增新对象_删除就对象_更新原有对象_更新Order属性() {
+        Order order = new Order();
+        order.setOrderId(99L);
+        order.setOrderNo("MT0000099");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.addAuditor(1L,"张三");
+        order.addAuditor(2L,"张2");
+
+        Order order1 = new Order();
+        order1.setOrderId(9L);
+        order1.setOrderNo("MT0000099");
+        order1.setProductName("麻辣烫套餐");
+        order1.addAuditor(1L,"李四");
+        order1.addAuditor(3L,"王五");
+        orderService.diff(order, order1);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        System.out.println(logRecord.getAction());
+        Assert.assertEquals(logRecord.getAction(), "更新了订单【审核人列表】添加了【Order.UserDO(userId=3, userName=王五)】删除了【Order.UserDO(userId=2, userName=张2)】审核人列表：List内部的数据更新如下： {[CompareId:{用户ID=1，}]:	【用户姓名】从【张三】修改为【李四】，}；【订单ID】从【xxxx(99)】修改为【xxxx(9)】");
+        Assert.assertNotNull(logRecord.getExtra());
+        Assert.assertEquals(logRecord.getOperator(), "111");
+        Assert.assertEquals(logRecord.getBizNo(), order1.getOrderNo());
+        logRecordService.clean();
+    }
+    
     @Test
     @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void testCondition_打印日志() {

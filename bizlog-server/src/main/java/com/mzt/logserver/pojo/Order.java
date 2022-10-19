@@ -1,10 +1,12 @@
 package com.mzt.logserver.pojo;
 
+import com.mzt.logapi.starter.annotation.CompareID;
 import com.mzt.logapi.starter.annotation.DiffLogField;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -35,11 +37,25 @@ public class Order {
     @DiffLogField(name = "拓展信息", function = "extInfo")
     private String[] extInfo;
 
+    @DiffLogField(name = "审核人列表")
+    private List<UserDO> auditors = new ArrayList<>();
+
     @Data
     public static class UserDO {
         @DiffLogField(name = "用户ID")
+        @CompareID
         private Long userId;
         @DiffLogField(name = "用户姓名")
         private String userName;
+    }
+    
+    public Order addAuditor(Long userId, String userName){
+
+        UserDO userDO = new UserDO();
+        userDO.userId = userId;
+        userDO.userName = userName;
+
+        auditors.add(userDO);
+        return this;
     }
 }
