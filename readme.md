@@ -623,6 +623,24 @@ public class Main {
 }
 ```
 
+###### 15.方法记录多条日志
+
+若希望一个方法记录多条日志，在方法上重复写两个注解即可，前提是两个注解**不相同**
+```
+    @LogRecord(
+            subType = "MANAGER_VIEW", extra = "{{#order.toString()}}",
+            success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
+            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
+    @LogRecord(
+            subType = "USER_VIEW",
+            success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
+            type = LogRecordType.USER, bizNo = "{{#order.orderNo}}")
+    public boolean createOrders(Order order) {
+        log.info("【创建订单】orderNo={}", order.getOrderNo());
+        return true;
+    }
+```
+
 #### 框架的扩展点
 
 * 重写OperatorGetServiceImpl通过上下文获取用户的扩展，例子如下
