@@ -32,13 +32,13 @@ public class ShiroConfig {
     @Bean
     public DefaultWebSecurityManager manager() {
         DefaultWebSecurityManager manager = new DefaultWebSecurityManager();
-        manager.setRealm(new MyRealm());
+        manager.setRealm(shiroTestRealm());
         return manager;
     }
 
     @Bean
-    public MyRealm myRealm() {
-        return new MyRealm();
+    public ShiroTestRealm shiroTestRealm() {
+        return new ShiroTestRealm();
     }
 
 }

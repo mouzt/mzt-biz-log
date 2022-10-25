@@ -12,7 +12,7 @@ import org.apache.shiro.subject.PrincipalCollection;
  * @author muzhantong
  * create on 2022/10/21 5:40 PM
  */
-public class MyRealm extends AuthorizingRealm {
+public class ShiroTestRealm extends AuthorizingRealm {
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
         return null;

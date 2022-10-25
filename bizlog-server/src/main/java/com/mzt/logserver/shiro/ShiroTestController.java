@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @Slf4j
-public class MyController {
+public class ShiroTestController {
 
     //1. 登录 http://127.0.0.1:8080/doLogin?username=mzt&password=123
     //2. 访问 hello 方法
