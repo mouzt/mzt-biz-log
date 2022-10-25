@@ -17,8 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class MyController {
 
+    //1. 登录 http://127.0.0.1:8080/doLogin?username=mzt&password=123
+    //2. 访问 hello 方法
     @GetMapping("/doLogin")
-    @LogRecord(success = "success", type = "shiro.login", bizNo = "mztt99901091")
     public String login(String username, String password) {
         Subject subject = SecurityUtils.getSubject();
         AuthenticationToken token = new UsernamePasswordToken(username, password);
