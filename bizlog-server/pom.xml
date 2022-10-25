@@ -25,6 +25,12 @@
             <version>3.0.2-SNAPSHOT</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-spring</artifactId>
+            <version>1.5.3</version>
+        </dependency>
+
         <!--druid 依赖-->
         <dependency>
             <groupId>com.alibaba</groupId>
