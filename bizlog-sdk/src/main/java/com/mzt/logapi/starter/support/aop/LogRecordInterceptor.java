@@ -55,7 +55,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
     }
 
     private Object execute(MethodInvocation invoker, Object target, Method method, Object[] args) throws Throwable {
-        // cglib 代理兼容
+        //代理不拦截
         if (AopUtils.isAopProxy(target)) {
             return invoker.proceed();
         }
