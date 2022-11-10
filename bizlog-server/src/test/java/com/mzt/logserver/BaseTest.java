@@ -9,7 +9,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, classes = BaseTest.Application.class)
-public class BaseTest {
+public abstract class BaseTest {
 
     @MapperScan(value = "com.mzt.logserver.repository.mapper", annotationClass = Mapper.class, lazyInitialization = "true")
     @ComponentScan(value = "com.mzt.logserver")
