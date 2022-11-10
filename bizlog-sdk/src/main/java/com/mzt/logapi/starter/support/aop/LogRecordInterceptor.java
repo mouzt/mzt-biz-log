@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.framework.AopProxyUtils;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
@@ -54,6 +55,10 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
     }
 
     private Object execute(MethodInvocation invoker, Object target, Method method, Object[] args) throws Throwable {
+        //代理不拦截
+        if (AopUtils.isAopProxy(target)) {
+            return invoker.proceed();
+        }
         StopWatch stopWatch = new StopWatch(MONITOR_NAME);
         stopWatch.start(MONITOR_TASK_BEFORE_EXECUTE);
         Class<?> targetClass = getTargetClass(target);
@@ -187,8 +192,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
 
     private void saveLog(Method method, boolean flag, LogRecordOps operation, String operatorIdFromService,
                          String action, Map<String, String> expressionValues) {
-        //如果 action 为空，不记录日志
-        if (StringUtils.isEmpty(expressionValues.get(action))) {
+        if (StringUtils.isEmpty(expressionValues.get(action)) || Objects.equals(action, expressionValues.get(action))) {
             return;
         }
         LogRecord logRecord = LogRecord.builder()

@@ -41,6 +41,33 @@ public class IOrderServiceTest extends BaseTest {
 
     @Test
     @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void createOrders() {
+        Order order = new Order();
+        order.setOrderNo("MT0000011");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        orderService.createOrders(order);
+        List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        Assert.assertEquals(logRecord.getAction(), "张三下了一个订单,购买商品「超值优惠红烧肉套餐」,下单结果:true");
+        Assert.assertEquals(logRecord.getSubType(), "MANAGER_VIEW");
+        Assert.assertNotNull(logRecord.getExtra());
+        Assert.assertEquals(logRecord.getBizNo(), order.getOrderNo());
+        Assert.assertFalse(logRecord.isFail());
+        List<LogRecord> userLogRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.USER);
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord userLogRecord = userLogRecordList.get(0);
+        Assert.assertEquals(userLogRecord.getAction(), "张三下了一个订单,购买商品「超值优惠红烧肉套餐」,下单结果:true");
+        Assert.assertEquals(userLogRecord.getSubType(), "USER_VIEW");
+        Assert.assertEquals("", userLogRecord.getExtra());
+        Assert.assertEquals(userLogRecord.getBizNo(), order.getOrderNo());
+        Assert.assertFalse(userLogRecord.isFail());
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void createOrderMonitor() {
 
         for (int i = 0; i < 100; i++) {
@@ -304,6 +331,37 @@ public class IOrderServiceTest extends BaseTest {
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
         Assert.assertEquals(logRecord.getAction(), "更新了订单【订单ID】从【空】修改为【xxxx(88)】；【订单号】从【空】修改为【MT0000099】");
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void testDiff_不记录() {
+        Order order = new Order();
+        order.setOrderId(99L);
+        order.setOrderNo("MT0000099");
+        order.setProductName("超值优惠红烧肉套餐");
+        order.setPurchaseName("张三");
+        Order.UserDO userDO = new Order.UserDO();
+        userDO.setUserId(9001L);
+        userDO.setUserName("用户1");
+        order.setCreator(userDO);
+        order.setItems(Lists.newArrayList("123", "bbb"));
+
+        Order order1 = new Order();
+        order1.setOrderId(99L);
+        order1.setOrderNo("MT0000099");
+        order1.setProductName("超值优惠红烧肉套餐");
+        order1.setPurchaseName("张三");
+        Order.UserDO userDO1 = new Order.UserDO();
+        userDO1.setUserId(9001L);
+        userDO1.setUserName("用户1");
+        order1.setCreator(userDO1);
+        order1.setItems(Lists.newArrayList("123", "bbb"));
+        orderService.diff(order, order1);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(0, logRecordList.size());
         logRecordService.clean();
     }
 
