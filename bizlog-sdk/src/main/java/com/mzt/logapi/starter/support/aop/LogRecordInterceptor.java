@@ -17,6 +17,7 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
@@ -54,6 +55,10 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
     }
 
     private Object execute(MethodInvocation invoker, Object target, Method method, Object[] args) throws Throwable {
+        // cglib 代理兼容
+        if (Enhancer.isEnhanced(target.getClass())) {
+            return invoker.proceed();
+        }
         StopWatch stopWatch = new StopWatch(MONITOR_NAME);
         stopWatch.start(MONITOR_TASK_BEFORE_EXECUTE);
         Class<?> targetClass = getTargetClass(target);

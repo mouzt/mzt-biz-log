@@ -21,6 +21,7 @@ public class DbLogRecordService implements ILogRecordService {
 
     @Override
     public void record(LogRecord logRecord) {
+        log.info("record:{}", logRecord);
         logRecordRepository.save(LogRecordPO.from(logRecord));
     }
 
