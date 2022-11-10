@@ -192,8 +192,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
 
     private void saveLog(Method method, boolean flag, LogRecordOps operation, String operatorIdFromService,
                          String action, Map<String, String> expressionValues) {
-        //如果 action 为空，不记录日志
-        if (StringUtils.isEmpty(expressionValues.get(action))) {
+        if (StringUtils.isEmpty(expressionValues.get(action)) || Objects.equals(action, expressionValues.get(action))) {
             return;
         }
         LogRecord logRecord = LogRecord.builder()

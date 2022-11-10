@@ -44,6 +44,20 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
+    @LogRecord(
+            subType = "MANAGER_VIEW", extra = "{{#order.toString()}}",
+            success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
+            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
+    @LogRecord(
+            subType = "USER_VIEW",
+            success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
+            type = LogRecordType.USER, bizNo = "{{#order.orderNo}}")
+    public boolean createOrders(Order order) {
+        log.info("【创建订单】orderNo={}", order.getOrderNo());
+        return true;
+    }
+
+    @Override
     public boolean createOrder_interface(Order order) {
         log.info("【创建订单】orderNo={}", order.getOrderNo());
         // db insert order

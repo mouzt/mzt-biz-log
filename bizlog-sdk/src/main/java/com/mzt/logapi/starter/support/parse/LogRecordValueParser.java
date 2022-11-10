@@ -9,10 +9,7 @@ import org.springframework.context.expression.AnnotatedElementKey;
 import org.springframework.expression.EvaluationContext;
 
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,6 +60,7 @@ public class LogRecordValueParser implements BeanFactoryAware {
                 Matcher matcher = pattern.matcher(expressionTemplate);
                 StringBuffer parsedStr = new StringBuffer();
                 AnnotatedElementKey annotatedElementKey = new AnnotatedElementKey(methodExecuteResult.getMethod(), methodExecuteResult.getTargetClass());
+                boolean flag = true;
                 while (matcher.find()) {
 
                     String expression = matcher.group(2);
@@ -73,10 +71,13 @@ public class LogRecordValueParser implements BeanFactoryAware {
                         Object value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
                         expression = logFunctionParser.getFunctionReturnValue(beforeFunctionNameAndReturnMap, value, expression, functionName);
                     }
+                    if (expression != null && !Objects.equals(expression, "")) {
+                        flag = false;
+                    }
                     matcher.appendReplacement(parsedStr, Matcher.quoteReplacement(expression == null ? "" : expression));
                 }
                 matcher.appendTail(parsedStr);
-                expressionValues.put(expressionTemplate, parsedStr.toString());
+                expressionValues.put(expressionTemplate, flag ? expressionTemplate : parsedStr.toString());
             } else {
                 expressionValues.put(expressionTemplate, expressionTemplate);
             }
