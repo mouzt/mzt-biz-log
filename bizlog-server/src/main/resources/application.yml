@@ -19,7 +19,7 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password: 9527
-    schema: classpath*:sql/create.sql
+    schema: classpath:/sql/create.sql
     initialSize: 5
     minIdle: 5
     maxActive: 20
