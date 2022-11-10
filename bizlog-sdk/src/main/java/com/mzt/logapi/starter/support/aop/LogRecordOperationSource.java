@@ -2,18 +2,17 @@ package com.mzt.logapi.starter.support.aop;
 
 import com.mzt.logapi.beans.LogRecordOps;
 import com.mzt.logapi.starter.annotation.LogRecord;
+import com.mzt.logapi.starter.annotation.LogRecords;
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 
 /**
  * DATE 6:03 PM
@@ -37,11 +36,29 @@ public class LogRecordOperationSource {
 
         // First try is the method in the target class.
         Collection<LogRecordOps> logRecordOps = parseLogRecordAnnotations(specificMethod);
+        Collection<LogRecordOps> logRecordsOps = parseLogRecordsAnnotations(specificMethod);
         Collection<LogRecordOps> abstractLogRecordOps = parseLogRecordAnnotations(ClassUtils.getInterfaceMethodIfPossible(method));
+        Collection<LogRecordOps> abstractLogRecordsOps = parseLogRecordsAnnotations(ClassUtils.getInterfaceMethodIfPossible(method));
         HashSet<LogRecordOps> result = new HashSet<>();
         result.addAll(logRecordOps);
         result.addAll(abstractLogRecordOps);
+        result.addAll(logRecordsOps);
+        result.addAll(abstractLogRecordsOps);
         return result;
+    }
+
+    private Collection<LogRecordOps> parseLogRecordsAnnotations(AnnotatedElement ae) {
+        Collection<LogRecordOps> res = new ArrayList<>();
+        Collection<LogRecords> logRecordAnnotationAnnotations = AnnotatedElementUtils.findAllMergedAnnotations(ae, LogRecords.class);
+        if (!logRecordAnnotationAnnotations.isEmpty()) {
+            logRecordAnnotationAnnotations.forEach(logRecords -> {
+                LogRecord[] value = logRecords.value();
+                for (LogRecord logRecord : value) {
+                    res.add(parseLogRecordAnnotation(ae, logRecord));
+                }
+            });
+        }
+        return res;
     }
 
     private Collection<LogRecordOps> parseLogRecordAnnotations(AnnotatedElement ae) {

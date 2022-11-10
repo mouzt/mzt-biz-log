@@ -52,4 +52,12 @@ public class UserServiceImpl extends AbsUserServiceImpl implements IUserService 
         orderService.testGlobalVariableCover(order, newUser);
         return false;
     }
+
+    @Override
+    @LogRecord(success = "更新了用户信息{_DIFF{#user, #newUser}}",
+            type = LogRecordType.ORDER, bizNo = "{{#newUser.id}}",
+            extra = "{{#newUser.toString()}}")
+    public boolean testInterfaceAndAbstract(User user, User newUser) {
+        return false;
+    }
 }

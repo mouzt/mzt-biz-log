@@ -21,6 +21,8 @@ public interface IOrderService {
 
     boolean createOrder(Order order);
 
+    boolean createOrders(Order order);
+
     boolean createOrder_fail(Order order);
 
     boolean updateBefore(Long orderId, Order order);
