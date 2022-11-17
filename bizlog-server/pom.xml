@@ -28,7 +28,7 @@
         <dependency>
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-spring</artifactId>
-            <version>1.5.3</version>
+            <version>1.7.1</version>
         </dependency>
 
         <!--druid 依赖-->
