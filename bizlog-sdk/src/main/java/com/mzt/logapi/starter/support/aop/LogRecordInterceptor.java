@@ -149,7 +149,9 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
         String action = "";
         boolean flag = true;
         if (!StringUtils.isEmpty(operation.getIsSuccess())) {
-            String condition = singleProcessTemplate(methodExecuteResult, operation.getIsSuccess(), functionNameAndReturnMap);
+            String condition =
+                singleProcessTemplate(methodExecuteResult, operation.getIsSuccess(), functionNameAndReturnMap,
+                    operation);
             if (StringUtils.endsWithIgnoreCase(condition, "true")) {
                 action = operation.getSuccessLogTemplate();
             } else {
@@ -165,27 +167,33 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
         }
         List<String> spElTemplates = getSpElTemplates(operation, action);
         String operatorIdFromService = getOperatorIdFromServiceAndPutTemplate(operation, spElTemplates);
-        Map<String, String> expressionValues = processTemplate(spElTemplates, methodExecuteResult, functionNameAndReturnMap);
+        Map<String, String> expressionValues =
+            processTemplate(spElTemplates, methodExecuteResult, functionNameAndReturnMap, operation);
         saveLog(methodExecuteResult.getMethod(), !flag, operation, operatorIdFromService, action, expressionValues);
     }
 
     private void failRecordExecute(MethodExecuteResult methodExecuteResult, Map<String, String> functionNameAndReturnMap,
                                    LogRecordOps operation) {
-        if (StringUtils.isEmpty(operation.getFailLogTemplate())) return;
+        if (StringUtils.isEmpty(operation.getFailLogTemplate())) {
+            return;
+        }
 
         String action = operation.getFailLogTemplate();
         List<String> spElTemplates = getSpElTemplates(operation, action);
         String operatorIdFromService = getOperatorIdFromServiceAndPutTemplate(operation, spElTemplates);
 
-        Map<String, String> expressionValues = processTemplate(spElTemplates, methodExecuteResult, functionNameAndReturnMap);
+        Map<String, String> expressionValues =
+            processTemplate(spElTemplates, methodExecuteResult, functionNameAndReturnMap, operation);
         saveLog(methodExecuteResult.getMethod(), true, operation, operatorIdFromService, action, expressionValues);
     }
 
     private boolean exitsCondition(MethodExecuteResult methodExecuteResult,
                                    Map<String, String> functionNameAndReturnMap, LogRecordOps operation) {
         if (!StringUtils.isEmpty(operation.getCondition())) {
-            String condition = singleProcessTemplate(methodExecuteResult, operation.getCondition(), functionNameAndReturnMap);
-            if (StringUtils.endsWithIgnoreCase(condition, "false")) return true;
+            String condition =
+                singleProcessTemplate(methodExecuteResult, operation.getCondition(), functionNameAndReturnMap,
+                    operation);
+            return StringUtils.endsWithIgnoreCase(condition, "false");
         }
         return false;
     }
@@ -195,16 +203,12 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
         if (StringUtils.isEmpty(expressionValues.get(action)) || Objects.equals(action, expressionValues.get(action))) {
             return;
         }
-        LogRecord logRecord = LogRecord.builder()
-                .tenant(tenantId)
-                .type(expressionValues.get(operation.getType()))
-                .bizNo(expressionValues.get(operation.getBizNo()))
-                .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
-                .subType(expressionValues.get(operation.getSubType()))
-                .extra(expressionValues.get(operation.getExtra()))
-                .codeVariable(getCodeVariable(method))
-                .action(expressionValues.get(action))
-                .fail(flag)
+        LogRecord logRecord = LogRecord.builder().tenant(tenantId).type(expressionValues.get(operation.getType()))
+            .bizNo(expressionValues.get(operation.getBizNo()))
+            .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
+            .subType(expressionValues.get(operation.getSubType())).extra(expressionValues.get(operation.getExtra()))
+            .codeVariable(getCodeVariable(method)).action(expressionValues.get(action)).fail(flag)
+            .fieldActionDetailsList(operation.getFieldActionDetailsList())
                 .createTime(new Date())
                 .build();
 

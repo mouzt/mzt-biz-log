@@ -1,5 +1,6 @@
 package com.mzt.logapi.starter.support.parse;
 
+import com.mzt.logapi.beans.LogRecordOps;
 import com.mzt.logapi.beans.MethodExecuteResult;
 import com.mzt.logapi.service.impl.DiffParseFunction;
 import org.springframework.beans.BeansException;
@@ -40,33 +41,35 @@ public class LogRecordValueParser implements BeanFactoryAware {
         return count;
     }
 
-    public String singleProcessTemplate(MethodExecuteResult methodExecuteResult,
-                                        String templates,
-                                        Map<String, String> beforeFunctionNameAndReturnMap) {
-        Map<String, String> stringStringMap = processTemplate(Collections.singletonList(templates), methodExecuteResult,
-                beforeFunctionNameAndReturnMap);
+    public String singleProcessTemplate(MethodExecuteResult methodExecuteResult, String templates,
+        Map<String, String> beforeFunctionNameAndReturnMap, LogRecordOps operation) {
+        Map<String, String> stringStringMap =
+            processTemplate(Collections.singletonList(templates), methodExecuteResult, beforeFunctionNameAndReturnMap,
+                operation);
         return stringStringMap.get(templates);
     }
 
     public Map<String, String> processTemplate(Collection<String> templates, MethodExecuteResult methodExecuteResult,
-                                               Map<String, String> beforeFunctionNameAndReturnMap) {
+        Map<String, String> beforeFunctionNameAndReturnMap, LogRecordOps operation) {
         Map<String, String> expressionValues = new HashMap<>();
-        EvaluationContext evaluationContext = expressionEvaluator.createEvaluationContext(methodExecuteResult.getMethod(),
-                methodExecuteResult.getArgs(), methodExecuteResult.getTargetClass(), methodExecuteResult.getResult(),
+        EvaluationContext evaluationContext =
+            expressionEvaluator.createEvaluationContext(methodExecuteResult.getMethod(), methodExecuteResult.getArgs(),
+                methodExecuteResult.getTargetClass(), methodExecuteResult.getResult(),
                 methodExecuteResult.getErrorMsg(), beanFactory);
-
         for (String expressionTemplate : templates) {
             if (expressionTemplate.contains("{")) {
                 Matcher matcher = pattern.matcher(expressionTemplate);
                 StringBuffer parsedStr = new StringBuffer();
-                AnnotatedElementKey annotatedElementKey = new AnnotatedElementKey(methodExecuteResult.getMethod(), methodExecuteResult.getTargetClass());
+                AnnotatedElementKey annotatedElementKey =
+                    new AnnotatedElementKey(methodExecuteResult.getMethod(), methodExecuteResult.getTargetClass());
                 boolean flag = true;
                 while (matcher.find()) {
 
                     String expression = matcher.group(2);
                     String functionName = matcher.group(1);
                     if (DiffParseFunction.diffFunctionName.equals(functionName)) {
-                        expression = getDiffFunctionValue(evaluationContext, annotatedElementKey, expression);
+                        expression =
+                            getDiffFunctionValue(evaluationContext, annotatedElementKey, expression, operation);
                     } else {
                         Object value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
                         expression = logFunctionParser.getFunctionReturnValue(beforeFunctionNameAndReturnMap, value, expression, functionName);
@@ -86,15 +89,16 @@ public class LogRecordValueParser implements BeanFactoryAware {
         return expressionValues;
     }
 
-    private String getDiffFunctionValue(EvaluationContext evaluationContext, AnnotatedElementKey annotatedElementKey, String expression) {
+    private String getDiffFunctionValue(EvaluationContext evaluationContext, AnnotatedElementKey annotatedElementKey,
+        String expression, LogRecordOps operation) {
         String[] params = parseDiffFunction(expression);
         if (params.length == 1) {
             Object targetObj = expressionEvaluator.parseExpression(params[0], annotatedElementKey, evaluationContext);
-            expression = diffParseFunction.diff(targetObj);
+            expression = diffParseFunction.diff(targetObj, operation);
         } else if (params.length == 2) {
             Object sourceObj = expressionEvaluator.parseExpression(params[0], annotatedElementKey, evaluationContext);
             Object targetObj = expressionEvaluator.parseExpression(params[1], annotatedElementKey, evaluationContext);
-            expression = diffParseFunction.diff(sourceObj, targetObj);
+            expression = diffParseFunction.diff(sourceObj, targetObj, operation);
         }
         return expression;
     }

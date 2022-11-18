@@ -1,5 +1,6 @@
 package com.mzt.logapi.service.impl;
 
+import com.mzt.logapi.beans.LogRecordOps;
 import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.diff.IDiffItemsToLogContentService;
 import com.mzt.logapi.util.diff.ArrayDiffer;
@@ -28,7 +29,7 @@ public class DiffParseFunction {
     }
 
     //@Override
-    public String diff(Object source, Object target) {
+    public String diff(Object source, Object target, LogRecordOps operation) {
         if (source == null && target == null) {
             return "";
         }
@@ -37,7 +38,8 @@ public class DiffParseFunction {
                 Class<?> clazz = source == null ? target.getClass() : source.getClass();
                 source = source == null ? clazz.getDeclaredConstructor().newInstance() : source;
                 target = target == null ? clazz.getDeclaredConstructor().newInstance() : target;
-            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
+                InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -51,12 +53,12 @@ public class DiffParseFunction {
                         new ArrayDiffer(differDispatcher, (ComparisonService) objectDifferBuilder.comparison(), objectDifferBuilder.identity()))
                 .build()
                 .compare(target, source);
-        return diffItemsToLogContentService.toLogContent(diffNode, source, target);
+        return diffItemsToLogContentService.toLogContent(diffNode, source, target, operation);
     }
 
-    public String diff(Object newObj) {
+    public String diff(Object newObj, LogRecordOps operation) {
         Object oldObj = LogRecordContext.getVariable(OLD_OBJECT);
-        return diff(oldObj, newObj);
+        return diff(oldObj, newObj, operation);
     }
 
     public void setDiffItemsToLogContentService(IDiffItemsToLogContentService diffItemsToLogContentService) {
