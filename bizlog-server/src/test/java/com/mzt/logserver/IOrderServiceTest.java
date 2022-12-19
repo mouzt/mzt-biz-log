@@ -1,11 +1,14 @@
 package com.mzt.logserver;
 
+import cn.hutool.extra.spring.SpringUtil;
 import com.google.common.collect.Lists;
 import com.mzt.logapi.beans.CodeVariableType;
 import com.mzt.logapi.beans.LogRecord;
+import com.mzt.logapi.starter.support.aop.LogRecordInterceptor;
 import com.mzt.logserver.infrastructure.constants.LogRecordType;
 import com.mzt.logserver.infrastructure.logrecord.service.DbLogRecordService;
 import com.mzt.logserver.pojo.Order;
+import com.mzt.logserver.pojo.User;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.test.context.jdbc.Sql;
@@ -625,6 +628,48 @@ public class IOrderServiceTest extends BaseTest {
         order.setPurchaseName("张三");
         orderService.testResultNoLog(1L, order);
         List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(0, logRecordList.size());
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void fixedCopy() {
+        String text = "text";
+        orderService.fixedCopy(text);
+        List<LogRecord> logRecordList = logRecordService.queryLog(text, LogRecordType.USER);
+        Assert.assertEquals(1, logRecordList.size());
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void fixedCopy2() {
+        // 记录日志
+        LogRecordInterceptor bean = SpringUtil.getBean(LogRecordInterceptor.class);
+        bean.setDiffLog(true);
+        User user = new User();
+        user.setName("张三");
+        User oldUser = new User();
+        oldUser.setName("张三");
+        orderService.fixedCopy2(user, oldUser);
+        List<LogRecord> logRecordList = logRecordService.queryLog(user.getName(), LogRecordType.USER);
+        Assert.assertEquals(1, logRecordList.size());
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void fixedCopy3() {
+        // 不记录日志
+        LogRecordInterceptor bean = SpringUtil.getBean(LogRecordInterceptor.class);
+        bean.setDiffLog(false);
+        User user = new User();
+        user.setName("张三");
+        User oldUser = new User();
+        oldUser.setName("张三");
+        orderService.fixedCopy2(user, oldUser);
+        List<LogRecord> logRecordList = logRecordService.queryLog(user.getName(), LogRecordType.USER);
         Assert.assertEquals(0, logRecordList.size());
         logRecordService.clean();
     }

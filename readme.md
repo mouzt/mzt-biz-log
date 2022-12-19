@@ -734,6 +734,18 @@ public class UserParseFunction implements IParseFunction {
 
 ⚠️ 整体日志拦截是在方法执行之后记录的，所以对于方法内部修改了方法参数之后，LogRecord 的注解上的 SpEL 对变量的取值是修改后的值哦～
 
+#### 常见问题：
+- 为什么有的类注解生效了，有的类注解未生效？
+> 此问题和bean的生命周期相关，确定未生效的类是否被提前初始化，即在`BeanFactoryLogRecordAdvisor`之前已经被加载
+
+- 为何没记录日志？
+> 1. 默认比对对象无变动时不记录日志，可通过配置文件`mzt.log.record.diffLog`修改，默认为false，无变动时不记录日志
+> 2. 当`mzt.log.record.diffLog=false`时，且文案中包含#，对象比对后未发生改变，会跳过日志
+
+- 如何提问？
+> 提问前请确定已经阅读上面使用文档，一个好的问题请参考：[提問的智慧](https://github.com/ryanhanwu/How-To-Ask-Questions-The-Smart-Way)
+
+
 ## Author
 
 mail : mztsmile@163.com
