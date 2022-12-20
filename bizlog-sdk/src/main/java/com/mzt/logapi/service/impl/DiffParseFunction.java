@@ -9,6 +9,7 @@ import de.danielbechler.diff.node.DiffNode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -37,7 +38,8 @@ public class DiffParseFunction {
                 Class<?> clazz = source == null ? target.getClass() : source.getClass();
                 source = source == null ? clazz.getDeclaredConstructor().newInstance() : source;
                 target = target == null ? clazz.getDeclaredConstructor().newInstance() : target;
-            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
+                     InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -49,6 +51,7 @@ public class DiffParseFunction {
         DiffNode diffNode = objectDifferBuilder
                 .differs().register((differDispatcher, nodeQueryService) ->
                         new ArrayDiffer(differDispatcher, (ComparisonService) objectDifferBuilder.comparison(), objectDifferBuilder.identity()))
+                .comparison().ofType(LocalDateTime.class).toUseEqualsMethod().and()
                 .build()
                 .compare(target, source);
         return diffItemsToLogContentService.toLogContent(diffNode, source, target);
