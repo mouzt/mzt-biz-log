@@ -56,4 +56,8 @@ public interface IOrderService {
     boolean testGlobalVariable(Order order);
 
     boolean testGlobalVariableCover(Order order, User user);
+
+    void fixedCopy(String text);
+
+    void fixedCopy2(User user, User oldUser);
 }

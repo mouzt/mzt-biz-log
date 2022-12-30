@@ -60,11 +60,11 @@ public class LogRecordProxyAutoConfiguration implements ImportAware {
 
     @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-    public BeanFactoryLogRecordAdvisor logRecordAdvisor() {
+    public BeanFactoryLogRecordAdvisor logRecordAdvisor(LogRecordProperties logRecordProperties) {
         BeanFactoryLogRecordAdvisor advisor =
                 new BeanFactoryLogRecordAdvisor();
         advisor.setLogRecordOperationSource(logRecordOperationSource());
-        advisor.setAdvice(logRecordInterceptor());
+        advisor.setAdvice(logRecordInterceptor(logRecordProperties.getDiffLog()));
         advisor.setOrder(enableLogRecord.getNumber("order"));
         return advisor;
     }
@@ -77,11 +77,12 @@ public class LogRecordProxyAutoConfiguration implements ImportAware {
 
     @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-    public LogRecordInterceptor logRecordInterceptor() {
+    public LogRecordInterceptor logRecordInterceptor(Boolean diffLog) {
         LogRecordInterceptor interceptor = new LogRecordInterceptor();
         interceptor.setLogRecordOperationSource(logRecordOperationSource());
         interceptor.setTenant(enableLogRecord.getString("tenant"));
         interceptor.setJoinTransaction(enableLogRecord.getBoolean("joinTransaction"));
+        interceptor.setDiffLog(diffLog);
         //interceptor.setLogFunctionParser(logFunctionParser(functionService));
         //interceptor.setDiffParseFunction(diffParseFunction);
         interceptor.setLogRecordPerformanceMonitor(logRecordPerformanceMonitor());

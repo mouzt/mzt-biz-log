@@ -5,6 +5,7 @@ import com.mzt.logapi.starter.annotation.DiffLogAllFields;
 import com.mzt.logapi.starter.annotation.DIffLogIgnore;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -55,6 +56,9 @@ public class User {
     private String[] likeStrings;
 
     private String[] noLikeStrings;
+
+
+    private LocalDateTime localDateTime;
 
     @Data
     public static class Address {
