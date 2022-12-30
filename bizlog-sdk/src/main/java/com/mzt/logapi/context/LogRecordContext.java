@@ -1,5 +1,7 @@
 package com.mzt.logapi.context;
 
+import com.alibaba.ttl.TransmittableThreadLocal;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -11,9 +13,9 @@ import java.util.Map;
  */
 public class LogRecordContext {
 
-    private static final InheritableThreadLocal<Deque<Map<String, Object>>> VARIABLE_MAP_STACK = new InheritableThreadLocal<>();
+    private static final ThreadLocal<Deque<Map<String, Object>>> VARIABLE_MAP_STACK = new TransmittableThreadLocal<>();
 
-    private static final InheritableThreadLocal<Map<String, Object>> GLOBAL_VARIABLE_MAP = new InheritableThreadLocal<>();
+    private static final ThreadLocal<Map<String, Object>> GLOBAL_VARIABLE_MAP = new TransmittableThreadLocal<>();
 
     private LogRecordContext() {
         throw new IllegalStateException("Utility class");
