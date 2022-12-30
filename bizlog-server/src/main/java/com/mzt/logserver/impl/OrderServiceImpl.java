@@ -236,4 +236,19 @@ public class OrderServiceImpl implements IOrderService {
     public boolean testGlobalVariableCover(Order order, User user) {
         return false;
     }
+
+    @Override
+    @LogRecord(success = "固定文案记录日志",
+            type = LogRecordType.USER, bizNo = "{{#text}}")
+    public void fixedCopy(String text) {
+        log.info("进入方法。。。");
+    }
+
+    @Override
+    @LogRecord(success = "更新了用户{_DIFF{#user, #oldUser}}",
+            type = LogRecordType.USER, bizNo = "{{#user.name}}",
+            extra = "{{#user.toString()}}")
+    public void fixedCopy2(User user, User oldUser) {
+
+    }
 }

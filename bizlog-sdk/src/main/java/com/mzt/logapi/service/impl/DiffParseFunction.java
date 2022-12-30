@@ -7,6 +7,7 @@ import de.danielbechler.diff.ObjectDifferBuilder;
 import de.danielbechler.diff.comparison.ComparisonService;
 import de.danielbechler.diff.node.DiffNode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.support.AopUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
@@ -43,7 +44,7 @@ public class DiffParseFunction {
                 throw new RuntimeException(e);
             }
         }
-        if (!Objects.equals(source.getClass(), target.getClass())) {
+        if (!Objects.equals(AopUtils.getTargetClass(source.getClass()),AopUtils.getTargetClass(target.getClass()))) {
             log.error("diff的两个对象类型不同, source.class={}, target.class={}", source.getClass().toString(), target.getClass().toString());
             return "";
         }
