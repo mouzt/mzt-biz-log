@@ -22,7 +22,7 @@
         <dependency>
             <groupId>io.github.mouzt</groupId>
             <artifactId>bizlog-sdk</artifactId>
-            <version>3.0.4-SNAPSHOT</version>
+            <version>3.0.5-SNAPSHOT</version>
         </dependency>
 
         <dependency>
