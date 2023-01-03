@@ -59,6 +59,7 @@ public class LogRecordProxyAutoConfiguration implements ImportAware {
 
 
     @Bean
+    @ConditionalOnMissingBean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
     public BeanFactoryLogRecordAdvisor logRecordAdvisor(LogRecordProperties logRecordProperties) {
         BeanFactoryLogRecordAdvisor advisor =
@@ -76,6 +77,7 @@ public class LogRecordProxyAutoConfiguration implements ImportAware {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
     public LogRecordInterceptor logRecordInterceptor(Boolean diffLog) {
         LogRecordInterceptor interceptor = new LogRecordInterceptor();
