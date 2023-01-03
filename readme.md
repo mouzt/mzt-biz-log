@@ -26,7 +26,8 @@
 
 | 版本    | 状态                                                                                                                                              |
 |-------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| 3.0.3 | 1.修复日志打印两次的问题 2.方法支持多注解(#98) 3.相同对象diff不记录日志 详细使用方式见 IOrderServiceTest                                                                                       |
+| 3.0.4 | 1.修复fix:修复LocalDateTime diff (#111, #114), 2. 固定文案判断错误                                                                                          |
+| 3.0.3 | 1.修复日志打印两次的问题 2.方法支持多注解(#98) 3.相同对象diff不记录日志 详细使用方式见 IOrderServiceTest                                                                          |
 | 3.0.2 | 1.修复 DIffLogIgnore注解在集合类型上失效问题 2.支持跨方法的全局变量 3. 支持日志记录异常与业务逻辑一起回滚的逻辑，默认日志记录不影响业务逻辑                                                               |
 | 3.0.1 | diff 功能支持了数组(https://github.com/mouzt/mzt-biz-log/issues/75) ，增加判断是否成功的条件表达式，增加 @DiffLogAllFields、@DIffLogIgnore 注解支持                           |
 | 3.0.0 | 暂时删除了list实现优化中,增加了xml的方式,增加了性能监控接口,修复了function 内的 service 需要添加 @Lazy 的问题                                                                        || 2.0.2 | 1.修复了 LogFunctionParser 的NPE，2. 注解上添加了ElementType.TYPE，3.记录了当前执行方法的Class和Method 4. 重新fix了没有加EnableTransactionManagement 切面不生效的逻辑 5. 增加了 Subtype 的 SpEl解析 |
@@ -733,6 +734,18 @@ public class UserParseFunction implements IParseFunction {
 #### 注意点：
 
 ⚠️ 整体日志拦截是在方法执行之后记录的，所以对于方法内部修改了方法参数之后，LogRecord 的注解上的 SpEL 对变量的取值是修改后的值哦～
+
+#### 常见问题：
+- 为什么有的类注解生效了，有的类注解未生效？
+> 此问题和bean的生命周期相关，确定未生效的类是否被提前初始化，即在`BeanFactoryLogRecordAdvisor`之前已经被加载
+
+- 为何没记录日志？
+> 1. 默认比对对象无变动时不记录日志，可通过配置文件`mzt.log.record.diffLog`修改，默认为false，无变动时不记录日志
+> 2. 当`mzt.log.record.diffLog=false`时，且文案中包含#，对象比对后未发生改变，会跳过日志
+
+- 如何提问？
+> 提问前请确定已经阅读上面使用文档，一个好的问题请参考：[提問的智慧](https://github.com/ryanhanwu/How-To-Ask-Questions-The-Smart-Way)
+
 
 ## Author
 
