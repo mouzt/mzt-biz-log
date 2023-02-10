@@ -13,10 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportAware;
-import org.springframework.context.annotation.Role;
+import org.springframework.context.annotation.*;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
 
@@ -57,14 +54,14 @@ public class LogRecordProxyAutoConfiguration implements ImportAware {
         return new DefaultParseFunction();
     }
 
-
+    @DependsOn("logRecordInterceptor")
     @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-    public BeanFactoryLogRecordAdvisor logRecordAdvisor(LogRecordProperties logRecordProperties) {
+    public BeanFactoryLogRecordAdvisor logRecordAdvisor(LogRecordInterceptor logRecordInterceptor) {
         BeanFactoryLogRecordAdvisor advisor =
                 new BeanFactoryLogRecordAdvisor();
         advisor.setLogRecordOperationSource(logRecordOperationSource());
-        advisor.setAdvice(logRecordInterceptor(logRecordProperties.getDiffLog()));
+        advisor.setAdvice(logRecordInterceptor);
         advisor.setOrder(enableLogRecord.getNumber("order"));
         return advisor;
     }
@@ -77,12 +74,12 @@ public class LogRecordProxyAutoConfiguration implements ImportAware {
 
     @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-    public LogRecordInterceptor logRecordInterceptor(Boolean diffLog) {
+    public LogRecordInterceptor logRecordInterceptor(LogRecordProperties logRecordProperties) {
         LogRecordInterceptor interceptor = new LogRecordInterceptor();
         interceptor.setLogRecordOperationSource(logRecordOperationSource());
         interceptor.setTenant(enableLogRecord.getString("tenant"));
         interceptor.setJoinTransaction(enableLogRecord.getBoolean("joinTransaction"));
-        interceptor.setDiffLog(diffLog);
+        interceptor.setDiffLog(logRecordProperties.getDiffLog());
         //interceptor.setLogFunctionParser(logFunctionParser(functionService));
         //interceptor.setDiffParseFunction(diffParseFunction);
         interceptor.setLogRecordPerformanceMonitor(logRecordPerformanceMonitor());
