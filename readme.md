@@ -644,6 +644,22 @@ public class Main {
     }
 ```
 
+###### 16.用对象的`equals`和`toString`
+框架给到用户的比对结果可能不符合用户预期，在此框架提供重载比对方法。
+如在`LocalDate`比对中，默认输出结果为：
+> 【localDate的dayOfMonth】从【1】修改为【4】；【localDate的dayOfWeek】从【WEDNESDAY】修改为【SATURDAY】；【localDate的dayOfYear】从【32】修改为【35】
+
+在配置文件中加入，`mzt.log.record.useEqualsMethod`，**需要填入类的全路径，多个类用英文逗号分割**
+```
+mzt:
+  log:
+    record:
+      useEqualsMethod: java.time.LocalDate,java.time.Instant
+```
+重载后的比对结果为：
+>【localDate】从【2023-02-24】修改为【-999999999-01-01】
+
+
 #### 框架的扩展点
 
 * 重写OperatorGetServiceImpl通过上下文获取用户的扩展，例子如下

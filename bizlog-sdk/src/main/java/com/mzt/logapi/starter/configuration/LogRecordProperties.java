@@ -75,6 +75,8 @@ public class LogRecordProperties {
      */
     private Boolean diffLog = false;
 
+    private String useEqualsMethod;
+
     public void setAddTemplate(String template) {
         validatePlaceHolder(template);
         this.addTemplate = template;
