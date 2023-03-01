@@ -1,6 +1,8 @@
 package com.mzt.logserver;
 
+import cn.hutool.extra.spring.SpringUtil;
 import com.mzt.logapi.beans.LogRecord;
+import com.mzt.logapi.starter.support.aop.LogRecordInterceptor;
 import com.mzt.logserver.infrastructure.constants.LogRecordType;
 import com.mzt.logserver.infrastructure.logrecord.service.DbLogRecordService;
 import com.mzt.logserver.pojo.Order;
@@ -386,6 +388,52 @@ public class IUserServiceTest extends BaseTest {
         Assert.assertEquals(logRecord.getAction(), "更新了用户信息【localDateTime】从【" + now + "】修改为【-999999999-01-01T00:00】");
         Assert.assertNotNull(logRecord.getExtra());
         Assert.assertEquals(logRecord.getOperator(), "111");
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void test_diffLog_true() {
+        LogRecordInterceptor bean = SpringUtil.getBean(LogRecordInterceptor.class);
+        bean.setDiffLog(true);
+        User user = new User();
+        user.setId(1L);
+        user.setName("张三");
+        user.setSex("男");
+        user.setAge(18);
+        User.Address address = new User.Address();
+        address.setProvinceName("湖北省");
+        address.setCityName("武汉市");
+        user.setAddress(address);
+        userService.diffUser(user, user);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog(String.valueOf(user.getId()), LogRecordType.USER);
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        Assert.assertEquals(logRecord.getAction(), "更新了用户信息");
+        Assert.assertNotNull(logRecord.getExtra());
+        Assert.assertEquals(logRecord.getOperator(), "111");
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void test_diffLog_false() {
+        LogRecordInterceptor bean = SpringUtil.getBean(LogRecordInterceptor.class);
+        bean.setDiffLog(false);
+        User user = new User();
+        user.setId(1L);
+        user.setName("张三");
+        user.setSex("男");
+        user.setAge(18);
+        User.Address address = new User.Address();
+        address.setProvinceName("湖北省");
+        address.setCityName("武汉市");
+        user.setAddress(address);
+        userService.diffUser(user, user);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog(String.valueOf(user.getId()), LogRecordType.USER);
+        Assert.assertEquals(0, logRecordList.size());
         logRecordService.clean();
     }
 }
