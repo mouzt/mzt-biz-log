@@ -44,7 +44,7 @@ public class DiffParseFunction {
                 throw new RuntimeException(e);
             }
         }
-        if (!Objects.equals(AopUtils.getTargetClass(source.getClass()),AopUtils.getTargetClass(target.getClass()))) {
+        if (!Objects.equals(AopUtils.getTargetClass(source.getClass()), AopUtils.getTargetClass(target.getClass()))) {
             log.error("diff的两个对象类型不同, source.class={}, target.class={}", source.getClass().toString(), target.getClass().toString());
             return "";
         }
@@ -59,7 +59,7 @@ public class DiffParseFunction {
     }
 
     public String diff(Object newObj) {
-        Object oldObj = LogRecordContext.getVariable(OLD_OBJECT);
+        Object oldObj = LogRecordContext.getMethodOrGlobal(OLD_OBJECT);
         return diff(oldObj, newObj);
     }
 
