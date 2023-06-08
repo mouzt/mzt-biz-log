@@ -41,6 +41,15 @@ public class UserServiceImpl extends AbsUserServiceImpl implements IUserService 
     }
 
     @Override
+    @LogRecord(success = "更新了用户信息{_DIFF{#newUser}}",
+            type = LogRecordType.USER, bizNo = "{{#newUser.id}}",
+            extra = "{{#newUser.toString()}}")
+    public boolean testGlobalVariableDiff(User newUser) {
+
+        return false;
+    }
+
+    @Override
     @LogRecord(success = "更新{{#user.name}}用户积分信息",
             type = LogRecordType.USER, bizNo = "{{#user.id}}",
             extra = "{{#order.toString()}}")

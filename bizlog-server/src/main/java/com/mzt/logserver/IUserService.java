@@ -13,6 +13,8 @@ public interface IUserService {
 
     boolean testGlobalVariable(User user, Order order);
 
+    boolean testGlobalVariableDiff(User newUser);
+
     boolean testGlobalVariableCover(User user, Order order);
 
     @LogRecord(success = "更新了用户信息{_DIFF{#user, #newUser}}",
