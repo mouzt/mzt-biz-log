@@ -71,8 +71,11 @@ public class LogRecordContext {
         if (VARIABLE_MAP_STACK.get() != null) {
             VARIABLE_MAP_STACK.get().pop();
         }
+    }
+
+    public static void clearGlobal() {
         if (GLOBAL_VARIABLE_MAP.get() != null) {
-            GLOBAL_VARIABLE_MAP.remove();
+            GLOBAL_VARIABLE_MAP.get().clear();
         }
     }
 
