@@ -10,8 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
 
 import java.lang.reflect.InvocationTargetException;
-import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author muzhantong
@@ -22,7 +24,9 @@ public class DiffParseFunction {
     public static final String diffFunctionName = "_DIFF";
     public static final String OLD_OBJECT = "_oldObj";
 
-    private static IDiffItemsToLogContentService diffItemsToLogContentService;
+    private IDiffItemsToLogContentService diffItemsToLogContentService;
+
+    private final Set<Class<?>> comparisonSet = new HashSet<>();
 
     //@Override
     public String functionName() {
@@ -44,26 +48,44 @@ public class DiffParseFunction {
                 throw new RuntimeException(e);
             }
         }
-        if (!Objects.equals(AopUtils.getTargetClass(source.getClass()),AopUtils.getTargetClass(target.getClass()))) {
+        if (!Objects.equals(AopUtils.getTargetClass(source.getClass()), AopUtils.getTargetClass(target.getClass()))) {
             log.error("diff的两个对象类型不同, source.class={}, target.class={}", source.getClass().toString(), target.getClass().toString());
             return "";
         }
         ObjectDifferBuilder objectDifferBuilder = ObjectDifferBuilder.startBuilding();
-        DiffNode diffNode = objectDifferBuilder
+        ObjectDifferBuilder register = objectDifferBuilder
                 .differs().register((differDispatcher, nodeQueryService) ->
-                        new ArrayDiffer(differDispatcher, (ComparisonService) objectDifferBuilder.comparison(), objectDifferBuilder.identity()))
-                .comparison().ofType(LocalDateTime.class).toUseEqualsMethod().and()
-                .build()
-                .compare(target, source);
+                        new ArrayDiffer(differDispatcher, (ComparisonService) objectDifferBuilder.comparison(), objectDifferBuilder.identity()));
+        for (Class<?> clazz : comparisonSet) {
+            register.comparison().ofType(clazz).toUseEqualsMethod();
+        }
+        DiffNode diffNode = register.build().compare(target, source);
         return diffItemsToLogContentService.toLogContent(diffNode, source, target);
     }
 
     public String diff(Object newObj) {
-        Object oldObj = LogRecordContext.getVariable(OLD_OBJECT);
+        Object oldObj = LogRecordContext.getMethodOrGlobal(OLD_OBJECT);
         return diff(oldObj, newObj);
     }
 
     public void setDiffItemsToLogContentService(IDiffItemsToLogContentService diffItemsToLogContentService) {
-        DiffParseFunction.diffItemsToLogContentService = diffItemsToLogContentService;
+        this.diffItemsToLogContentService = diffItemsToLogContentService;
+    }
+
+    public void addUseEqualsClass(List<String> classList) {
+        if (classList != null && !classList.isEmpty()) {
+            for (String clazz : classList) {
+                try {
+                    Class<?> aClass = Class.forName(clazz);
+                    comparisonSet.add(aClass);
+                } catch (ClassNotFoundException e) {
+                    log.warn("无效的比对类型, className={}", clazz);
+                }
+            }
+        }
+    }
+
+    public void addUseEqualsClass(Class clazz) {
+        comparisonSet.add(clazz);
     }
 }

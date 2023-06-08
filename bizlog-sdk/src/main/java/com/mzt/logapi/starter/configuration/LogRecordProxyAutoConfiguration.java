@@ -19,7 +19,10 @@ import org.springframework.context.annotation.ImportAware;
 import org.springframework.context.annotation.Role;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -95,9 +98,15 @@ public class LogRecordProxyAutoConfiguration implements ImportAware {
 //    }
 
     @Bean
-    public DiffParseFunction diffParseFunction(IDiffItemsToLogContentService diffItemsToLogContentService) {
+    public DiffParseFunction diffParseFunction(IDiffItemsToLogContentService diffItemsToLogContentService,
+                                               LogRecordProperties logRecordProperties) {
         DiffParseFunction diffParseFunction = new DiffParseFunction();
         diffParseFunction.setDiffItemsToLogContentService(diffItemsToLogContentService);
+        // issue#111
+        diffParseFunction.addUseEqualsClass(LocalDateTime.class);
+        if (!StringUtils.isEmpty(logRecordProperties.getUseEqualsMethod())) {
+            diffParseFunction.addUseEqualsClass(Arrays.asList(logRecordProperties.getUseEqualsMethod().split(",")));
+        }
         return diffParseFunction;
     }
 

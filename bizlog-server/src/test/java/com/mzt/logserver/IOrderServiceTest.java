@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.mzt.logapi.beans.CodeVariableType;
 import com.mzt.logapi.beans.LogRecord;
 import com.mzt.logapi.starter.support.aop.LogRecordInterceptor;
+import com.mzt.logserver.impl.OrderServiceImpl;
 import com.mzt.logserver.infrastructure.constants.LogRecordType;
 import com.mzt.logserver.infrastructure.logrecord.service.DbLogRecordService;
 import com.mzt.logserver.pojo.Order;
@@ -586,7 +587,7 @@ public class IOrderServiceTest extends BaseTest {
         Assert.assertEquals(1, logRecordList.size());
         Map<CodeVariableType, Object> codeVariable = logRecordList.get(0).getCodeVariable();
         Assert.assertEquals(codeVariable.size(), 2);
-        Assert.assertEquals(codeVariable.get(CodeVariableType.ClassName), IOrderService.class.toString());
+        Assert.assertEquals(codeVariable.get(CodeVariableType.ClassName), OrderServiceImpl.class.toString());
         Assert.assertEquals(codeVariable.get(CodeVariableType.MethodName), "testVariableInfo");
         logRecordService.clean();
     }

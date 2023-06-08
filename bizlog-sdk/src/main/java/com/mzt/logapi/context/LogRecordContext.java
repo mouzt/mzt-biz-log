@@ -1,5 +1,7 @@
 package com.mzt.logapi.context;
 
+import org.springframework.util.CollectionUtils;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -43,6 +45,19 @@ public class LogRecordContext {
         return variableMap == null ? null : variableMap.get(key);
     }
 
+    public static Object getMethodOrGlobal(String key) {
+        Object result = null;
+        Map<String, Object> variableMap = VARIABLE_MAP_STACK.get().peek();
+        if (!CollectionUtils.isEmpty(variableMap) && (result = variableMap.get(key)) != null) {
+            return result;
+        }
+        Map<String, Object> globalMap = GLOBAL_VARIABLE_MAP.get();
+        if (!CollectionUtils.isEmpty(globalMap)) {
+            return globalMap.get(key);
+        }
+        return result;
+    }
+
     public static Map<String, Object> getVariables() {
         Deque<Map<String, Object>> mapStack = VARIABLE_MAP_STACK.get();
         return mapStack.peek();
@@ -56,8 +71,11 @@ public class LogRecordContext {
         if (VARIABLE_MAP_STACK.get() != null) {
             VARIABLE_MAP_STACK.get().pop();
         }
-        if (VARIABLE_MAP_STACK.get().peek() == null) {
-            GLOBAL_VARIABLE_MAP.remove();
+    }
+
+    public static void clearGlobal() {
+        if (GLOBAL_VARIABLE_MAP.get() != null) {
+            GLOBAL_VARIABLE_MAP.get().clear();
         }
     }
 
