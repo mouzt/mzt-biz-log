@@ -25,6 +25,7 @@ public class LogRecordValueParser implements BeanFactoryAware {
     public static final String COMMA = ",";
     private final LogRecordExpressionEvaluator expressionEvaluator = new LogRecordExpressionEvaluator();
     protected BeanFactory beanFactory;
+    protected boolean diffLog;
 
     private LogFunctionParser logFunctionParser;
 
@@ -60,7 +61,7 @@ public class LogRecordValueParser implements BeanFactoryAware {
                 Matcher matcher = pattern.matcher(expressionTemplate);
                 StringBuffer parsedStr = new StringBuffer();
                 AnnotatedElementKey annotatedElementKey = new AnnotatedElementKey(methodExecuteResult.getMethod(), methodExecuteResult.getTargetClass());
-                boolean flag = true;
+                boolean diffLogFlag = !diffLog;
                 while (matcher.find()) {
 
                     String expression = matcher.group(2);
@@ -72,12 +73,12 @@ public class LogRecordValueParser implements BeanFactoryAware {
                         expression = logFunctionParser.getFunctionReturnValue(beforeFunctionNameAndReturnMap, value, expression, functionName);
                     }
                     if (expression != null && !Objects.equals(expression, "")) {
-                        flag = false;
+                        diffLogFlag = false;
                     }
                     matcher.appendReplacement(parsedStr, Matcher.quoteReplacement(expression == null ? "" : expression));
                 }
                 matcher.appendTail(parsedStr);
-                expressionValues.put(expressionTemplate, flag ? expressionTemplate : parsedStr.toString());
+                expressionValues.put(expressionTemplate, diffLogFlag ? expressionTemplate : parsedStr.toString());
             } else {
                 expressionValues.put(expressionTemplate, expressionTemplate);
             }
