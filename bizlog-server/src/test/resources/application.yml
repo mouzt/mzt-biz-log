@@ -37,3 +37,8 @@ logging:
     com.mzt.logserver.repository.mapper: debug
     #    org.springframework.aop.framework.autoproxy: trace
     com.mzt.logapi.service.impl: debug
+
+mzt:
+  log:
+    record:
+      useEqualsMethod: java.time.LocalDate,java.time.Instant

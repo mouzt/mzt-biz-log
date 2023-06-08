@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.springframework.test.context.jdbc.Sql;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -368,7 +369,7 @@ public class IUserServiceTest extends BaseTest {
 
     @Test
     @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void test_DIffLogIgnore_LocalDateTime() {
+    public void test_LocalDateTime() {
         User user = new User();
         user.setId(1L);
         LocalDateTime now = LocalDateTime.now();
@@ -384,6 +385,29 @@ public class IUserServiceTest extends BaseTest {
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
         Assert.assertEquals(logRecord.getAction(), "更新了用户信息【localDateTime】从【" + now + "】修改为【-999999999-01-01T00:00】");
+        Assert.assertNotNull(logRecord.getExtra());
+        Assert.assertEquals(logRecord.getOperator(), "111");
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void test_LocalDate() {
+        User user = new User();
+        user.setId(1L);
+        LocalDate now = LocalDate.now();
+        user.setLocalDate(now);
+
+        User newUser = new User();
+        newUser.setId(1L);
+        newUser.setLocalDate(LocalDate.MIN);
+
+        userService.diffUser(user, newUser);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog(String.valueOf(user.getId()), LogRecordType.USER);
+        Assert.assertEquals(1, logRecordList.size());
+        LogRecord logRecord = logRecordList.get(0);
+        Assert.assertEquals(logRecord.getAction(), "更新了用户信息【localDate】从【" + now + "】修改为【-999999999-01-01】");
         Assert.assertNotNull(logRecord.getExtra());
         Assert.assertEquals(logRecord.getOperator(), "111");
         logRecordService.clean();
