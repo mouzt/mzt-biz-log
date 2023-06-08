@@ -12,6 +12,8 @@ import com.mzt.logapi.service.IOperatorGetService;
 import com.mzt.logapi.service.impl.DiffParseFunction;
 import com.mzt.logapi.starter.support.parse.LogFunctionParser;
 import com.mzt.logapi.starter.support.parse.LogRecordValueParser;
+import com.mzt.logapi.util.IpUtils;
+import com.mzt.logapi.util.ServletUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -22,8 +24,10 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.*;
 
 import static com.mzt.logapi.service.ILogRecordPerformanceMonitor.*;
@@ -79,6 +83,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
             stopWatch.stop();
         }
 
+        stopWatch.start(MONITOR_TASK_DO_EXECUTE);
         try {
             ret = invoker.proceed();
             methodExecuteResult.setResult(ret);
@@ -88,6 +93,9 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
             methodExecuteResult.setThrowable(e);
             methodExecuteResult.setErrorMsg(e.getMessage());
         }
+        stopWatch.stop();
+        methodExecuteResult.setCostTime(stopWatch.getLastTaskTimeMillis());
+
         stopWatch.start(MONITOR_TASK_AFTER_EXECUTE);
         try {
             if (!CollectionUtils.isEmpty(operations)) {
@@ -168,7 +176,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
         List<String> spElTemplates = getSpElTemplates(operation, action);
         String operatorIdFromService = getOperatorIdFromServiceAndPutTemplate(operation, spElTemplates);
         Map<String, String> expressionValues = processTemplate(spElTemplates, methodExecuteResult, functionNameAndReturnMap);
-        saveLog(methodExecuteResult.getMethod(), !flag, operation, operatorIdFromService, action, expressionValues);
+        saveLog(methodExecuteResult.getMethod(), methodExecuteResult.getArgs(), !flag, operation, operatorIdFromService, action, expressionValues, methodExecuteResult.getCostTime());
     }
 
     private void failRecordExecute(MethodExecuteResult methodExecuteResult, Map<String, String> functionNameAndReturnMap,
@@ -180,7 +188,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
         String operatorIdFromService = getOperatorIdFromServiceAndPutTemplate(operation, spElTemplates);
 
         Map<String, String> expressionValues = processTemplate(spElTemplates, methodExecuteResult, functionNameAndReturnMap);
-        saveLog(methodExecuteResult.getMethod(), true, operation, operatorIdFromService, action, expressionValues);
+        saveLog(methodExecuteResult.getMethod(), methodExecuteResult.getArgs(), true, operation, operatorIdFromService, action, expressionValues, methodExecuteResult.getCostTime());
     }
 
     private boolean exitsCondition(MethodExecuteResult methodExecuteResult,
@@ -192,8 +200,8 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
         return false;
     }
 
-    private void saveLog(Method method, boolean flag, LogRecordOps operation, String operatorIdFromService,
-                         String action, Map<String, String> expressionValues) {
+    private void saveLog(Method method, Object[] args, boolean flag, LogRecordOps operation, String operatorIdFromService,
+                         String action, Map<String, String> expressionValues, long costTime) {
         if (StringUtils.isEmpty(expressionValues.get(action)) ||
                 (!diffLog && action.contains("#") && Objects.equals(action, expressionValues.get(action)))) {
             return;
@@ -205,7 +213,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
                 .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
                 .subType(expressionValues.get(operation.getSubType()))
                 .extra(expressionValues.get(operation.getExtra()))
-                .codeVariable(getCodeVariable(method))
+                .codeVariable(getCodeVariable(method, args, costTime))
                 .action(expressionValues.get(action))
                 .fail(flag)
                 .createTime(new Date())
@@ -214,10 +222,20 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
         bizLogService.record(logRecord);
     }
 
-    private Map<CodeVariableType, Object> getCodeVariable(Method method) {
+    private Map<CodeVariableType, Object> getCodeVariable(Method method, Object[] args, long costTime) {
         Map<CodeVariableType, Object> map = new HashMap<>();
         map.put(CodeVariableType.ClassName, method.getDeclaringClass());
         map.put(CodeVariableType.MethodName, method.getName());
+        map.put(CodeVariableType.COST_TIME, costTime);
+        HttpServletRequest request = ServletUtils.getRequest();
+        if (request != null) {
+            map.put(CodeVariableType.USER_AGENT, request.getHeader("User-Agent"));
+            map.put(CodeVariableType.REQUEST_IP, IpUtils.getIpAddr());
+            map.put(CodeVariableType.REQUEST_URL, request.getRequestURI());
+            map.put(CodeVariableType.REQUEST_METHOD, request.getMethod());
+            map.put(CodeVariableType.CONTENT_TYPE, request.getContentType());
+            map.put(CodeVariableType.REQUEST_PARAM, com.mzt.logapi.util.StringUtils.getRequestParam(args, request.getMethod()));
+        }
         return map;
     }
 
