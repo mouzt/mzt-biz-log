@@ -22,6 +22,7 @@
 
 | 版本    | 状态                                                                                                                                                       |
 |-------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 3.0.6 | 提供global变量清除方法，用户需要根据实际自己清除global变量                                                                                                                      |
 | 3.0.5 | 1.修复参数全局传递未获取到值 2.diffLog未生效 3.优化文案比对格式,支持重载 toString 和 equals 方法                                                                                        |
 | 3.0.4 | 1.修复fix:修复LocalDateTime diff (#111, #114), 2. 固定文案判断错误                                                                                                   |
 | 3.0.3 | 1.修复日志打印两次的问题 2.方法支持多注解(#98) 3.相同对象diff不记录日志 详细使用方式见 IOrderServiceTest                                                                                   |
@@ -48,7 +49,7 @@
         <dependency>
           <groupId>io.github.mouzt</groupId>
           <artifactId>bizlog-sdk</artifactId>
-          <version>3.0.5</version>
+          <version>3.0.6</version>
         </dependency>
 ```
 #### SpringBoot入口打开开关,添加 @EnableLogRecord 注解
