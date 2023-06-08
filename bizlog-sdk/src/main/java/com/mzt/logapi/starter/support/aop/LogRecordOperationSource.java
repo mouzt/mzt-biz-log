@@ -6,9 +6,9 @@ import com.mzt.logapi.starter.annotation.LogRecords;
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.StringUtils;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -20,7 +20,10 @@ import java.util.*;
  * @author mzt.
  */
 public class LogRecordOperationSource {
-
+    /**
+     * Cache for equivalent methods on an interface implemented by the declaring class.
+     */
+    private static final Map<Method, Method> INTERFACE_METHOD_CACHE = new ConcurrentReferenceHashMap<>(256);
 
     public Collection<LogRecordOps> computeLogRecordOperations(Method method, Class<?> targetClass) {
         // Don't allow no-public methods as required.
@@ -37,14 +40,43 @@ public class LogRecordOperationSource {
         // First try is the method in the target class.
         Collection<LogRecordOps> logRecordOps = parseLogRecordAnnotations(specificMethod);
         Collection<LogRecordOps> logRecordsOps = parseLogRecordsAnnotations(specificMethod);
-        Collection<LogRecordOps> abstractLogRecordOps = parseLogRecordAnnotations(ClassUtils.getInterfaceMethodIfPossible(method));
-        Collection<LogRecordOps> abstractLogRecordsOps = parseLogRecordsAnnotations(ClassUtils.getInterfaceMethodIfPossible(method));
+        Collection<LogRecordOps> abstractLogRecordOps = parseLogRecordAnnotations(getInterfaceMethodIfPossible(method));
+        Collection<LogRecordOps> abstractLogRecordsOps = parseLogRecordsAnnotations(getInterfaceMethodIfPossible(method));
         HashSet<LogRecordOps> result = new HashSet<>();
         result.addAll(logRecordOps);
         result.addAll(abstractLogRecordOps);
         result.addAll(logRecordsOps);
         result.addAll(abstractLogRecordsOps);
         return result;
+    }
+
+    /**
+     * Determine a corresponding interface method for the given method handle, if possible.
+     * <p>This is particularly useful for arriving at a public exported type on Jigsaw
+     * which can be reflectively invoked without an illegal access warning.
+     *
+     * @param method the method to be invoked, potentially from an implementation class
+     * @return the corresponding interface method, or the original method if none found
+     */
+    public static Method getInterfaceMethodIfPossible(Method method) {
+        if (!Modifier.isPublic(method.getModifiers()) || method.getDeclaringClass().isInterface()) {
+            return method;
+        }
+        return INTERFACE_METHOD_CACHE.computeIfAbsent(method, key -> {
+            Class<?> current = key.getDeclaringClass();
+            while (current != null && current != Object.class) {
+                Class<?>[] ifcs = current.getInterfaces();
+                for (Class<?> ifc : ifcs) {
+                    try {
+                        return ifc.getMethod(key.getName(), key.getParameterTypes());
+                    } catch (NoSuchMethodException ex) {
+                        // ignore
+                    }
+                }
+                current = current.getSuperclass();
+            }
+            return key;
+        });
     }
 
     private Collection<LogRecordOps> parseLogRecordsAnnotations(AnnotatedElement ae) {

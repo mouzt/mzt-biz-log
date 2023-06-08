@@ -10,7 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author muzhantong
@@ -61,7 +64,7 @@ public class DiffParseFunction {
     }
 
     public String diff(Object newObj) {
-        Object oldObj = LogRecordContext.getVariable(OLD_OBJECT);
+        Object oldObj = LogRecordContext.getMethodOrGlobal(OLD_OBJECT);
         return diff(oldObj, newObj);
     }
 

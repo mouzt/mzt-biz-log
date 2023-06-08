@@ -48,8 +48,6 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
 
     private boolean joinTransaction;
 
-    private boolean diffLog;
-
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         Method method = invocation.getMethod();
