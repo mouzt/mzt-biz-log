@@ -18,6 +18,8 @@ public class MethodExecuteResult {
     private final Object[] args;
     private final Class<?> targetClass;
 
+    private Long costTime;
+
     public MethodExecuteResult(Method method, Object[] args, Class<?> targetClass) {
         this.method = method;
         this.args = args;
@@ -38,5 +40,9 @@ public class MethodExecuteResult {
 
     public void setResult(Object result) {
         this.result = result;
+    }
+
+    public void setCostTime(Long costTime) {
+        this.costTime = costTime;
     }
 }
