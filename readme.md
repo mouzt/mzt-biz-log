@@ -290,7 +290,7 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
 从[A,B,C] 改到 [B,D] 那么日志显示：「删除了A，增加了D」
 
 ```
-    @LogRecord(success = "{DIFF_LIST{'文档地址'}}", bizNo = "{{#id}}", prefix = REQUIREMENT)
+    @LogRecord(success = "{DIFF_LIST{'文档地址'}}", bizNo = "{{#id}}", type = REQUIREMENT)
     public void updateRequirementDocLink(String currentMisId, Long id, List<String> docLinks) {
         RequirementDO requirementDO = getRequirementDOById(id);
         LogRecordContext.putVariable("oldList", requirementDO.getDocLinks());
@@ -350,7 +350,7 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
 ```
     @LogRecord(success = "更新了订单ORDER{#orderId}},更新内容为...",
             type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
-            detail = "{{#order.toString()}}", condition = "{{#condition == null}}")
+            extra = "{{#order.toString()}}", condition = "{{#condition == null}}")
     public boolean testCondition(Long orderId, Order order, String condition) {
         return false;
     }
@@ -367,7 +367,7 @@ __DIFF有重载的两种使用方式:
 ```
 @LogRecord(success = "更新了订单{_DIFF{#oldOrder, #newOrder}}",
             type = LogRecordType.ORDER, bizNo = "{{#newOrder.orderNo}}",
-            detail = "{{#newOrder.toString()}}")
+            extra = "{{#newOrder.toString()}}")
     public boolean diff(Order oldOrder, Order newOrder) {
 
         return false;
@@ -379,7 +379,7 @@ __DIFF有重载的两种使用方式:
 ```
 @LogRecord(success = "更新了订单{_DIFF{#newOrder}}",
             type = LogRecordType.ORDER, bizNo = "{{#newOrder.orderNo}}",
-            detail = "{{#newOrder.toString()}}")
+            extra = "{{#newOrder.toString()}}")
     @Override
     public boolean diff1(Order newOrder) {
 
@@ -453,7 +453,7 @@ public class Order {
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
         Assert.assertEquals(logRecord.getAction(), "更新了订单【创建人的用户ID】从【9001】修改为【9002】；【创建人的用户姓名】从【用户1】修改为【用户2】；【列表项】添加了【xxxx(aaa)】删除了【xxxx(bbb)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
-        Assert.assertNotNull(logRecord.getDetail());
+        Assert.assertNotNull(logRecord.getExtra());
         Assert.assertEquals(logRecord.getOperator(), "111");
         Assert.assertEquals(logRecord.getBizNo(), order1.getOrderNo());
         logRecordService.clean();
