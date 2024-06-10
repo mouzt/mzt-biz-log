@@ -142,7 +142,7 @@ public class IUserServiceTest extends BaseTest {
         newAddress.setProvinceName("湖南省");
         newAddress.setCityName("长沙市");
         newUser.setAddress(newAddress);
-        userService.testAbstract(user, newUser);
+        userService.testAbstracts(user, newUser);
 
         List<LogRecord> logRecordList = logRecordService.queryLog(String.valueOf(user.getId()), LogRecordType.USER);
         Assert.assertEquals(1, logRecordList.size());
