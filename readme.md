@@ -2,6 +2,9 @@
 
 此组件解决的问题是： 「谁」在「什么时间」对「什么」做了「什么事」
 
+## Star History
+[![Star History Chart](https://api.star-history.com/svg?repos=mouzt/mzt-biz-log&type=Date)](https://star-history.com/#mouzt/mzt-biz-log&Date)
+
 > 本组件目前针对 Spring-boot 做了 Autoconfig，如果是 SpringMVC，也可自己在 xml 初始化 bean
 
 ## Change Log
@@ -22,6 +25,7 @@
 
 | 版本    | 状态                                                                                                                                                       |
 |-------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 3.0.6 | 提供global变量清除方法，用户需要根据实际自己清除global变量                                                                                                                      |
 | 3.0.5 | 1.修复参数全局传递未获取到值 2.diffLog未生效 3.优化文案比对格式,支持重载 toString 和 equals 方法                                                                                        |
 | 3.0.4 | 1.修复fix:修复LocalDateTime diff (#111, #114), 2. 固定文案判断错误                                                                                                   |
 | 3.0.3 | 1.修复日志打印两次的问题 2.方法支持多注解(#98) 3.相同对象diff不记录日志 详细使用方式见 IOrderServiceTest                                                                                   |
