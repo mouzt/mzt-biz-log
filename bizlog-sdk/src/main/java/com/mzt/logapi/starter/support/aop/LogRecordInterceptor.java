@@ -193,7 +193,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
     private void saveLog(Method method, boolean flag, LogRecordOps operation, String operatorIdFromService,
                          String action, Map<String, String> expressionValues) {
         if (StringUtils.isEmpty(expressionValues.get(action)) ||
-                (!diffLog && action.contains("#") && Objects.equals(action, expressionValues.get(action)))) {
+                (!diffSameWhetherSaveLog && action.contains("#") && Objects.equals(action, expressionValues.get(action)))) {
             return;
         }
         LogRecord logRecord = LogRecord.builder()
@@ -272,8 +272,8 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
         this.joinTransaction = joinTransaction;
     }
 
-    public void setDiffLog(boolean diffLog) {
-        this.diffLog = diffLog;
+    public void setDiffSameWhetherSaveLog(boolean diffLog) {
+        this.diffSameWhetherSaveLog = diffLog;
     }
 
     @Override

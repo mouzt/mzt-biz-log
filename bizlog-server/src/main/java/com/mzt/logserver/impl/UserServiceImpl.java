@@ -30,6 +30,13 @@ public class UserServiceImpl extends AbsUserServiceImpl implements IUserService 
         return false;
     }
 
+    @LogRecord(success = "{{#user.id}}更新了用户信息{_DIFF{#user, #newUser}}",
+            type = LogRecordType.USER, bizNo = "{{#newUser.id}}",
+            extra = "{{#newUser.toString()}}")
+    public boolean diffUserByTwoExpression(User user, User newUser) {
+        return false;
+    }
+
     @Override
     @LogRecord(success = "更新{{#user.name}}用户积分信息",
             type = LogRecordType.USER, bizNo = "{{#user.id}}",

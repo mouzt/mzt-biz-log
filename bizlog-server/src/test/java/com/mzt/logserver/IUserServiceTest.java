@@ -396,6 +396,34 @@ public class IUserServiceTest extends BaseTest {
 
     @Test
     @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void test_sameDiffNotRecord() {
+        User user = new User();
+        user.setId(1L);
+        User newUser = new User();
+        newUser.setId(1L);
+        userService.diffUser(user, newUser);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog(String.valueOf(user.getId()), LogRecordType.USER);
+        Assert.assertEquals(0, logRecordList.size());
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void test_sameDiffNotRecordWithMoreExpression() {
+        User user = new User();
+        user.setId(1L);
+        User newUser = new User();
+        newUser.setId(1L);
+        userService.diffUserByTwoExpression(user, newUser);
+
+        List<LogRecord> logRecordList = logRecordService.queryLog(String.valueOf(user.getId()), LogRecordType.USER);
+        Assert.assertEquals(0, logRecordList.size());
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void test_LocalDate() {
         User user = new User();
         user.setId(1L);
@@ -422,7 +450,7 @@ public class IUserServiceTest extends BaseTest {
 
     public void test_diffLog_true() {
         LogRecordInterceptor bean = SpringUtil.getBean(LogRecordInterceptor.class);
-        bean.setDiffLog(true);
+        bean.setDiffSameWhetherSaveLog(true);
         User user = new User();
         user.setId(1L);
         user.setName("张三");
@@ -465,7 +493,7 @@ public class IUserServiceTest extends BaseTest {
     @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void test_diffLog_false() {
         LogRecordInterceptor bean = SpringUtil.getBean(LogRecordInterceptor.class);
-        bean.setDiffLog(false);
+        bean.setDiffSameWhetherSaveLog(false);
         User user = new User();
         user.setId(1L);
         user.setName("张三");

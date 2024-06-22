@@ -48,7 +48,7 @@
         <dependency>
           <groupId>io.github.mouzt</groupId>
           <artifactId>bizlog-sdk</artifactId>
-          <version>3.0.5</version>
+          <version>3.0.7-SNAPSHOT</version>
         </dependency>
 ```
 #### SpringBoot入口打开开关,添加 @EnableLogRecord 注解

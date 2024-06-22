@@ -10,6 +10,7 @@ import com.mzt.logserver.pojo.User;
  **/
 public interface IUserService {
     boolean diffUser(User user, User newUser);
+    boolean diffUserByTwoExpression(User user, User newUser);
 
     boolean testGlobalVariable(User user, Order order);
 
