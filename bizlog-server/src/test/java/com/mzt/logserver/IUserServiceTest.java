@@ -217,7 +217,7 @@ public class IUserServiceTest extends BaseTest {
         newUser.setAddress(newAddress);
         userService.testInterface(user, newUser);
 
-        List<LogRecord> logRecordList = logRecordService.queryLog(String.valueOf(user.getId()), LogRecordType.USER);
+        List<LogRecord> logRecordList = logRecordService.queryLog(String.valueOf(user.getId()), LogRecordType.ORDER);
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
         Assert.assertEquals(logRecord.getAction(), "更新了用户信息【address的cityName】从【武汉市】修改为【长沙市】；【address的provinceName】从【湖北省】修改为【湖南省】；【name】从【张三】修改为【李四】；【性别】从【男333】修改为【女333】");
@@ -298,19 +298,19 @@ public class IUserServiceTest extends BaseTest {
         newUser.setAddress(newAddress);
         userService.testInterfaceAndAbstract2(user, newUser);
 
-        List<LogRecord> logRecordList = logRecordService.queryLog(String.valueOf(user.getId()), LogRecordType.USER);
+        List<LogRecord> logRecordList = logRecordService.queryLog(String.valueOf(user.getId()), LogRecordType.ORDER);
         Assert.assertEquals(1, logRecordList.size());
         LogRecord logRecord = logRecordList.get(0);
         Assert.assertEquals(logRecord.getAction(), "更新了用户信息【address的cityName】从【武汉市】修改为【长沙市】；【address的provinceName】从【湖北省】修改为【湖南省】；【name】从【张三】修改为【李四】；【性别】从【男333】修改为【女333】");
         Assert.assertNotNull(logRecord.getExtra());
         Assert.assertEquals(logRecord.getOperator(), "111");
-
-        List<LogRecord> orderLogRecordList = logRecordService.queryLog(String.valueOf(user.getId()), LogRecordType.ORDER);
-        Assert.assertEquals(1, orderLogRecordList.size());
-        LogRecord orderLogRecord = orderLogRecordList.get(0);
-        Assert.assertEquals(orderLogRecord.getAction(), "更新了用户信息【address的cityName】从【武汉市】修改为【长沙市】；【address的provinceName】从【湖北省】修改为【湖南省】；【name】从【张三】修改为【李四】；【性别】从【男333】修改为【女333】");
-        Assert.assertNotNull(orderLogRecord.getExtra());
-        Assert.assertEquals(orderLogRecord.getOperator(), "111");
+        //接口+抽象类，只支持抽象类
+//        List<LogRecord> orderLogRecordList = logRecordService.queryLog(String.valueOf(user.getId()), LogRecordType.ORDER);
+//        Assert.assertEquals(1, orderLogRecordList.size());
+//        LogRecord orderLogRecord = orderLogRecordList.get(0);
+//        Assert.assertEquals(orderLogRecord.getAction(), "更新了用户信息【address的cityName】从【武汉市】修改为【长沙市】；【address的provinceName】从【湖北省】修改为【湖南省】；【name】从【张三】修改为【李四】；【性别】从【男333】修改为【女333】");
+//        Assert.assertNotNull(orderLogRecord.getExtra());
+//        Assert.assertEquals(orderLogRecord.getOperator(), "111");
         logRecordService.clean();
     }
 

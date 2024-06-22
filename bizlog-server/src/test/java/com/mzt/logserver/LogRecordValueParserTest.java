@@ -34,7 +34,7 @@ public class LogRecordValueParserTest {
         when(logFunctionParser.getFunctionCallInstanceKey(any(), any())).thenReturn("functionKey");
 
         Map<String, String> result = logRecordValueParser.processBeforeExecuteFunctionTemplate(
-                Arrays.asList("template"), this.getClass(), this.getClass().getMethods()[0], new Object[] {});
+                Arrays.asList("{template{'xx'}}"), this.getClass(), this.getClass().getMethods()[0], new Object[] {});
 
         assertEquals(1, result.size());
         assertTrue(result.containsKey("functionKey"));

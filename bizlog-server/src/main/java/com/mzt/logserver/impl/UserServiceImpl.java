@@ -69,4 +69,9 @@ public class UserServiceImpl extends AbsUserServiceImpl implements IUserService 
     public boolean testInterfaceAndAbstract(User user, User newUser) {
         return false;
     }
+
+    @Override
+    public boolean testInterface(User user, User newUser) {
+        return false;
+    }
 }

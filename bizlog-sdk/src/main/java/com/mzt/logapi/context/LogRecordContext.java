@@ -60,7 +60,7 @@ public class LogRecordContext {
 
     public static Map<String, Object> getVariables() {
         Deque<Map<String, Object>> mapStack = VARIABLE_MAP_STACK.get();
-        return mapStack.peek();
+        return mapStack == null ? new HashMap<>() : mapStack.peek();
     }
 
     public static Map<String, Object> getGlobalVariableMap() {
