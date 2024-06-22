@@ -2,6 +2,9 @@
 
 此组件解决的问题是： 「谁」在「什么时间」对「什么」做了「什么事」
 
+## Star History
+[![Star History Chart](https://api.star-history.com/svg?repos=mouzt/mzt-biz-log&type=Date)](https://star-history.com/#mouzt/mzt-biz-log&Date)
+
 > 本组件目前针对 Spring-boot 做了 Autoconfig，如果是 SpringMVC，也可自己在 xml 初始化 bean
 
 ## Change Log
@@ -49,7 +52,7 @@
         <dependency>
           <groupId>io.github.mouzt</groupId>
           <artifactId>bizlog-sdk</artifactId>
-          <version>3.0.6</version>
+          <version>3.0.7-SNAPSHOT</version>
         </dependency>
 ```
 #### SpringBoot入口打开开关,添加 @EnableLogRecord 注解

@@ -25,7 +25,7 @@ public class LogRecordValueParser implements BeanFactoryAware {
     public static final String COMMA = ",";
     private final LogRecordExpressionEvaluator expressionEvaluator = new LogRecordExpressionEvaluator();
     protected BeanFactory beanFactory;
-    protected boolean diffLog;
+    protected boolean diffSameWhetherSaveLog;
 
     private LogFunctionParser logFunctionParser;
 
@@ -61,30 +61,37 @@ public class LogRecordValueParser implements BeanFactoryAware {
                 Matcher matcher = pattern.matcher(expressionTemplate);
                 StringBuffer parsedStr = new StringBuffer();
                 AnnotatedElementKey annotatedElementKey = new AnnotatedElementKey(methodExecuteResult.getMethod(), methodExecuteResult.getTargetClass());
-                boolean diffLogFlag = !diffLog;
+                boolean sameDiff = false;
                 while (matcher.find()) {
-
                     String expression = matcher.group(2);
                     String functionName = matcher.group(1);
                     if (DiffParseFunction.diffFunctionName.equals(functionName)) {
                         expression = getDiffFunctionValue(evaluationContext, annotatedElementKey, expression);
+                        sameDiff = Objects.equals("", expression);
                     } else {
                         Object value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
                         expression = logFunctionParser.getFunctionReturnValue(beforeFunctionNameAndReturnMap, value, expression, functionName);
                     }
-                    if (expression != null && !Objects.equals(expression, "")) {
-                        diffLogFlag = false;
-                    }
                     matcher.appendReplacement(parsedStr, Matcher.quoteReplacement(expression == null ? "" : expression));
                 }
                 matcher.appendTail(parsedStr);
-                expressionValues.put(expressionTemplate, diffLogFlag ? expressionTemplate : parsedStr.toString());
+                expressionValues.put(expressionTemplate, recordSameDiff(sameDiff, diffSameWhetherSaveLog) ? parsedStr.toString() : expressionTemplate);
             } else {
                 expressionValues.put(expressionTemplate, expressionTemplate);
             }
 
         }
         return expressionValues;
+    }
+
+    private boolean recordSameDiff(boolean sameDiff, boolean diffSameWhetherSaveLog) {
+        if(diffSameWhetherSaveLog == true) {
+            return true;
+        }
+        if(!diffSameWhetherSaveLog && sameDiff) {
+            return false;
+        }
+        return true;
     }
 
     private String getDiffFunctionValue(EvaluationContext evaluationContext, AnnotatedElementKey annotatedElementKey, String expression) {

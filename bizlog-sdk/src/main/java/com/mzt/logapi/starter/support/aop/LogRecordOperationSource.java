@@ -62,11 +62,11 @@ public class LogRecordOperationSource {
         if (!Modifier.isPublic(method.getModifiers()) || method.getDeclaringClass().isInterface()) {
             return method;
         }
+        // 抽象类 + 接口 只会保留一个方法
         return INTERFACE_METHOD_CACHE.computeIfAbsent(method, key -> {
             Class<?> current = key.getDeclaringClass();
             while (current != null && current != Object.class) {
-                Class<?>[] ifcs = current.getInterfaces();
-                for (Class<?> ifc : ifcs) {
+                for (Class<?> ifc : current.getInterfaces()) {
                     try {
                         return ifc.getMethod(key.getName(), key.getParameterTypes());
                     } catch (NoSuchMethodException ex) {

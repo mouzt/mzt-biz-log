@@ -648,7 +648,7 @@ public class IOrderServiceTest extends BaseTest {
     public void fixedCopy2() {
         // 记录日志
         LogRecordInterceptor bean = SpringUtil.getBean(LogRecordInterceptor.class);
-        bean.setDiffLog(true);
+        bean.setDiffSameWhetherSaveLog(true);
         User user = new User();
         user.setName("张三");
         User oldUser = new User();
@@ -664,7 +664,7 @@ public class IOrderServiceTest extends BaseTest {
     public void fixedCopy3() {
         // 不记录日志
         LogRecordInterceptor bean = SpringUtil.getBean(LogRecordInterceptor.class);
-        bean.setDiffLog(false);
+        bean.setDiffSameWhetherSaveLog(false);
         User user = new User();
         user.setName("张三");
         User oldUser = new User();
