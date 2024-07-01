@@ -189,7 +189,7 @@ public class DefaultDiffItemsToLogContentService implements IDiffItemsToLogConte
         if (StringUtils.isEmpty(functionName)) {
             return canonicalGet.toString();
         }
-        return functionService.apply(functionName, canonicalGet.toString());
+        return functionService.apply(functionName, canonicalGet);
     }
 
     private Object getFieldValue(DiffNode node, Object o2) {
