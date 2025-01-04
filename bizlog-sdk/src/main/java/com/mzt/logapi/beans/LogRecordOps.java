@@ -2,6 +2,7 @@ package com.mzt.logapi.beans;
 
 import lombok.Builder;
 import lombok.Data;
+import java.util.List;
 
 /**
  * @author muzhantong
@@ -19,4 +20,5 @@ public class LogRecordOps {
     private String extra;
     private String condition;
     private String isSuccess;
+    private List<String> list;
 }

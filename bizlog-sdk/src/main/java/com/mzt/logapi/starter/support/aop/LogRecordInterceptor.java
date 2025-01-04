@@ -196,20 +196,37 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
                 (!diffSameWhetherSaveLog && action.contains("#") && Objects.equals(action, expressionValues.get(action)))) {
             return;
         }
-        LogRecord logRecord = LogRecord.builder()
-                .tenant(tenantId)
-                .type(expressionValues.get(operation.getType()))
-                .bizNo(expressionValues.get(operation.getBizNo()))
-                .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
-                .subType(expressionValues.get(operation.getSubType()))
-                .extra(expressionValues.get(operation.getExtra()))
-                .codeVariable(getCodeVariable(method))
-                .action(expressionValues.get(action))
-                .fail(flag)
-                .createTime(new Date())
-                .build();
-
-        bizLogService.record(logRecord);
+        if (operation.getList() != null && !operation.getList().isEmpty()) {
+            for (String listItem : operation.getList()) {
+                LogRecord logRecord = LogRecord.builder()
+                        .tenant(tenantId)
+                        .type(expressionValues.get(operation.getType()))
+                        .bizNo(expressionValues.get(operation.getBizNo()))
+                        .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
+                        .subType(expressionValues.get(operation.getSubType()))
+                        .extra(expressionValues.get(operation.getExtra()))
+                        .codeVariable(getCodeVariable(method))
+                        .action(expressionValues.get(action))
+                        .fail(flag)
+                        .createTime(new Date())
+                        .build();
+                bizLogService.record(logRecord);
+            }
+        } else {
+            LogRecord logRecord = LogRecord.builder()
+                    .tenant(tenantId)
+                    .type(expressionValues.get(operation.getType()))
+                    .bizNo(expressionValues.get(operation.getBizNo()))
+                    .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
+                    .subType(expressionValues.get(operation.getSubType()))
+                    .extra(expressionValues.get(operation.getExtra()))
+                    .codeVariable(getCodeVariable(method))
+                    .action(expressionValues.get(action))
+                    .fail(flag)
+                    .createTime(new Date())
+                    .build();
+            bizLogService.record(logRecord);
+        }
     }
 
     private Map<CodeVariableType, Object> getCodeVariable(Method method) {

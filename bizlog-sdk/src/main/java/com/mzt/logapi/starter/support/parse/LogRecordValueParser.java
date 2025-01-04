@@ -140,6 +140,44 @@ public class LogRecordValueParser implements BeanFactoryAware {
         return functionNameAndReturnValueMap;
     }
 
+    public List<Map<String, String>> processTemplateForList(Collection<String> templates, MethodExecuteResult methodExecuteResult,
+                                                            Map<String, String> beforeFunctionNameAndReturnMap, List<?> list) {
+        List<Map<String, String>> expressionValuesList = new ArrayList<>();
+        for (Object item : list) {
+            Map<String, String> expressionValues = new HashMap<>();
+            EvaluationContext evaluationContext = expressionEvaluator.createEvaluationContext(methodExecuteResult.getMethod(),
+                    methodExecuteResult.getArgs(), methodExecuteResult.getTargetClass(), methodExecuteResult.getResult(),
+                    methodExecuteResult.getErrorMsg(), beanFactory);
+            evaluationContext.setVariable("item", item);
+
+            for (String expressionTemplate : templates) {
+                if (expressionTemplate.contains("{")) {
+                    Matcher matcher = pattern.matcher(expressionTemplate);
+                    StringBuffer parsedStr = new StringBuffer();
+                    AnnotatedElementKey annotatedElementKey = new AnnotatedElementKey(methodExecuteResult.getMethod(), methodExecuteResult.getTargetClass());
+                    boolean sameDiff = false;
+                    while (matcher.find()) {
+                        String expression = matcher.group(2);
+                        String functionName = matcher.group(1);
+                        if (DiffParseFunction.diffFunctionName.equals(functionName)) {
+                            expression = getDiffFunctionValue(evaluationContext, annotatedElementKey, expression);
+                            sameDiff = Objects.equals("", expression);
+                        } else {
+                            Object value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
+                            expression = logFunctionParser.getFunctionReturnValue(beforeFunctionNameAndReturnMap, value, expression, functionName);
+                        }
+                        matcher.appendReplacement(parsedStr, Matcher.quoteReplacement(expression == null ? "" : expression));
+                    }
+                    matcher.appendTail(parsedStr);
+                    expressionValues.put(expressionTemplate, recordSameDiff(sameDiff, diffSameWhetherSaveLog) ? parsedStr.toString() : expressionTemplate);
+                } else {
+                    expressionValues.put(expressionTemplate, expressionTemplate);
+                }
+            }
+            expressionValuesList.add(expressionValues);
+        }
+        return expressionValuesList;
+    }
 
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {

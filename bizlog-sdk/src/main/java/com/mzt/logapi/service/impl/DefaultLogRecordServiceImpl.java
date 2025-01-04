@@ -25,6 +25,12 @@ public class DefaultLogRecordServiceImpl implements ILogRecordService {
 //        logRecordMapper.insertSelective(logRecord);
     }
 
+    public void record(List<LogRecord> logRecords) {
+        for (LogRecord logRecord : logRecords) {
+            record(logRecord);
+        }
+    }
+
     @Override
     public List<LogRecord> queryLog(String bizNo, String type) {
         return new ArrayList<>();
