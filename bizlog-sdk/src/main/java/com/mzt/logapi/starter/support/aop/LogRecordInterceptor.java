@@ -207,6 +207,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
                 .action(expressionValues.get(action))
                 .fail(flag)
                 .createTime(new Date())
+                .list(expressionValues.get(operation.getList()))
                 .build();
 
         bizLogService.record(logRecord);
@@ -225,6 +226,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
         spElTemplates.add(operation.getBizNo());
         spElTemplates.add(operation.getSubType());
         spElTemplates.add(operation.getExtra());
+        spElTemplates.add(operation.getList());
         spElTemplates.addAll(Arrays.asList(actions));
         return spElTemplates;
     }
