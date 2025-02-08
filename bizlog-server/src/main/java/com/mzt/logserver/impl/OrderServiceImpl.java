@@ -14,6 +14,7 @@ import org.assertj.core.util.Lists;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author muzhantong
@@ -89,16 +90,17 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    @LogRecord(success = "更新了订单{ORDER_BEFORE{#order.orderId}},更新内容为...",
-            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
-            extra = "{{#order.toString()}}")
-    public boolean updateBefore(Long orderId, Order order) {
-        order.setOrderId(10000L);
+    @LogRecord(success = "更新了订单{ORDER_BEFORE{#orderId}},更新内容为...",
+            type = LogRecordType.ORDER, bizNo = "{{#orderNo}}", list = "{{orders}}")
+    public boolean saveOrders(List<Order> orders) {
+        for (Order order : orders) {
+            System.out.println(order);
+        }
         return false;
     }
 
     @Override
-    @LogRecord(success = "更新了订单{ORDER{#order.orderId}},更新内容为...",
+    @LogRecord(success = "更新了订单{ORDER{#orderId}},更新内容为...",
             type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
             extra = "{{#order.toString()}}")
     public boolean updateAfter(Long orderId, Order order) {
@@ -163,9 +165,9 @@ public class OrderServiceImpl implements IOrderService {
     @Override
     @LogRecord(success = "更新了订单{ORDER{#orderId}},更新内容为...",
             type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
-            condition = "{{#condition == null}}")
+            condition = "#condition == null")
     public boolean testCondition(Long orderId, Order order, String condition) {
-        return false;
+        return condition == null;
     }
 
     @Override
@@ -174,28 +176,28 @@ public class OrderServiceImpl implements IOrderService {
     public boolean testContextCallContext(Long orderId, Order order) {
         LogRecordContext.putVariable("title", "外层调用");
         userQueryService.getUserList(Lists.newArrayList("mzt"));
-        return false;
+        return true;
     }
 
     @Override
     @LogRecord(success = "更新了订单{ORDER{#orderId}},更新内容为..{{#title}}",
             type = LogRecordType.ORDER, subType = "{{#order.orderNo}}", bizNo = "{{#order.orderNo}}")
     public boolean testSubTypeSpEl(Long orderId, Order order) {
-        return false;
+        return true;
     }
 
     @Override
     @LogRecord(success = "更新了订单{ORDER{#orderId}},更新内容为..{{#title}}",
             type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
     public boolean testVariableInfo(Long orderId, Order order) {
-        return false;
+        return true;
     }
 
     @Override
     @LogRecord(success = "更新成功了订单{ORDER{#orderId}},更新内容为...",
             fail = "更新失败了订单{ORDER{#orderId}},更新内容为...",
             type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
-            condition = "{{#condition == null}}", successCondition = "{{#result.code == 200}}")
+            condition = "#condition == null", successCondition = "#result.code == 200")
     public Result<Boolean> testResultOnSuccess(Long orderId, Order order) {
         Result<Boolean> result = new Result<>(200, "成功", true);
         LogRecordContext.putVariable("result", result);
@@ -206,7 +208,7 @@ public class OrderServiceImpl implements IOrderService {
     @LogRecord(success = "更新成功了订单{ORDER{#orderId}},更新内容为...",
             fail = "更新失败了订单{ORDER{#orderId}},更新内容为...",
             type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
-            condition = "{{#condition == null}}", successCondition = "{{#result.code == 200}}")
+            condition = "#condition == null", successCondition = "#result.code == 200")
     public Result<Boolean> testResultOnFail(Long orderId, Order order) {
         Result<Boolean> result = new Result<>(500, "服务错误", false);
         LogRecordContext.putVariable("result", result);
@@ -216,7 +218,7 @@ public class OrderServiceImpl implements IOrderService {
     @Override
     @LogRecord(success = "更新成功了订单{ORDER{#orderId}},更新内容为...",
             type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
-            condition = "{{#condition == null}}", successCondition = "{{#result.code == 200}}")
+            condition = "#condition == null", successCondition = "#result.code == 200")
     public Result<Boolean> testResultNoLog(Long orderId, Order order) {
         Result<Boolean> result = new Result<>(500, "服务错误", false);
         LogRecordContext.putVariable("result", result);
@@ -250,5 +252,11 @@ public class OrderServiceImpl implements IOrderService {
             extra = "{{#user.toString()}}")
     public void fixedCopy2(User user, User oldUser) {
 
+    }
+
+    @Override
+    public boolean updateBefore(Long orderId, Order order) {
+        order.setOrderId(10000L);
+        return false;
     }
 }

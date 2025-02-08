@@ -674,4 +674,40 @@ public class IOrderServiceTest extends BaseTest {
         Assert.assertEquals(0, logRecordList.size());
         logRecordService.clean();
     }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void testBatchLoggingWithList() {
+        List<Order> orders = Lists.newArrayList();
+        
+        Order order1 = new Order();
+        order1.setOrderNo("MT0000011");
+        order1.setProductName("超值优惠红烧肉套餐");
+        order1.setPurchaseName("张三");
+        orders.add(order1);
+        
+        Order order2 = new Order();
+        order2.setOrderNo("MT0000012");
+        order2.setProductName("麻辣烫套餐");
+        order2.setPurchaseName("李四");
+        orders.add(order2);
+        
+        orderService.saveOrders(orders);
+        
+        // Verify first order log
+        List<LogRecord> logRecordList1 = logRecordService.queryLog(order1.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(1, logRecordList1.size());
+        LogRecord logRecord1 = logRecordList1.get(0);
+        Assert.assertEquals("更新了订单xxxx,更新内容为...", logRecord1.getAction());
+        Assert.assertEquals(order1.getOrderNo(), logRecord1.getBizNo());
+        
+        // Verify second order log
+        List<LogRecord> logRecordList2 = logRecordService.queryLog(order2.getOrderNo(), LogRecordType.ORDER);
+        Assert.assertEquals(1, logRecordList2.size());
+        LogRecord logRecord2 = logRecordList2.get(0);
+        Assert.assertEquals("更新了订单xxxx,更新内容为...", logRecord2.getAction());
+        Assert.assertEquals(order2.getOrderNo(), logRecord2.getBizNo());
+        
+        logRecordService.clean();
+    }
 }
