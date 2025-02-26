@@ -15,6 +15,7 @@ import org.junit.Test;
 import org.springframework.test.context.jdbc.Sql;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -67,6 +68,49 @@ public class IOrderServiceTest extends BaseTest {
         Assert.assertEquals("", userLogRecord.getExtra());
         Assert.assertEquals(userLogRecord.getBizNo(), order.getOrderNo());
         Assert.assertFalse(userLogRecord.isFail());
+        logRecordService.clean();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void testSaveOrders() {
+        // 创建多个订单
+        List<Order> orders = new ArrayList<>();
+        
+        Order order1 = new Order();
+        order1.setOrderId(1L);
+        order1.setOrderNo("MT0000001");
+        order1.setProductName("红烧肉套餐");
+        order1.setPurchaseName("张三");
+        orders.add(order1);
+        
+        Order order2 = new Order();
+        order2.setOrderId(2L);
+        order2.setOrderNo("MT0000002");
+        order2.setProductName("鱼香肉丝套餐");
+        order2.setPurchaseName("李四");
+        orders.add(order2);
+        
+        Order order3 = new Order();
+        order3.setOrderId(3L);
+        order3.setOrderNo("MT0000003");
+        order3.setProductName("宫保鸡丁套餐");
+        order3.setPurchaseName("王五");
+        orders.add(order3);
+        
+        // 调用批量保存方法
+        orderService.saveOrders(orders);
+        
+        // 验证每个订单都生成了日志记录
+        for (Order order : orders) {
+            List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
+            Assert.assertEquals(1, logRecordList.size());
+            LogRecord logRecord = logRecordList.get(0);
+            Assert.assertEquals(logRecord.getAction(), "更新了订单" + order.getOrderId() + ",更新内容为...");
+            Assert.assertEquals(logRecord.getBizNo(), order.getOrderNo());
+            Assert.assertFalse(logRecord.isFail());
+        }
+        
         logRecordService.clean();
     }
 

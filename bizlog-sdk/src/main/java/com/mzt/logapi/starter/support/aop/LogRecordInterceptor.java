@@ -17,7 +17,11 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.context.expression.AnnotatedElementKey;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
@@ -34,7 +38,7 @@ import static com.mzt.logapi.service.ILogRecordPerformanceMonitor.*;
  * @author mzt.
  */
 @Slf4j
-public class LogRecordInterceptor extends LogRecordValueParser implements MethodInterceptor, Serializable, SmartInitializingSingleton {
+public class LogRecordInterceptor extends LogRecordValueParser implements MethodInterceptor, Serializable, SmartInitializingSingleton, BeanFactoryAware {
 
     private LogRecordOperationSource logRecordOperationSource;
 
@@ -131,42 +135,109 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
                     continue;
                 }
                 if (exitsCondition(methodExecuteResult, functionNameAndReturnMap, operation)) continue;
-                if (!methodExecuteResult.isSuccess()) {
-                    failRecordExecute(methodExecuteResult, functionNameAndReturnMap, operation);
+                
+                // 处理批量记录日志
+                if (!StringUtils.isEmpty(operation.getList())) {
+                    processBatchLogRecord(methodExecuteResult, functionNameAndReturnMap, operation);
                 } else {
-                    successRecordExecute(methodExecuteResult, functionNameAndReturnMap, operation);
+                    // 处理单条记录日志
+                    if (methodExecuteResult.isSuccess()) {
+                        successRecordExecute(methodExecuteResult, functionNameAndReturnMap, operation);
+                    } else {
+                        failRecordExecute(methodExecuteResult, functionNameAndReturnMap, operation);
+                    }
                 }
-            } catch (Exception t) {
-                log.error("log record execute exception", t);
-                if (joinTransaction) throw t;
+            } catch (Exception e) {
+                log.error("log record execute exception", e);
+                if (joinTransaction) throw e;
             }
         }
     }
 
-    private void successRecordExecute(MethodExecuteResult methodExecuteResult, Map<String, String> functionNameAndReturnMap,
+    private void processBatchLogRecord(MethodExecuteResult methodExecuteResult, Map<String, String> functionNameAndReturnMap,
                                       LogRecordOps operation) {
-        // 若存在 isSuccess 条件模版，解析出成功/失败的模版
-        String action = "";
-        boolean flag = true;
-        if (!StringUtils.isEmpty(operation.getIsSuccess())) {
-            String condition = singleProcessTemplate(methodExecuteResult, operation.getIsSuccess(), functionNameAndReturnMap);
-            if (StringUtils.endsWithIgnoreCase(condition, "true")) {
-                action = operation.getSuccessLogTemplate();
+        try {
+            // 获取列表变量名
+            String listVarName = operation.getList();
+            // 解析列表变量，获取实际的列表对象
+            String listExpression = listVarName.replaceAll("[{}]", "");
+            
+            // 使用 singleProcessTemplate 方法解析列表表达式
+            String listValue = singleProcessTemplate(methodExecuteResult, listExpression, functionNameAndReturnMap);
+            Object listObj = LogRecordContext.getVariable(listExpression.replace("#", ""));
+            
+            if (listObj instanceof List) {
+                List<?> dataList = (List<?>) listObj;
+                List<LogRecord> logRecords = new ArrayList<>();
+                
+                for (Object item : dataList) {
+                    // 将当前列表项放入上下文
+                    LogRecordContext.putVariable(listExpression.replace("#", ""), item);
+                    
+                    // 处理成功或失败的日志记录
+                    if (methodExecuteResult.isSuccess()) {
+                        String action = operation.getSuccessLogTemplate();
+                        if (!StringUtils.isEmpty(action)) {
+                            List<String> spElTemplates = getSpElTemplates(operation, action);
+                            String operatorIdFromService = getOperatorIdFromServiceAndPutTemplate(operation, spElTemplates);
+                            Map<String, String> expressionValues = processTemplate(spElTemplates, methodExecuteResult, functionNameAndReturnMap);
+                            
+                            LogRecord logRecord = createLogRecord(methodExecuteResult.getMethod(), false, operation, 
+                                    operatorIdFromService, action, expressionValues);
+                            if (logRecord != null) {
+                                logRecords.add(logRecord);
+                            }
+                        }
+                    } else {
+                        String action = operation.getFailLogTemplate();
+                        if (!StringUtils.isEmpty(action)) {
+                            List<String> spElTemplates = getSpElTemplates(operation, action);
+                            String operatorIdFromService = getOperatorIdFromServiceAndPutTemplate(operation, spElTemplates);
+                            Map<String, String> expressionValues = processTemplate(spElTemplates, methodExecuteResult, functionNameAndReturnMap);
+                            
+                            LogRecord logRecord = createLogRecord(methodExecuteResult.getMethod(), true, operation, 
+                                    operatorIdFromService, action, expressionValues);
+                            if (logRecord != null) {
+                                logRecords.add(logRecord);
+                            }
+                        }
+                    }
+                    
+                    // 从上下文中移除当前列表项
+                    LogRecordContext.putVariable(listExpression.replace("#", ""), null);
+                }
+                
+                // 批量保存日志
+                if (!logRecords.isEmpty()) {
+                    bizLogService.recordList(logRecords);
+                }
             } else {
-                action = operation.getFailLogTemplate();
-                flag = false;
+                log.error("List variable is not a List type: {}", listVarName);
             }
-        } else {
-            action = operation.getSuccessLogTemplate();
+        } catch (Exception e) {
+            log.error("Process batch log record error", e);
+        }
+    }
+
+    private void successRecordExecute(MethodExecuteResult methodExecuteResult, Map<String, String> functionNameAndReturnMap,
+                                     LogRecordOps operation) {
+        if (StringUtils.isEmpty(operation.getSuccessLogTemplate())) return;
+        String action = operation.getSuccessLogTemplate();
+        boolean flag = false;
+        if (!StringUtils.isEmpty(operation.getIsSuccess())) {
+            String isSuccess = singleProcessTemplate(methodExecuteResult, operation.getIsSuccess(), functionNameAndReturnMap);
+            if (StringUtils.endsWithIgnoreCase(isSuccess, "false")) {
+                action = operation.getFailLogTemplate();
+                flag = true;
+            }
         }
         if (StringUtils.isEmpty(action)) {
-            // 没有日志内容则忽略
             return;
         }
         List<String> spElTemplates = getSpElTemplates(operation, action);
         String operatorIdFromService = getOperatorIdFromServiceAndPutTemplate(operation, spElTemplates);
         Map<String, String> expressionValues = processTemplate(spElTemplates, methodExecuteResult, functionNameAndReturnMap);
-        saveLog(methodExecuteResult.getMethod(), !flag, operation, operatorIdFromService, action, expressionValues);
+        saveLog(methodExecuteResult.getMethod(), flag, operation, operatorIdFromService, action, expressionValues);
     }
 
     private void failRecordExecute(MethodExecuteResult methodExecuteResult, Map<String, String> functionNameAndReturnMap,
@@ -182,7 +253,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
     }
 
     private boolean exitsCondition(MethodExecuteResult methodExecuteResult,
-                                   Map<String, String> functionNameAndReturnMap, LogRecordOps operation) {
+                                  Map<String, String> functionNameAndReturnMap, LogRecordOps operation) {
         if (!StringUtils.isEmpty(operation.getCondition())) {
             String condition = singleProcessTemplate(methodExecuteResult, operation.getCondition(), functionNameAndReturnMap);
             if (StringUtils.endsWithIgnoreCase(condition, "false")) return true;
@@ -190,13 +261,13 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
         return false;
     }
 
-    private void saveLog(Method method, boolean flag, LogRecordOps operation, String operatorIdFromService,
+    private LogRecord createLogRecord(Method method, boolean flag, LogRecordOps operation, String operatorIdFromService,
                          String action, Map<String, String> expressionValues) {
         if (StringUtils.isEmpty(expressionValues.get(action)) ||
                 (!diffSameWhetherSaveLog && action.contains("#") && Objects.equals(action, expressionValues.get(action)))) {
-            return;
+            return null;
         }
-        LogRecord logRecord = LogRecord.builder()
+        return LogRecord.builder()
                 .tenant(tenantId)
                 .type(expressionValues.get(operation.getType()))
                 .bizNo(expressionValues.get(operation.getBizNo()))
@@ -208,8 +279,14 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
                 .fail(flag)
                 .createTime(new Date())
                 .build();
+    }
 
-        bizLogService.record(logRecord);
+    private void saveLog(Method method, boolean flag, LogRecordOps operation, String operatorIdFromService,
+                         String action, Map<String, String> expressionValues) {
+        LogRecord logRecord = createLogRecord(method, flag, operation, operatorIdFromService, action, expressionValues);
+        if (logRecord != null) {
+            bizLogService.record(logRecord);
+        }
     }
 
     private Map<CodeVariableType, Object> getCodeVariable(Method method) {
@@ -229,7 +306,8 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
         return spElTemplates;
     }
 
-    private String getRealOperatorId(LogRecordOps operation, String operatorIdFromService, Map<String, String> expressionValues) {
+    private String getRealOperatorId(LogRecordOps operation, String operatorIdFromService,
+                                    Map<String, String> expressionValues) {
         return !StringUtils.isEmpty(operatorIdFromService) ? operatorIdFromService : expressionValues.get(operation.getOperatorId());
     }
 

@@ -14,6 +14,7 @@ import org.assertj.core.util.Lists;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author muzhantong
@@ -151,13 +152,19 @@ public class OrderServiceImpl implements IOrderService {
         order.setOrderNo("MT0000099");
         order.setProductName("超值优惠红烧肉套餐");
         order.setPurchaseName("张三");
-        Order.UserDO userDO = new Order.UserDO();
-        userDO.setUserId(9001L);
-        userDO.setUserName("用户1");
-        order.setCreator(userDO);
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, order);
-
         return false;
+    }
+    
+    @Override
+    @LogRecord(success = "更新了订单{ORDER_BEFORE{#orderId}},更新内容为...",
+            type = LogRecordType.ORDER, bizNo = "{{#orderNo}}", list = "{{orders}}")
+    public boolean saveOrders(List<Order> orders) {
+        log.info("【批量保存订单】orders size={}", orders.size());
+        for (Order order : orders) {
+            log.info("【保存订单】orderNo={}", order.getOrderNo());
+        }
+        return true;
     }
 
     @Override

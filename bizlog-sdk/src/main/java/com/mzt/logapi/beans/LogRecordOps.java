@@ -19,4 +19,5 @@ public class LogRecordOps {
     private String extra;
     private String condition;
     private String isSuccess;
+    private String list;
 }

@@ -6,6 +6,8 @@ import com.mzt.logserver.pojo.Order;
 import com.mzt.logserver.pojo.Result;
 import com.mzt.logserver.pojo.User;
 
+import java.util.List;
+
 /**
  * @author muzhantong
  * create on 2020/6/12 11:07 上午
@@ -60,4 +62,6 @@ public interface IOrderService {
     void fixedCopy(String text);
 
     void fixedCopy2(User user, User oldUser);
+    
+    boolean saveOrders(List<Order> orders);
 }

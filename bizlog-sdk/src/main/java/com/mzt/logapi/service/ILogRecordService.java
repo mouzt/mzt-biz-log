@@ -12,6 +12,19 @@ public interface ILogRecordService {
      * @param logRecord 日志实体
      */
     void record(LogRecord logRecord);
+    
+    /**
+     * 批量保存log
+     *
+     * @param logRecords 日志实体列表
+     */
+    default void recordList(List<LogRecord> logRecords) {
+        if (logRecords != null && !logRecords.isEmpty()) {
+            for (LogRecord logRecord : logRecords) {
+                record(logRecord);
+            }
+        }
+    }
 
     /**
      * 返回最多100条记录

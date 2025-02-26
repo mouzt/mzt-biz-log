@@ -58,4 +58,9 @@ public @interface LogRecord {
      * @return 表示成功的表达式，默认为空，代表不抛异常为成功
      */
     String successCondition() default "";
+    
+    /**
+     * @return 批量记录日志的列表变量名称
+     */
+    String list() default "";
 }
