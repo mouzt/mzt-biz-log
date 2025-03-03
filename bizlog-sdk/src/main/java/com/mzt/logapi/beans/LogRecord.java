@@ -77,4 +77,9 @@ public class LogRecord {
      * CodeVariableType 日志记录的ClassName、MethodName
      */
     private Map<CodeVariableType, Object> codeVariable;
+
+    /**
+     * list变量的名称
+     */
+    private String list;
 }

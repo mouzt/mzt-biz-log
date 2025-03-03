@@ -203,16 +203,17 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
                 .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
                 .subType(expressionValues.get(operation.getSubType()))
                 .extra(expressionValues.get(operation.getExtra()))
-                .codeVariable(getCodeVariable(method))
+                .codeVariable(getCodeVariableMap(method))
                 .action(expressionValues.get(action))
                 .fail(flag)
                 .createTime(new Date())
+                .list(expressionValues.get(operation.getList()))
                 .build();
 
         bizLogService.record(logRecord);
     }
 
-    private Map<CodeVariableType, Object> getCodeVariable(Method method) {
+    private Map<CodeVariableType, Object> getCodeVariableMap(Method method) {
         Map<CodeVariableType, Object> map = new HashMap<>();
         map.put(CodeVariableType.ClassName, method.getDeclaringClass());
         map.put(CodeVariableType.MethodName, method.getName());
@@ -225,6 +226,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
         spElTemplates.add(operation.getBizNo());
         spElTemplates.add(operation.getSubType());
         spElTemplates.add(operation.getExtra());
+        spElTemplates.add(operation.getList());
         spElTemplates.addAll(Arrays.asList(actions));
         return spElTemplates;
     }

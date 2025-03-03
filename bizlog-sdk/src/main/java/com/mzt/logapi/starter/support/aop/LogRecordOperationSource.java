@@ -115,6 +115,7 @@ public class LogRecordOperationSource {
                 .extra(recordAnnotation.extra())
                 .condition(recordAnnotation.condition())
                 .isSuccess(recordAnnotation.successCondition())
+                .list(recordAnnotation.list())
                 .build();
         validateLogRecordOperation(ae, recordOps);
         return recordOps;

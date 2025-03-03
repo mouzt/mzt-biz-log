@@ -1,12 +1,17 @@
 package com.mzt.logapi.starter.support.parse;
 
 import com.mzt.logapi.beans.MethodExecuteResult;
+import com.mzt.logapi.beans.LogRecord;
+import com.mzt.logapi.beans.LogRecordOps;
+import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.service.impl.DiffParseFunction;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.expression.AnnotatedElementKey;
 import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -140,6 +145,79 @@ public class LogRecordValueParser implements BeanFactoryAware {
         return functionNameAndReturnValueMap;
     }
 
+    public List<LogRecord> processLogRecordOps(List<LogRecordOps> logRecordOpsList, MethodExecuteResult methodExecuteResult,
+                                               Map<String, String> beforeFunctionNameAndReturnMap) {
+        List<LogRecord> logRecords = new ArrayList<>();
+        for (LogRecordOps logRecordOps : logRecordOpsList) {
+            if (StringUtils.isEmpty(logRecordOps.getList())) {
+                logRecords.add(processSingleLogRecordOps(logRecordOps, methodExecuteResult, beforeFunctionNameAndReturnMap));
+            } else {
+                logRecords.addAll(processListLogRecordOps(logRecordOps, methodExecuteResult, beforeFunctionNameAndReturnMap));
+            }
+        }
+        return logRecords;
+    }
+
+    private LogRecord processSingleLogRecordOps(LogRecordOps logRecordOps, MethodExecuteResult methodExecuteResult,
+                                                Map<String, String> beforeFunctionNameAndReturnMap) {
+        Map<String, String> expressionValues = processTemplate(getSpElTemplates(logRecordOps), methodExecuteResult, beforeFunctionNameAndReturnMap);
+        return buildLogRecord(logRecordOps, expressionValues, methodExecuteResult.getMethod());
+    }
+
+    private List<LogRecord> processListLogRecordOps(LogRecordOps logRecordOps, MethodExecuteResult methodExecuteResult,
+                                                    Map<String, String> beforeFunctionNameAndReturnMap) {
+        List<LogRecord> logRecords = new ArrayList<>();
+        EvaluationContext evaluationContext = expressionEvaluator.createEvaluationContext(methodExecuteResult.getMethod(),
+                methodExecuteResult.getArgs(), methodExecuteResult.getTargetClass(), methodExecuteResult.getResult(),
+                methodExecuteResult.getErrorMsg(), beanFactory);
+        AnnotatedElementKey annotatedElementKey = new AnnotatedElementKey(methodExecuteResult.getMethod(), methodExecuteResult.getTargetClass());
+        Object listObject = expressionEvaluator.parseExpression(logRecordOps.getList(), annotatedElementKey, evaluationContext);
+        if (listObject instanceof Collection) {
+            Collection<?> list = (Collection<?>) listObject;
+            for (Object item : list) {
+                StandardEvaluationContext itemContext = new StandardEvaluationContext(item);
+                itemContext.setVariables(evaluationContext.getVariables());
+                Map<String, String> expressionValues = processTemplate(getSpElTemplates(logRecordOps), methodExecuteResult, beforeFunctionNameAndReturnMap);
+                logRecords.add(buildLogRecord(logRecordOps, expressionValues, methodExecuteResult.getMethod()));
+            }
+        }
+        return logRecords;
+    }
+
+    private List<String> getSpElTemplates(LogRecordOps logRecordOps) {
+        List<String> spElTemplates = new ArrayList<>();
+        spElTemplates.add(logRecordOps.getType());
+        spElTemplates.add(logRecordOps.getBizNo());
+        spElTemplates.add(logRecordOps.getSubType());
+        spElTemplates.add(logRecordOps.getExtra());
+        spElTemplates.add(logRecordOps.getList());
+        spElTemplates.add(logRecordOps.getSuccessLogTemplate());
+        spElTemplates.add(logRecordOps.getFailLogTemplate());
+        return spElTemplates;
+    }
+
+    private LogRecord buildLogRecord(LogRecordOps logRecordOps, Map<String, String> expressionValues, Method method) {
+        return LogRecord.builder()
+                .tenant(expressionValues.get("tenant"))
+                .type(expressionValues.get(logRecordOps.getType()))
+                .bizNo(expressionValues.get(logRecordOps.getBizNo()))
+                .operator(expressionValues.get(logRecordOps.getOperatorId()))
+                .subType(expressionValues.get(logRecordOps.getSubType()))
+                .extra(expressionValues.get(logRecordOps.getExtra()))
+                .codeVariable(getCodeVariable(method))
+                .action(expressionValues.get(logRecordOps.getSuccessLogTemplate()))
+                .fail(false)
+                .createTime(new Date())
+                .list(expressionValues.get(logRecordOps.getList()))
+                .build();
+    }
+
+    private Map<CodeVariableType, Object> getCodeVariable(Method method) {
+        Map<CodeVariableType, Object> map = new HashMap<>();
+        map.put(CodeVariableType.ClassName, method.getDeclaringClass());
+        map.put(CodeVariableType.MethodName, method.getName());
+        return map;
+    }
 
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
