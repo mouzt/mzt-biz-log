@@ -18,6 +18,8 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.core.DefaultParameterNameDiscoverer;
+import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
@@ -35,6 +37,8 @@ import static com.mzt.logapi.service.ILogRecordPerformanceMonitor.*;
  */
 @Slf4j
 public class LogRecordInterceptor extends LogRecordValueParser implements MethodInterceptor, Serializable, SmartInitializingSingleton {
+
+    private final ParameterNameDiscoverer discoverer = new DefaultParameterNameDiscoverer();
 
     private LogRecordOperationSource logRecordOperationSource;
 
@@ -89,7 +93,26 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
         stopWatch.start(MONITOR_TASK_AFTER_EXECUTE);
         try {
             if (!CollectionUtils.isEmpty(operations)) {
-                recordExecute(methodExecuteResult, functionNameAndReturnMap, operations);
+                // Handle list processing for each operation
+                for (LogRecordOps operation : operations) {
+                    if (!StringUtils.isEmpty(operation.getList())) {
+                        // Get the list variable from method arguments
+                        Object listArg = getListArgument(args, method, operation.getList());
+                        if (listArg instanceof List) {
+                            List<?> listVariable = (List<?>) listArg;
+                            for (Object item : listVariable) {
+                                // Put the current item in context for SpEL evaluation
+                                LogRecordContext.putVariable(operation.getList(), item);
+                                // Record the log for this item
+                                recordExecute(methodExecuteResult, functionNameAndReturnMap, Collections.singleton(operation));
+                                // The context will be cleared in the finally block
+                            }
+                        }
+                    } else {
+                        // Normal single record processing
+                        recordExecute(methodExecuteResult, functionNameAndReturnMap, Collections.singleton(operation));
+                    }
+                }
             }
         } catch (Exception t) {
             log.error("log record parse exception", t);
@@ -108,6 +131,24 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
             throw methodExecuteResult.getThrowable();
         }
         return ret;
+    }
+
+    private Object getListArgument(Object[] args, Method method, String listName) {
+        String[] parameterNames = discoverer.getParameterNames(method);
+        if (parameterNames != null) {
+            for (int i = 0; i < parameterNames.length; i++) {
+                if (parameterNames[i].equals(listName) && i < args.length) {
+                    return args[i];
+                }
+            }
+        }
+        // If parameter name matching fails, try to find first List argument
+        for (Object arg : args) {
+            if (arg instanceof List) {
+                return arg;
+            }
+        }
+        return null;
     }
 
     private List<String> getBeforeExecuteFunctionTemplate(Collection<LogRecordOps> operations) {

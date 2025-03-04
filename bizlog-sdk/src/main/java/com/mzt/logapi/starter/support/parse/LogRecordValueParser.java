@@ -2,6 +2,7 @@ package com.mzt.logapi.starter.support.parse;
 
 import com.mzt.logapi.beans.MethodExecuteResult;
 import com.mzt.logapi.service.impl.DiffParseFunction;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -82,6 +83,62 @@ public class LogRecordValueParser implements BeanFactoryAware {
 
         }
         return expressionValues;
+    }
+
+    public List<Map<String, String>> processBatchTemplate(Collection<String> templates, MethodExecuteResult methodExecuteResult,
+                                             Map<String, String> beforeFunctionNameAndReturnMap, String listName) {
+        List<Map<String, String>> result = new ArrayList<>();
+        if (StringUtils.isEmpty(listName)) {
+            Map<String, String> singleResult = processTemplate(templates, methodExecuteResult, beforeFunctionNameAndReturnMap);
+            result.add(singleResult);
+            return result;
+        }
+
+        EvaluationContext evaluationContext = expressionEvaluator.createEvaluationContext(methodExecuteResult.getMethod(),
+                methodExecuteResult.getArgs(), methodExecuteResult.getTargetClass(), methodExecuteResult.getResult(),
+                methodExecuteResult.getErrorMsg(), beanFactory);
+
+        AnnotatedElementKey annotatedElementKey = new AnnotatedElementKey(methodExecuteResult.getMethod(), methodExecuteResult.getTargetClass());
+        Object listValue = expressionEvaluator.parseExpression("#" + listName, annotatedElementKey, evaluationContext);
+        
+        if (!(listValue instanceof Collection)) {
+            throw new IllegalArgumentException("List parameter must be a Collection type");
+        }
+
+        Collection<?> collection = (Collection<?>) listValue;
+        for (Object item : collection) {
+            evaluationContext.setVariable("item", item);
+            Map<String, String> itemResult = new HashMap<>();
+            
+            for (String expressionTemplate : templates) {
+                if (expressionTemplate.contains("{")) {
+                    Matcher matcher = pattern.matcher(expressionTemplate);
+                    StringBuffer parsedStr = new StringBuffer();
+                    boolean sameDiff = false;
+                    
+                    while (matcher.find()) {
+                        String expression = matcher.group(2);
+                        String functionName = matcher.group(1);
+                        if (DiffParseFunction.diffFunctionName.equals(functionName)) {
+                            expression = getDiffFunctionValue(evaluationContext, annotatedElementKey, expression);
+                            sameDiff = Objects.equals("", expression);
+                        } else {
+                            // Replace list variable references in expression
+                            expression = expression.replace("#" + listName + ".", "#item.");
+                            Object value = expressionEvaluator.parseExpression(expression, annotatedElementKey, evaluationContext);
+                            expression = logFunctionParser.getFunctionReturnValue(beforeFunctionNameAndReturnMap, value, expression, functionName);
+                        }
+                        matcher.appendReplacement(parsedStr, Matcher.quoteReplacement(expression == null ? "" : expression));
+                    }
+                    matcher.appendTail(parsedStr);
+                    itemResult.put(expressionTemplate, recordSameDiff(sameDiff, diffSameWhetherSaveLog) ? parsedStr.toString() : expressionTemplate);
+                } else {
+                    itemResult.put(expressionTemplate, expressionTemplate);
+                }
+            }
+            result.add(itemResult);
+        }
+        return result;
     }
 
     private boolean recordSameDiff(boolean sameDiff, boolean diffSameWhetherSaveLog) {

@@ -50,7 +50,7 @@ public @interface LogRecord {
     /**
      * @return 是否记录日志
      */
-    String condition() default "";
+    boolean condition() default true;
 
     /**
      * 记录成功日志的条件
@@ -58,4 +58,9 @@ public @interface LogRecord {
      * @return 表示成功的表达式，默认为空，代表不抛异常为成功
      */
     String successCondition() default "";
+
+    /**
+     * @return 批量操作时的列表变量名称
+     */
+    String list() default "";
 }

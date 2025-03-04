@@ -504,7 +504,6 @@ public class IUserServiceTest extends BaseTest {
         address.setCityName("武汉市");
         user.setAddress(address);
         userService.diffUser(user, user);
-
         List<LogRecord> logRecordList = logRecordService.queryLog(String.valueOf(user.getId()), LogRecordType.USER);
         Assert.assertEquals(0, logRecordList.size());
         logRecordService.clean();
