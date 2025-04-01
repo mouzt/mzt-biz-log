@@ -157,8 +157,8 @@ public class OrderServiceImpl implements IOrderService {
     }
     
     @Override
-    @LogRecord(success = "更新了订单{ORDER_BEFORE{#orderId}},更新内容为...",
-            type = LogRecordType.ORDER, bizNo = "{{#orderNo}}", list = "{{orders}}")
+    @LogRecord(success = "保存了订单{ORDER_BEFORE{#_l.orderId}},更新内容为...",
+            type = LogRecordType.ORDER, bizNo = "{{#_l.orderNo}}", list = "{{#orders}}")
     public boolean saveOrders(List<Order> orders) {
         log.info("【批量保存订单】orders size={}", orders.size());
         for (Order order : orders) {

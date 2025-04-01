@@ -7,6 +7,7 @@ import com.mzt.logserver.repository.mapper.LogRecordMapper;
 import com.mzt.logserver.repository.po.LogRecordPO;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -40,6 +41,13 @@ public class LogRecordRepositoryImpl extends ServiceImpl<LogRecordMapper, LogRec
         QueryWrapper<LogRecordPO> wrapper = new QueryWrapper<>();
         wrapper.lambda().eq(LogRecordPO::getType, type);
         return baseMapper.selectList(wrapper);
+    }
+
+    @Override
+    public List<LogRecordPO> queryAll() {
+        QueryWrapper<LogRecordPO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.lambda();
+        return baseMapper.selectList(queryWrapper);
     }
 
 }

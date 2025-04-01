@@ -23,6 +23,8 @@ public class DbLogRecordService implements ILogRecordService {
     public void record(LogRecord logRecord) {
         log.info("record:{}", logRecord);
         logRecordRepository.save(LogRecordPO.from(logRecord));
+        List<LogRecordPO> logRecordPOS = logRecordRepository.queryAll();
+        log.info("logRecordPOS:{}", logRecordPOS);
     }
 
     @Override

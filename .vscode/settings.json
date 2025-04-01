@@ -1,4 +1,7 @@
 {
     "java.compile.nullAnalysis.mode": "automatic",
-    "java.configuration.updateBuildConfiguration": "disabled"
+    "java.configuration.updateBuildConfiguration": "disabled",
+    "http.proxy": "http://127.0.0.1:8888",
+    "https.proxy": "https://127.0.0.1:8888",
+    "http.proxyStrictSSL": false
 }

@@ -20,4 +20,5 @@ public interface LogRecordRepository extends IService<LogRecordPO> {
      */
     List<LogRecordPO> queryLog(String type);
 
+    List<LogRecordPO> queryAll();
 }

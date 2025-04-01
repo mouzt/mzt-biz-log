@@ -106,7 +106,7 @@ public class IOrderServiceTest extends BaseTest {
             List<LogRecord> logRecordList = logRecordService.queryLog(order.getOrderNo(), LogRecordType.ORDER);
             Assert.assertEquals(1, logRecordList.size());
             LogRecord logRecord = logRecordList.get(0);
-            Assert.assertEquals(logRecord.getAction(), "更新了订单" + order.getOrderId() + ",更新内容为...");
+            Assert.assertEquals(logRecord.getAction(), "更新了订单更新了订单xxxx(" + order.getOrderId() + "1),更新内容为...");
             Assert.assertEquals(logRecord.getBizNo(), order.getOrderNo());
             Assert.assertFalse(logRecord.isFail());
         }
