@@ -48,8 +48,8 @@ public class DiffParseFunction {
                 throw new RuntimeException(e);
             }
         }
-        if (!Objects.equals(AopUtils.getTargetClass(source.getClass()), AopUtils.getTargetClass(target.getClass()))) {
-            log.error("diff的两个对象类型不同, source.class={}, target.class={}", source.getClass().toString(), target.getClass().toString());
+        if (!Objects.equals(AopUtils.getTargetClass(source), AopUtils.getTargetClass(target))) {
+            log.error("diff的两个对象类型不同, source={}, target={}", source, target);
             return "";
         }
         ObjectDifferBuilder objectDifferBuilder = ObjectDifferBuilder.startBuilding();
