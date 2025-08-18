@@ -12,6 +12,8 @@ import com.mzt.logapi.service.IOperatorGetService;
 import com.mzt.logapi.service.impl.DiffParseFunction;
 import com.mzt.logapi.starter.support.parse.LogFunctionParser;
 import com.mzt.logapi.starter.support.parse.LogRecordValueParser;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -25,6 +27,8 @@ import org.springframework.util.StringUtils;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import static com.mzt.logapi.service.ILogRecordPerformanceMonitor.*;
 
@@ -55,7 +59,6 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
     }
 
     private Object execute(MethodInvocation invoker, Object target, Method method, Object[] args) throws Throwable {
-        //代理不拦截
         if (AopUtils.isAopProxy(target)) {
             return invoker.proceed();
         }
@@ -81,33 +84,103 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
             ret = invoker.proceed();
             methodExecuteResult.setResult(ret);
             methodExecuteResult.setSuccess(true);
+
+            // 处理异步返回值
+            if (ret instanceof Mono) {
+                return handleMonoResult((Mono<?>) ret, methodExecuteResult, functionNameAndReturnMap, operations, stopWatch);
+            } else if (ret instanceof Flux) {
+                return handleFluxResult((Flux<?>) ret, methodExecuteResult, functionNameAndReturnMap, operations, stopWatch);
+            } else if (ret instanceof CompletionStage) {
+                return handleFutureResult((CompletionStage<?>) ret, methodExecuteResult, functionNameAndReturnMap, operations, stopWatch);
+            }
         } catch (Exception e) {
             methodExecuteResult.setSuccess(false);
             methodExecuteResult.setThrowable(e);
             methodExecuteResult.setErrorMsg(e.getMessage());
         }
+
+        // 同步执行或非异步类型
         stopWatch.start(MONITOR_TASK_AFTER_EXECUTE);
+        recordLogAndClean(methodExecuteResult, functionNameAndReturnMap, operations, stopWatch);
+
+        if (methodExecuteResult.getThrowable() != null) {
+            throw methodExecuteResult.getThrowable();
+        }
+        return ret;
+    }
+
+    private Mono<?> handleMonoResult(Mono<?> mono, MethodExecuteResult methodExecuteResult,
+        Map<String, String> functionNameAndReturnMap,
+        Collection<LogRecordOps> operations, StopWatch stopWatch) {
+        return mono.doOnSuccess(result -> {
+                methodExecuteResult.setResult(result);
+                methodExecuteResult.setSuccess(true);
+                stopWatch.start(MONITOR_TASK_AFTER_EXECUTE);
+                recordLogAndClean(methodExecuteResult, functionNameAndReturnMap, operations, stopWatch);
+            })
+            .doOnError(error -> {
+                methodExecuteResult.setSuccess(false);
+                methodExecuteResult.setThrowable(error);
+                methodExecuteResult.setErrorMsg(error.getMessage());
+                stopWatch.start(MONITOR_TASK_AFTER_EXECUTE);
+                recordLogAndClean(methodExecuteResult, functionNameAndReturnMap, operations, stopWatch);
+            });
+    }
+
+    private Flux<?> handleFluxResult(Flux<?> flux, MethodExecuteResult methodExecuteResult,
+        Map<String, String> functionNameAndReturnMap,
+        Collection<LogRecordOps> operations, StopWatch stopWatch) {
+        return flux.doOnComplete(() -> {
+                methodExecuteResult.setSuccess(true);
+                stopWatch.start(MONITOR_TASK_AFTER_EXECUTE);
+                recordLogAndClean(methodExecuteResult, functionNameAndReturnMap, operations, stopWatch);
+            })
+            .doOnError(error -> {
+                methodExecuteResult.setSuccess(false);
+                methodExecuteResult.setThrowable(error);
+                methodExecuteResult.setErrorMsg(error.getMessage());
+                stopWatch.start(MONITOR_TASK_AFTER_EXECUTE);
+                recordLogAndClean(methodExecuteResult, functionNameAndReturnMap, operations, stopWatch);
+            });
+    }
+    private CompletionStage<?> handleFutureResult(CompletionStage<?> future, MethodExecuteResult methodExecuteResult,
+        Map<String, String> functionNameAndReturnMap,
+        Collection<LogRecordOps> operations, StopWatch stopWatch) {
+        return future.whenComplete((result, error) -> {
+            if (error != null) {
+                methodExecuteResult.setSuccess(false);
+                methodExecuteResult.setThrowable(error);
+                methodExecuteResult.setErrorMsg(error.getMessage());
+            } else {
+                methodExecuteResult.setResult(result);
+                methodExecuteResult.setSuccess(true);
+            }
+            stopWatch.start(MONITOR_TASK_AFTER_EXECUTE);
+            recordLogAndClean(methodExecuteResult, functionNameAndReturnMap, operations, stopWatch);
+        });
+    }
+    private void recordLogAndClean(MethodExecuteResult methodExecuteResult,
+        Map<String, String> functionNameAndReturnMap,
+        Collection<LogRecordOps> operations,
+        StopWatch stopWatch) {
         try {
             if (!CollectionUtils.isEmpty(operations)) {
                 recordExecute(methodExecuteResult, functionNameAndReturnMap, operations);
             }
         } catch (Exception t) {
             log.error("log record parse exception", t);
-            throw t;
+            if (joinTransaction) throw t;
         } finally {
             LogRecordContext.clear();
             stopWatch.stop();
             try {
-                logRecordPerformanceMonitor.print(stopWatch);
+                if (logRecordPerformanceMonitor != null) {
+                    logRecordPerformanceMonitor.print(stopWatch);
+                }
             } catch (Exception e) {
                 log.error("execute exception", e);
             }
         }
-
-        if (methodExecuteResult.getThrowable() != null) {
-            throw methodExecuteResult.getThrowable();
-        }
-        return ret;
     }
 
     private List<String> getBeforeExecuteFunctionTemplate(Collection<LogRecordOps> operations) {
@@ -123,11 +196,11 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
     }
 
     private void recordExecute(MethodExecuteResult methodExecuteResult, Map<String, String> functionNameAndReturnMap,
-                               Collection<LogRecordOps> operations) {
+        Collection<LogRecordOps> operations) {
         for (LogRecordOps operation : operations) {
             try {
                 if (StringUtils.isEmpty(operation.getSuccessLogTemplate())
-                        && StringUtils.isEmpty(operation.getFailLogTemplate())) {
+                    && StringUtils.isEmpty(operation.getFailLogTemplate())) {
                     continue;
                 }
                 if (exitsCondition(methodExecuteResult, functionNameAndReturnMap, operation)) continue;
@@ -144,7 +217,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
     }
 
     private void successRecordExecute(MethodExecuteResult methodExecuteResult, Map<String, String> functionNameAndReturnMap,
-                                      LogRecordOps operation) {
+        LogRecordOps operation) {
         // 若存在 isSuccess 条件模版，解析出成功/失败的模版
         String action = "";
         boolean flag = true;
@@ -170,7 +243,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
     }
 
     private void failRecordExecute(MethodExecuteResult methodExecuteResult, Map<String, String> functionNameAndReturnMap,
-                                   LogRecordOps operation) {
+        LogRecordOps operation) {
         if (StringUtils.isEmpty(operation.getFailLogTemplate())) return;
 
         String action = operation.getFailLogTemplate();
@@ -182,7 +255,7 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
     }
 
     private boolean exitsCondition(MethodExecuteResult methodExecuteResult,
-                                   Map<String, String> functionNameAndReturnMap, LogRecordOps operation) {
+        Map<String, String> functionNameAndReturnMap, LogRecordOps operation) {
         if (!StringUtils.isEmpty(operation.getCondition())) {
             String condition = singleProcessTemplate(methodExecuteResult, operation.getCondition(), functionNameAndReturnMap);
             if (StringUtils.endsWithIgnoreCase(condition, "false")) return true;
@@ -191,23 +264,23 @@ public class LogRecordInterceptor extends LogRecordValueParser implements Method
     }
 
     private void saveLog(Method method, boolean flag, LogRecordOps operation, String operatorIdFromService,
-                         String action, Map<String, String> expressionValues) {
+        String action, Map<String, String> expressionValues) {
         if (StringUtils.isEmpty(expressionValues.get(action)) ||
-                (!diffSameWhetherSaveLog && action.contains("#") && Objects.equals(action, expressionValues.get(action)))) {
+            (!diffSameWhetherSaveLog && action.contains("#") && Objects.equals(action, expressionValues.get(action)))) {
             return;
         }
         LogRecord logRecord = LogRecord.builder()
-                .tenant(tenantId)
-                .type(expressionValues.get(operation.getType()))
-                .bizNo(expressionValues.get(operation.getBizNo()))
-                .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
-                .subType(expressionValues.get(operation.getSubType()))
-                .extra(expressionValues.get(operation.getExtra()))
-                .codeVariable(getCodeVariable(method))
-                .action(expressionValues.get(action))
-                .fail(flag)
-                .createTime(new Date())
-                .build();
+            .tenant(tenantId)
+            .type(expressionValues.get(operation.getType()))
+            .bizNo(expressionValues.get(operation.getBizNo()))
+            .operator(getRealOperatorId(operation, operatorIdFromService, expressionValues))
+            .subType(expressionValues.get(operation.getSubType()))
+            .extra(expressionValues.get(operation.getExtra()))
+            .codeVariable(getCodeVariable(method))
+            .action(expressionValues.get(action))
+            .fail(flag)
+            .createTime(new Date())
+            .build();
 
         bizLogService.record(logRecord);
     }
