@@ -68,8 +68,9 @@ public class LogRecordContext {
     }
 
     public static void clear() {
-        if (VARIABLE_MAP_STACK.get() != null) {
-            VARIABLE_MAP_STACK.get().pop();
+        Deque<Map<String, Object>> stack = VARIABLE_MAP_STACK.get();
+        if (stack != null && !stack.isEmpty()) {
+            stack.pop();
         }
     }
 
