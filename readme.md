@@ -49,12 +49,12 @@
 
 #### maven依赖添加SDK依赖
 
-```
-        <dependency>
-          <groupId>io.github.mouzt</groupId>
-          <artifactId>bizlog-sdk</artifactId>
-          <version>3.0.7-SNAPSHOT</version>
-        </dependency>
+```xml
+<dependency>
+    <groupId>io.github.mouzt</groupId>
+    <artifactId>bizlog-sdk</artifactId>
+    <version>3.0.7-SNAPSHOT</version>
+</dependency>
 ```
 #### SpringBoot入口打开开关,添加 @EnableLogRecord 注解
 tenant是代表租户的标识，一般一个服务或者一个业务下的多个服务都写死一个 tenant 就可以
@@ -62,10 +62,9 @@ tenant是代表租户的标识，一般一个服务或者一个业务下的多�
 @SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
 @EnableTransactionManagement
 @EnableLogRecord(tenant = "com.mzt.test")
-public class Main {
-
-  public static void main(String[] args) {
-    SpringApplication.run(Main.class, args);
+public class Main { 
+    public static void main(String[] args) {
+        SpringApplication.run(Main.class, args);
   }
 }
 ```
@@ -77,37 +76,37 @@ public class Main {
 * success：方法调用成功后把 success 记录在日志的内容中
 * SpEL 表达式：其中用双大括号包围起来的（例如：{{#order.purchaseName}}）#order.purchaseName 是 SpEL表达式。Spring中支持的它都支持的。比如调用静态方法，三目表达式。SpEL 可以使用方法中的任何参数
 
-```
-    @LogRecord(
-            success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,测试变量「{{#innerOrder.productName}}」,下单结果:{{#_ret}}",
-            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
-    public boolean createOrder(Order order) {
-        log.info("【创建订单】orderNo={}", order.getOrderNo());
-        // db insert order
-        Order order1 = new Order();
-        order1.setProductName("内部变量测试");
-        LogRecordContext.putVariable("innerOrder", order1);
-        return true;
-    }
+```java
+@LogRecord(
+        success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,测试变量「{{#innerOrder.productName}}」,下单结果:{{#_ret}}",
+        type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
+public boolean createOrder(Order order) {
+    log.info("【创建订单】orderNo={}", order.getOrderNo());
+    // db insert order
+    Order order1 = new Order();
+    order1.setProductName("内部变量测试");
+    LogRecordContext.putVariable("innerOrder", order1);
+    return true;
+}
 ```
 
 此时会打印操作日志 "张三下了一个订单,购买商品「超值优惠红烧肉套餐」,测试变量「内部变量测试」,下单结果:true"
 
 ###### 2. 期望记录失败的日志, 如果抛出异常则记录fail的日志，没有抛出记录 success 的日志。从 1.1.0-SNAPSHOT 版本开始，在LogRecord实体中添加了 fail 标志，可以通过这个标志区分方法是否执行成功了
 
-```
-    @LogRecord(
-            fail = "创建订单失败，失败原因：「{{#_errorMsg}}」",
-            success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,测试变量「{{#innerOrder.productName}}」,下单结果:{{#_ret}}",
-            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
-    public boolean createOrder(Order order) {
-        log.info("【创建订单】orderNo={}", order.getOrderNo());
-        // db insert order
-        Order order1 = new Order();
-        order1.setProductName("内部变量测试");
-        LogRecordContext.putVariable("innerOrder", order1);
-        return true;
-    }
+```java
+@LogRecord(
+        fail = "创建订单失败，失败原因：「{{#_errorMsg}}」",
+        success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,测试变量「{{#innerOrder.productName}}」,下单结果:{{#_ret}}",
+        type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
+public boolean createOrder(Order order) {
+    log.info("【创建订单】orderNo={}", order.getOrderNo());
+    // db insert order
+    Order order1 = new Order();
+    order1.setProductName("内部变量测试");
+    LogRecordContext.putVariable("innerOrder", order1);
+    return true;
+}
 ```
 其中的 #_errorMsg 是取的方法抛出异常后的异常的 errorMessage。
 
@@ -116,59 +115,59 @@ public class Main {
 比如一个订单的操作日志，有些操作日志是用户自己操作的，有些操作是系统运营人员做了修改产生的操作日志，我们系统不希望把运营的操作日志暴露给用户看到，
 但是运营期望可以看到用户的日志以及运营自己操作的日志，这些操作日志的bizNo都是订单号，所以为了扩展添加了子类型字段,主要是为了对日志做分类，查询方便，支持更多的业务。
 
-```
-    @LogRecord(
-            subType = "MANAGER_VIEW",
-            success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,测试变量「{{#innerOrder.productName}}」,下单结果:{{#_ret}}",
-            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
-    public boolean createOrder(Order order) {
-        log.info("【创建订单】orderNo={}", order.getOrderNo());
-        // db insert order
-        Order order1 = new Order();
-        order1.setProductName("内部变量测试");
-        LogRecordContext.putVariable("innerOrder", order1);
-        return true;
-    }
+```java
+@LogRecord(
+        subType = "MANAGER_VIEW",
+        success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,测试变量「{{#innerOrder.productName}}」,下单结果:{{#_ret}}",
+        type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
+public boolean createOrder(Order order) {
+    log.info("【创建订单】orderNo={}", order.getOrderNo());
+    // db insert order
+    Order order1 = new Order();
+    order1.setProductName("内部变量测试");
+    LogRecordContext.putVariable("innerOrder", order1);
+    return true;
+}
 ```
 ###### 4. 支持记录操作的详情或者额外信息
 
 如果一个操作修改了很多字段，但是success的日志模版里面防止过长不能把修改详情全部展示出来，这时候需要把修改的详情保存到 extra 字段， extra 是一个 String ，需要自己序列化。这里的 #order.toString()
 是调用了 Order 的 toString() 方法。 如果保存 JSON，自己重写一下 Order 的 toString() 方法就可以。
 
-```
-    @LogRecord(
-            extra = "{{#order.toString()}}",
-            success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,测试变量「{{#innerOrder.productName}}」,下单结果:{{#_ret}}",
-            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
-    public boolean createOrder(Order order) {
-        log.info("【创建订单】orderNo={}", order.getOrderNo());
-        // db insert order
-        Order order1 = new Order();
-        order1.setProductName("内部变量测试");
-        LogRecordContext.putVariable("innerOrder", order1);
-        return true;
-    }
+```java
+@LogRecord(
+        extra = "{{#order.toString()}}",
+        success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,测试变量「{{#innerOrder.productName}}」,下单结果:{{#_ret}}",
+        type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
+public boolean createOrder(Order order) {
+    log.info("【创建订单】orderNo={}", order.getOrderNo());
+    // db insert order
+    Order order1 = new Order();
+    order1.setProductName("内部变量测试");
+    LogRecordContext.putVariable("innerOrder", order1);
+    return true;
+}
 ```
 ###### 5. 如何指定操作日志的操作人是什么？ 框架提供了两种方法
 
 * 第一种：手工在LogRecord的注解上指定。这种需要方法参数上有operator
-```
-    @LogRecord(
-            operator = "{{#currentUser}}",
-            success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
-            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
-    public boolean createOrder(Order order, String currentUser) {
-        log.info("【创建订单】orderNo={}", order.getOrderNo());
-        // db insert order
-        return true;
-    }
+```java
+@LogRecord(
+        operator = "{{#currentUser}}",
+        success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
+        type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
+public boolean createOrder(Order order, String currentUser) {
+    log.info("【创建订单】orderNo={}", order.getOrderNo());
+    // db insert order
+    return true;
+}
 ```
 这种方法手工指定，需要方法参数上有 operator 参数，或者通过 SpEL 调用静态方法获取当前用户。
 
 * 第二种： 通过默认实现类来自动的获取操作人，由于在大部分web应用中当前的用户都是保存在一个线程上下文中的，所以每个注解都加一个operator获取操作人显得有些重复劳动，所以提供了一个扩展接口来获取操作人
   框架提供了一个扩展接口，使用框架的业务可以 implements 这个接口自己实现获取当前用户的逻辑， 对于使用 Springboot 的只需要实现 IOperatorGetService 接口，然后把这个 Service
   作为一个单例放到 Spring 的上下文中。使用 Spring Mvc 的就需要自己手工装配这些 bean 了。
-```
+```java
 @Configuration
 public class LogRecordConfiguration {
 
@@ -210,59 +209,59 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
 
 > ！！！自定义函数 的参数 从 1.1.0 开始，从String 更改为了Object，老版本需要修改一下定义
 
-```
-    // 没有使用自定义函数
-    @LogRecord(success = "更新了订单{{#orderId}},更新内容为....",
-            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
-            extra = "{{#order.toString()}}")
-    public boolean update(Long orderId, Order order) {
-        return false;
+```java
+// 没有使用自定义函数
+@LogRecord(success = "更新了订单{{#orderId}},更新内容为....",
+        type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
+        extra = "{{#order.toString()}}")
+public boolean update(Long orderId, Order order) {
+    return false;
+}
+
+//使用了自定义函数，主要是在 {{#orderId}} 的大括号中间加了 functionName
+@LogRecord(success = "更新了订单{ORDER{#orderId}},更新内容为...",
+        type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
+        extra = "{{#order.toString()}}")
+public boolean update(Long orderId, Order order) {
+    return false;
+}
+
+// 还需要加上函数的实现
+@Slf4j
+@Component
+public class OrderParseFunction implements IParseFunction {
+
+    @Override
+    public boolean executeBefore() {
+        return true;
     }
 
-    //使用了自定义函数，主要是在 {{#orderId}} 的大括号中间加了 functionName
-    @LogRecord(success = "更新了订单{ORDER{#orderId}},更新内容为...",
-            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
-            extra = "{{#order.toString()}}")
-    public boolean update(Long orderId, Order order) {
-        return false;
+    @Override
+    public String functionName() {
+        return "ORDER";
     }
 
-    // 还需要加上函数的实现
-    @Slf4j
-    @Component
-    public class OrderParseFunction implements IParseFunction {
-    
-        @Override
-        public boolean executeBefore() {
-            return true;
+    @Override
+    public String apply(Object value) {
+        log.info("@@@@@@@@");
+        if (StringUtils.isEmpty(value)) {
+            return "";
         }
-    
-        @Override
-        public String functionName() {
-            return "ORDER";
-        }
-    
-        @Override
-        public String apply(Object value) {
-            log.info("@@@@@@@@");
-            if (StringUtils.isEmpty(value)) {
-                return "";
-            }
-            log.info("###########,{}", value);
-            Order order = new Order();
-            order.setProductName("xxxx");
-            return order.getProductName().concat("(").concat(value.toString()).concat(")");
-        }
+        log.info("###########,{}", value);
+        Order order = new Order();
+        order.setProductName("xxxx");
+        return order.getProductName().concat("(").concat(value.toString()).concat(")");
     }
+}
 ```
 ###### 7. 日志文案调整 使用 SpEL 三目表达式
 
-```
-    @LogRecord(type = LogRecordTypeConstant.CUSTOM_ATTRIBUTE, bizNo = "{{#businessLineId}}",
-            success = "{{#disable ? '停用' : '启用'}}了自定义属性{ATTRIBUTE{#attributeId}}")
-    public CustomAttributeVO disableAttribute(Long businessLineId, Long attributeId, boolean disable) {
-    	return xxx;
-    }
+```java
+@LogRecord(type = LogRecordTypeConstant.CUSTOM_ATTRIBUTE, bizNo = "{{#businessLineId}}",
+        success = "{{#disable ? '停用' : '启用'}}了自定义属性{ATTRIBUTE{#attributeId}}")
+public CustomAttributeVO disableAttribute(Long businessLineId, Long attributeId, boolean disable) {
+    return xxx;
+}
 ```
 
 ###### 8. 日志文案调整 模版中使用方法参数之外的变量&函数中也可以使用Context中变量
@@ -273,19 +272,19 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
 
 若想跨方法使用，可通过LogRecordContext.putGlobalVariable(variableName, Object) 放入上下文中，此优先级为最低，若方法上下文中存在相同的变量，则会覆盖
 
-```
-    @Override
-    @LogRecord(
-            success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,测试变量「{{#innerOrder.productName}}」,下单结果:{{#_ret}}",
-            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
-    public boolean createOrder(Order order) {
-        log.info("【创建订单】orderNo={}", order.getOrderNo());
-        // db insert order
-        Order order1 = new Order();
-        order1.setProductName("内部变量测试");
-        LogRecordContext.putVariable("innerOrder", order1);
-        return true;
-    }
+```java
+@Override
+@LogRecord(
+        success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,测试变量「{{#innerOrder.productName}}」,下单结果:{{#_ret}}",
+        type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
+public boolean createOrder(Order order) {
+    log.info("【创建订单】orderNo={}", order.getOrderNo());
+    // db insert order
+    Order order1 = new Order();
+    order1.setProductName("内部变量测试");
+    LogRecordContext.putVariable("innerOrder", order1);
+    return true;
+}
 ```
 
 ###### 9. 函数中使用LogRecordContext的变量
@@ -293,71 +292,71 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
 使用 LogRecordContext.putVariable(variableName, Object) 添加的变量除了可以在注解的 SpEL 表达式上使用，还可以在自定义函数中使用 这种方式比较复杂，下面例子中示意了列表的变化，比如
 从[A,B,C] 改到 [B,D] 那么日志显示：「删除了A，增加了D」
 
-```
-    @LogRecord(success = "{DIFF_LIST{'文档地址'}}", bizNo = "{{#id}}", type = REQUIREMENT)
-    public void updateRequirementDocLink(String currentMisId, Long id, List<String> docLinks) {
-        RequirementDO requirementDO = getRequirementDOById(id);
-        LogRecordContext.putVariable("oldList", requirementDO.getDocLinks());
-        LogRecordContext.putVariable("newList", docLinks);
+```java
+@LogRecord(success = "{DIFF_LIST{'文档地址'}}", bizNo = "{{#id}}", type = REQUIREMENT)
+public void updateRequirementDocLink(String currentMisId, Long id, List<String> docLinks) {
+    RequirementDO requirementDO = getRequirementDOById(id);
+    LogRecordContext.putVariable("oldList", requirementDO.getDocLinks());
+    LogRecordContext.putVariable("newList", docLinks);
 
-        requirementModule.updateById("docLinks", RequirementUpdateDO.builder()
-                .id(id)
-                .docLinks(docLinks)
-                .updater(currentMisId)
-                .updateTime(new Date())
-                .build());
+    requirementModule.updateById("docLinks", RequirementUpdateDO.builder()
+            .id(id)
+            .docLinks(docLinks)
+            .updater(currentMisId)
+            .updateTime(new Date())
+            .build());
+}
+
+
+@Component
+public class DiffListParseFunction implements IParseFunction {
+
+    @Override
+    public String functionName() {
+        return "DIFF_LIST";
     }
-    
-    
-    @Component
-    public class DiffListParseFunction implements IParseFunction {
-    
-        @Override
-        public String functionName() {
-            return "DIFF_LIST";
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public String apply(String value) {
+        if (StringUtils.isBlank(value)) {
+            return value;
         }
-    
-        @SuppressWarnings("unchecked")
-        @Override
-        public String apply(String value) {
-            if (StringUtils.isBlank(value)) {
-                return value;
+        List<String> oldList = (List<String>) LogRecordContext.getVariable("oldList");
+        List<String> newList = (List<String>) LogRecordContext.getVariable("newList");
+        oldList = oldList == null ? Lists.newArrayList() : oldList;
+        newList = newList == null ? Lists.newArrayList() : newList;
+        Set<String> deletedSets = Sets.difference(Sets.newHashSet(oldList), Sets.newHashSet(newList));
+        Set<String> addSets = Sets.difference(Sets.newHashSet(newList), Sets.newHashSet(oldList));
+        StringBuilder stringBuilder = new StringBuilder();
+        if (CollectionUtils.isNotEmpty(addSets)) {
+            stringBuilder.append("新增了 <b>").append(value).append("</b>：");
+            for (String item : addSets) {
+                stringBuilder.append(item).append("，");
             }
-            List<String> oldList = (List<String>) LogRecordContext.getVariable("oldList");
-            List<String> newList = (List<String>) LogRecordContext.getVariable("newList");
-            oldList = oldList == null ? Lists.newArrayList() : oldList;
-            newList = newList == null ? Lists.newArrayList() : newList;
-            Set<String> deletedSets = Sets.difference(Sets.newHashSet(oldList), Sets.newHashSet(newList));
-            Set<String> addSets = Sets.difference(Sets.newHashSet(newList), Sets.newHashSet(oldList));
-            StringBuilder stringBuilder = new StringBuilder();
-            if (CollectionUtils.isNotEmpty(addSets)) {
-                stringBuilder.append("新增了 <b>").append(value).append("</b>：");
-                for (String item : addSets) {
-                    stringBuilder.append(item).append("，");
-                }
-            }
-            if (CollectionUtils.isNotEmpty(deletedSets)) {
-                stringBuilder.append("删除了 <b>").append(value).append("</b>：");
-                for (String item : deletedSets) {
-                    stringBuilder.append(item).append("，");
-                }
-            }
-            return StringUtils.isBlank(stringBuilder) ? null : stringBuilder.substring(0, stringBuilder.length() - 1);
         }
+        if (CollectionUtils.isNotEmpty(deletedSets)) {
+            stringBuilder.append("删除了 <b>").append(value).append("</b>：");
+            for (String item : deletedSets) {
+                stringBuilder.append(item).append("，");
+            }
+        }
+        return StringUtils.isBlank(stringBuilder) ? null : stringBuilder.substring(0, stringBuilder.length() - 1);
     }
+}
 ```
 
 ###### 10. 使用 condition，满足条件的时候才记录日志
 
 比如下面的例子：condition 变量为空的情况 才记录日志；condition 中的 SpEL 表达式必须是 bool 类型才生效。不配置 condition 默认日志都记录
 
-```
-    @LogRecord(success = "更新了订单ORDER{#orderId}},更新内容为...",
-            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
-            extra = "{{#order.toString()}}", condition = "{{#condition == null}}")
-    public boolean testCondition(Long orderId, Order order, String condition) {
-        return false;
-    }
+```java
+@LogRecord(success = "更新了订单ORDER{#orderId}},更新内容为...",
+        type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
+        extra = "{{#order.toString()}}", condition = "{{#condition == null}}")
+public boolean testCondition(Long orderId, Order order, String condition) {
+    return false;
+}
 ```
 
 ###### 11. 使用对象 diff 功能
@@ -368,34 +367,34 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
 __DIFF有重载的两种使用方式:
 下面的例子。__DIFF 函数传递了两个参数，一个是修改之前的对象，一个是修改之后的对象
 
-```
+```java
 @LogRecord(success = "更新了订单{_DIFF{#oldOrder, #newOrder}}",
-            type = LogRecordType.ORDER, bizNo = "{{#newOrder.orderNo}}",
-            extra = "{{#newOrder.toString()}}")
-    public boolean diff(Order oldOrder, Order newOrder) {
+        type = LogRecordType.ORDER, bizNo = "{{#newOrder.orderNo}}",
+        extra = "{{#newOrder.toString()}}")
+public boolean diff(Order oldOrder, Order newOrder) {
 
-        return false;
-    }
+    return false;
+}
 ```
 
 下面的例子。__DIFF 函数传递了一个参数，传递的参数是修改之后的对象，这种方式需要在方法内部向 LogRecordContext 中 put 一个变量，代表是之前的对象，这个对象可以是null
 
-```
+```java
 @LogRecord(success = "更新了订单{_DIFF{#newOrder}}",
-            type = LogRecordType.ORDER, bizNo = "{{#newOrder.orderNo}}",
-            extra = "{{#newOrder.toString()}}")
-    @Override
-    public boolean diff1(Order newOrder) {
+        type = LogRecordType.ORDER, bizNo = "{{#newOrder.orderNo}}",
+        extra = "{{#newOrder.toString()}}")
+@Override
+public boolean diff1(Order newOrder) {
 
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, null);
-        return false;
-    }
+    LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, null);
+    return false;
+}
 ```
 
 下面给出了需要DIFF的对象的例子，需要在参与DIFF的对象上添加上 @DiffLogField 注解，name：是生成的 DIFF 文案中 Field 的中文， function： 跟前面提到的
 function一样，例如可以把用户ID映射成用户姓名。
 
-```
+```java
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -426,43 +425,43 @@ public class Order {
 
 看下源码中的 test 示例：
 
-```
-    @Test
-    public void testDiff1() {
-        Order order = new Order();
-        order.setOrderId(99L);
-        order.setOrderNo("MT0000011");
-        order.setProductName("超值优惠红烧肉套餐");
-        order.setPurchaseName("张三");
-        Order.UserDO userDO = new Order.UserDO();
-        userDO.setUserId(9001L);
-        userDO.setUserName("用户1");
-        order.setCreator(userDO);
-        order.setItems(Lists.newArrayList("123", "bbb"));
+```java
+@Test
+public void testDiff1() {
+    Order order = new Order();
+    order.setOrderId(99L);
+    order.setOrderNo("MT0000011");
+    order.setProductName("超值优惠红烧肉套餐");
+    order.setPurchaseName("张三");
+    Order.UserDO userDO = new Order.UserDO();
+    userDO.setUserId(9001L);
+    userDO.setUserName("用户1");
+    order.setCreator(userDO);
+    order.setItems(Lists.newArrayList("123", "bbb"));
 
 
-        Order order1 = new Order();
-        order1.setOrderId(88L);
-        order1.setOrderNo("MT0000099");
-        order1.setProductName("麻辣烫套餐");
-        order1.setPurchaseName("赵四");
-        Order.UserDO userDO1 = new Order.UserDO();
-        userDO1.setUserId(9002L);
-        userDO1.setUserName("用户2");
-        order1.setCreator(userDO1);
-        order1.setItems(Lists.newArrayList("123", "aaa"));
-        orderService.diff(order, order1);
+    Order order1 = new Order();
+    order1.setOrderId(88L);
+    order1.setOrderNo("MT0000099");
+    order1.setProductName("麻辣烫套餐");
+    order1.setPurchaseName("赵四");
+    Order.UserDO userDO1 = new Order.UserDO();
+    userDO1.setUserId(9002L);
+    userDO1.setUserName("用户2");
+    order1.setCreator(userDO1);
+    order1.setItems(Lists.newArrayList("123", "aaa"));
+    orderService.diff(order, order1);
 
-        List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
-        Assert.assertEquals(1, logRecordList.size());
-        LogRecord logRecord = logRecordList.get(0);
-        Assert.assertEquals(logRecord.getAction(), "更新了订单【创建人的用户ID】从【9001】修改为【9002】；【创建人的用户姓名】从【用户1】修改为【用户2】；【列表项】添加了【xxxx(aaa)】删除了【xxxx(bbb)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
-        Assert.assertNotNull(logRecord.getExtra());
-        Assert.assertEquals(logRecord.getOperator(), "111");
-        Assert.assertEquals(logRecord.getBizNo(), order1.getOrderNo());
-        logRecordService.clean();
-    }
-    
+    List<LogRecord> logRecordList = logRecordService.queryLog("xxx");
+    Assert.assertEquals(1, logRecordList.size());
+    LogRecord logRecord = logRecordList.get(0);
+    Assert.assertEquals(logRecord.getAction(), "更新了订单【创建人的用户ID】从【9001】修改为【9002】；【创建人的用户姓名】从【用户1】修改为【用户2】；【列表项】添加了【xxxx(aaa)】删除了【xxxx(bbb)】；【订单ID】从【xxxx(99)】修改为【xxxx(88)】；【订单号】从【MT0000011】修改为【MT0000099】；");
+    Assert.assertNotNull(logRecord.getExtra());
+    Assert.assertEquals(logRecord.getOperator(), "111");
+    Assert.assertEquals(logRecord.getBizNo(), order1.getOrderNo());
+    logRecordService.clean();
+}
+
 ```
 
 最后打印的日志内容：
@@ -525,40 +524,40 @@ public class User {
 
 源码中的 test 示例：
 
-```
-    @Test
-    @Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void diffUser() {
-        User user = new User();
-        user.setId(1L);
-        user.setName("张三");
-        user.setSex("男");
-        user.setAge(18);
-        User.Address address = new User.Address();
-        address.setProvinceName("湖北省");
-        address.setCityName("武汉市");
-        user.setAddress(address);
+```java
+@Test
+@Sql(scripts = "/sql/clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+public void diffUser() {
+    User user = new User();
+    user.setId(1L);
+    user.setName("张三");
+    user.setSex("男");
+    user.setAge(18);
+    User.Address address = new User.Address();
+    address.setProvinceName("湖北省");
+    address.setCityName("武汉市");
+    user.setAddress(address);
 
-        User newUser = new User();
-        newUser.setId(1L);
-        newUser.setName("李四");
-        newUser.setSex("女");
-        newUser.setAge(20);
-        User.Address newAddress = new User.Address();
-        newAddress.setProvinceName("湖南省");
-        newAddress.setCityName("长沙市");
-        newUser.setAddress(newAddress);
-        userService.diffUser(user, newUser);
+    User newUser = new User();
+    newUser.setId(1L);
+    newUser.setName("李四");
+    newUser.setSex("女");
+    newUser.setAge(20);
+    User.Address newAddress = new User.Address();
+    newAddress.setProvinceName("湖南省");
+    newAddress.setCityName("长沙市");
+    newUser.setAddress(newAddress);
+    userService.diffUser(user, newUser);
 
-        List<LogRecord> logRecordList = logRecordService.queryLog(String.valueOf(user.getId()), LogRecordType.USER);
-        Assert.assertEquals(1, logRecordList.size());
-        LogRecord logRecord = logRecordList.get(0);
-        Assert.assertEquals(logRecord.getAction(), "更新了用户信息【address的cityName】从【武汉市】修改为【长沙市】；【address的provinceName】从【湖北省】修改为【湖南省】；【name】从【张三】修改为【李四】；【性别】从【男333】修改为【女333】");
-        Assert.assertNotNull(logRecord.getExtra());
-        Assert.assertEquals(logRecord.getOperator(), "111");
-        Assert.assertEquals(logRecord.getId(), user.getId());
-        logRecordService.clean();
-    }
+    List<LogRecord> logRecordList = logRecordService.queryLog(String.valueOf(user.getId()), LogRecordType.USER);
+    Assert.assertEquals(1, logRecordList.size());
+    LogRecord logRecord = logRecordList.get(0);
+    Assert.assertEquals(logRecord.getAction(), "更新了用户信息【address的cityName】从【武汉市】修改为【长沙市】；【address的provinceName】从【湖北省】修改为【湖南省】；【name】从【张三】修改为【李四】；【性别】从【男333】修改为【女333】");
+    Assert.assertNotNull(logRecord.getExtra());
+    Assert.assertEquals(logRecord.getOperator(), "111");
+    Assert.assertEquals(logRecord.getId(), user.getId());
+    logRecordService.clean();
+}
 ```
 
 最后打印的日志内容：
@@ -569,7 +568,7 @@ public class User {
 
 如果用户不想使用这样的文案怎么办呢？ 可以在配置文件中配置：其中__fieldName是：字段名称的替换变量，其他内置替换变量可以看 LogRecordProperties 的源码注释
 
-```
+```yaml
 mzt:
   log:
     record:
@@ -581,19 +580,19 @@ mzt:
 
 用户可以自己实现 ILogRecordPerformanceMonitor 接口，实现对日志性能的监控。默认是 DefaultLogRecordPerformanceMonitor 需要开启 debug 才能打印日志
 
-```
-//开启debug方法：
+```yaml
+#开启debug方法：
 logging:
   level:
     com.mzt.logapi.service.impl: debug
 
 
-//日志打印例子：
----------------------------------------------
-ns         %     Task name
----------------------------------------------
-000111278  003%  before-execute
-003277960  097%  after-execute
+# 日志打印例子：
+# ---------------------------------------------
+# ns         %     Task name
+# ---------------------------------------------
+# 000111278  003%  before-execute
+# 003277960  097%  after-execute
 ```
 
 ###### 13.记录成功日志的条件
@@ -601,23 +600,23 @@ ns         %     Task name
 默认逻辑：被注解的方法不抛出异常会记录 success 的日志内容，抛出异常会记录 fail 的日志内容， 当指定了 successCondition 后 successCondition 表达式为true的时候才会记录
 success内容，否则记录 fail 内容
 
-```
-    @LogRecord(success = "更新成功了订单{ORDER{#orderId}},更新内容为...",
-            fail = "更新失败了订单{ORDER{#orderId}},更新内容为...",
-            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
-            successCondition = "{{#result.code == 200}}")
-    public Result<Boolean> testResultOnSuccess(Long orderId, Order order) {
-        Result<Boolean> result = new Result<>(200, "成功", true);
-        LogRecordContext.putVariable("result", result);
-        return result;
-    }
+```java
+@LogRecord(success = "更新成功了订单{ORDER{#orderId}},更新内容为...",
+        fail = "更新失败了订单{ORDER{#orderId}},更新内容为...",
+        type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}",
+        successCondition = "{{#result.code == 200}}")
+public Result<Boolean> testResultOnSuccess(Long orderId, Order order) {
+    Result<Boolean> result = new Result<>(200, "成功", true);
+    LogRecordContext.putVariable("result", result);
+    return result;
+}
 ```
 
 ###### 14.日志记录与业务逻辑一起回滚
 
 默认日志记录错误不影响业务的流程，若希望日志记录过程如果出现异常，让业务逻辑也一起回滚，在 @EnableLogRecord 中 joinTransaction 属性设置为 true，
 另外 @EnableTransactionManagement order 属性设置为0 (让事务的优先级在@EnableLogRecord之前)
-```
+```java
 @EnableLogRecord(tenant = "com.mzt.test", joinTransaction = true)
 @EnableTransactionManagement(order = 0)
 public class Main {
@@ -631,19 +630,19 @@ public class Main {
 ###### 15.方法记录多条日志
 
 若希望一个方法记录多条日志，在方法上重复写两个注解即可，前提是两个注解**不相同**
-```
-    @LogRecord(
-            subType = "MANAGER_VIEW", extra = "{{#order.toString()}}",
-            success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
-            type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
-    @LogRecord(
-            subType = "USER_VIEW",
-            success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
-            type = LogRecordType.USER, bizNo = "{{#order.orderNo}}")
-    public boolean createOrders(Order order) {
-        log.info("【创建订单】orderNo={}", order.getOrderNo());
-        return true;
-    }
+```java
+@LogRecord(
+        subType = "MANAGER_VIEW", extra = "{{#order.toString()}}",
+        success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
+        type = LogRecordType.ORDER, bizNo = "{{#order.orderNo}}")
+@LogRecord(
+        subType = "USER_VIEW",
+        success = "{{#order.purchaseName}}下了一个订单,购买商品「{{#order.productName}}」,下单结果:{{#_ret}}",
+        type = LogRecordType.USER, bizNo = "{{#order.orderNo}}")
+public boolean createOrders(Order order) {
+    log.info("【创建订单】orderNo={}", order.getOrderNo());
+    return true;
+}
 ```
 
 ###### 16.用对象的`equals`和`toString`
@@ -652,7 +651,7 @@ public class Main {
 > 【localDate的dayOfMonth】从【1】修改为【4】；【localDate的dayOfWeek】从【WEDNESDAY】修改为【SATURDAY】；【localDate的dayOfYear】从【32】修改为【35】
 
 在配置文件中加入，`mzt.log.record.useEqualsMethod`，**需要填入类的全路径，多个类用英文逗号分割**
-```
+```yaml
 mzt:
   log:
     record:
@@ -666,7 +665,7 @@ mzt:
 
 * 重写OperatorGetServiceImpl通过上下文获取用户的扩展，例子如下
 
-```
+```java
 @Service
 public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
 
@@ -681,7 +680,7 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
 ```
 * ILogRecordService 保存/查询日志的例子,使用者可以根据数据量保存到合适的存储介质上，比如保存在数据库/或者ES。自己实现保存和删除就可以了
 > 也可以只实现保存的接口，毕竟已经保存在业务的存储上了，查询业务可以自己实现，不走 ILogRecordService 这个接口，毕竟产品经理会提一些千奇百怪的查询需求。
-```
+```java
 @Service
 public class DbLogRecordServiceImpl implements ILogRecordService {
 
@@ -708,7 +707,7 @@ public class DbLogRecordServiceImpl implements ILogRecordService {
 }
 ```
 * IParseFunction 自定义转换函数的接口，可以实现IParseFunction 实现对LogRecord注解中使用的函数扩展 例子：
-```
+```java
 @Component
 public class UserParseFunction implements IParseFunction {
     private final Splitter splitter = Splitter.on(",").trimResults();
