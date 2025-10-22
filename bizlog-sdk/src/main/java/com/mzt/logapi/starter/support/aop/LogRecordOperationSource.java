@@ -38,15 +38,12 @@ public class LogRecordOperationSource {
         specificMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);
 
         // First try is the method in the target class.
-        Collection<LogRecordOps> logRecordOps = parseLogRecordAnnotations(specificMethod);
-        Collection<LogRecordOps> logRecordsOps = parseLogRecordsAnnotations(specificMethod);
-        Collection<LogRecordOps> abstractLogRecordOps = parseLogRecordAnnotations(getInterfaceMethodIfPossible(method));
-        Collection<LogRecordOps> abstractLogRecordsOps = parseLogRecordsAnnotations(getInterfaceMethodIfPossible(method));
+        Method interfaceMethod = getInterfaceMethodIfPossible(method);
         HashSet<LogRecordOps> result = new HashSet<>();
-        result.addAll(logRecordOps);
-        result.addAll(abstractLogRecordOps);
-        result.addAll(logRecordsOps);
-        result.addAll(abstractLogRecordsOps);
+        result.addAll(parseLogRecordAnnotations(specificMethod));
+        result.addAll(parseLogRecordsAnnotations(specificMethod));
+        result.addAll(parseLogRecordAnnotations(interfaceMethod));
+        result.addAll(parseLogRecordsAnnotations(interfaceMethod));
         return result;
     }
 
